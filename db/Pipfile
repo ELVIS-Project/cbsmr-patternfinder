@@ -1,0 +1,15 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+psycopg2 = "*"
+music21 = "*"
+tqdm = "*"
+scmrsearch = {path = "./../scmr_search"}
+
+[requires]
+python_version = "3.7"
