@@ -1,0 +1,12 @@
+README.md
+setup.py
+indexers/__init__.py
+indexers/errors.py
+indexers/indexers.py
+indexers/tests/leiermann.intra_vectors
+indexers/tests/leiermann.notes
+indexers/tests/leiermann.xml
+scmr_search.egg-info/PKG-INFO
+scmr_search.egg-info/SOURCES.txt
+scmr_search.egg-info/dependency_links.txt
+scmr_search.egg-info/top_level.txt
