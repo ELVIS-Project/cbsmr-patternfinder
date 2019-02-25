@@ -68,9 +68,11 @@ def search_one():
         df = indexers.legacy_intra_vectors(data, 15)
         target_csv = indexers.legacy_intra_vectors_to_csv(df)
 
-    result = lib.search(query_csv.encode('utf-8'), target_csv.encode('utf-8'))
+    res = ffi.new("struct Result*")
 
-    return result
+    result = lib.search_return_chains(query_csv.encode('utf-8'), target_csv.encode('utf-8'), res)
+
+    return res
 
 def search_lemstrom():
 
