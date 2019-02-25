@@ -23,7 +23,7 @@ def notes_to_sql(df_notes, piece_id):
     sub_df = df_notes[['onset', 'pitch-b40']]
     return f"""
         INSERT INTO index.notes (piece_id, note)
-        VALUES {", ".join([f"('{piece_id}', '({o}, {p})')" for _, o, p in sub_df.itertuples()])}
+        VALUES {", ".join([f"('{piece_id}', '({float(o)}, {float(p)})')" for _, o, p in sub_df.itertuples()])}
         """
 
 def notes(symbolic_data):
@@ -46,7 +46,7 @@ def intra_vectors_to_sql(df_intra_vectors, piece_id):
     sub_df = df_intra_vectors[['onset', 'pitch-b40', 'startIndex', 'endIndex']]
     return f"""
         INSERT INTO index.intra_vectors (piece_id, vector, left_id, right_id)
-        VALUES {", ".join([f"('{piece_id}', '({x}, {y})', {start}, {end})" for _, x, y, start, end in sub_df.itertuples()])}
+        VALUES {", ".join([f"('{piece_id}', '({float(x)}, {float(y)})', {start}, {end})" for _, x, y, start, end in sub_df.itertuples()])}
         """
 
 def intra_vectors(symbolic_data):
@@ -65,6 +65,14 @@ def intra_vectors(symbolic_data):
     return pd.concat(intervals, axis=0) \
             .sort_values(by=["pitch-b40", "startIndex"]) \
             .reset_index(drop=True)
+
+def legacy_intra_vectors_to_sql(df_intra_vectors, piece_id):
+    sub_df = df_intra_vectors[['x', 'y', 'startIndex', 'endIndex', 'startPitch', 'endPitch', 'chromaticDiff', 'diatonicDiff']]
+    return f"""
+        INSERT INTO index.legacy_intra_vectors (piece_id, x, y, startIndex, endIndex, startPitch, endPitch, chromaticDiff, diatonicDiff)
+        VALUES {", ".join([f"('{piece_id}', '{float(x)}', '{float(y)}', '{start}', '{end}', '{float(startPitch)}', '{float(endPitch)}', '{float(chromaticDiff)}', '{float(diatonicDiff)}')"
+        for _, x, y, start, end, startPitch, endPitch, chromaticDiff, diatonicDiff in sub_df.itertuples()])}
+        """
 
 def legacy_intra_vectors(piece, window):
 
@@ -88,7 +96,7 @@ def legacy_intra_vectors(piece, window):
 
     df = pd.concat(intervals, axis=0).sort_values(by=["y", "startIndex"])
 
-    return legacy_intra_vectors_to_csv(df)
+    return df
 
 def legacy_intra_vectors_to_csv(df):
 

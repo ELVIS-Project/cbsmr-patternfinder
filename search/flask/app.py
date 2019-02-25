@@ -34,14 +34,14 @@ def index_id(piece_id):
     piece_id = int(piece_id)
     if request.method == "POST":
         data = request.get_data()
-        data = base64.b64decode(data).decode('utf-8')
+        #data = base64.b64decode(data).decode('utf-8')
         try:
             notes = indexers.notes(data)
-            intra_vectors = indexers.intra_vectors(data)
+            legacy_intra_vectors = indexers.legacy_intra_vectors(data, 15)
         except Exception as e:
             raise IndexerError from e
 
-        failures = { key: False for key in ("piece", "notes", "intra_vectors") }
+        failures = { key: (False, "") for key in ("piece", "notes", "legacy_intra_vectors") }
         with CONN, CONN.cursor() as cur:
             try:
                 cur.execute(
@@ -51,20 +51,32 @@ def index_id(piece_id):
                     """
                 )
             except Exception as e:
-                failures['piece'] = True
+                failures['piece'] = (True, str(e))
             try:
                 cur.execute(indexers.notes_to_sql(notes, piece_id))
             except Exception as e:
-                failures['notes'] = True
+                failures['notes'] = (True, str(e))
             try:
-                cur.execute(indexers.intra_vectors_to_sql(intra_vectors, piece_id))
+                cur.execute(indexers.legacy_intra_vectors_to_sql(legacy_intra_vectors, piece_id))
             except Exception as e:
-                failures['intra_vectors'] = True
-    if sum(failures.values()) == 0:
+                failures['legacy_intra_vectors'] = (True, str(e))
+    if sum(b for b, _ in failures.values()) == 0:
         return "Success!", 200
     else:
         return str(failures), 600
         
+@app.route("/search/<piece_id>", methods=["GET"])
+def search_one(piece_id):
+    """
+    Searches database for the query string
+    """
+    query_str = request.args("query")
+
+    df = indexers.legacy_intra_vectors(query_str, 1)
+    query_csv = indexers.legacy_intra_vectors_to_csv(df)
+
+
+
 
 if __name__ == '__main__':
     app.run()
