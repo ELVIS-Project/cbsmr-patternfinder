@@ -7,14 +7,12 @@ from tqdm import tqdm
 from _w2 import ffi, lib
 
 
-ELVISDUMP = "/Users/davidgarfinkle/elvis-project/elvisdump"
+ELVISDUMP = "/Users/davidgarfinkle/elvis-project/elvisdump/"
 ENDPOINT = "http://localhost:5000/"
 
-"""
 POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
 CONN = psycopg2.connect(POSTGRES_CONN_STR)
 CONN.autocommit = True
-"""
 
 def post_piece(path):
     dumpname, format = os.path.splitext(os.path.basename(path))
@@ -44,9 +42,9 @@ def index_all():
             f.write(f"p {p}, resp {response.content}\n")
 
 
-def index_one():
-    p = "/Users/davidgarfinkle/elvis-project/elvisdump/MID/000000000003688_Virgo-salutifieri-genitrix_Josquin-Des-Prez_file4.midi"
-    response = post_piece(p)
+def index_one(path=None):
+    p = path or "000000000011007_Missa-Io-mi-son-giovinetta-primi-toni-_Credo_Palestrina-Giovanni-Pierluigi-da_file2.mid"
+    response = post_piece(ELVISDUMP + 'MID/' + p)
     from pprint import pprint
     pprint(response.content.decode('utf-8'))
 
@@ -72,7 +70,47 @@ def search_one():
 
     result = lib.search_return_chains(query_csv.encode('utf-8'), target_csv.encode('utf-8'), res)
 
+    assert res.num_occs > 0
+
     return res
+
+def search_one_db():
+    p = "000000000011007_Missa-Io-mi-son-giovinetta-primi-toni-_Credo_Palestrina-Giovanni-Pierluigi-da_file2.mid"
+    pid = 11007
+
+    query_str = """**kern
+        *clefG2
+        *k[]
+        *M4/4
+        =-
+        4c 4e 4a 4cc
+        4B- f b- dd"""
+    df = indexers.legacy_intra_vectors(query_str, 1)
+    query_csv = indexers.legacy_intra_vectors_to_csv(df)
+
+    print("selecting vecs and notes from db...")
+    with CONN, CONN.cursor() as cur:
+        cur.execute(f"SELECT * FROM index.legacy_intra_vectors WHERE piece_id = {pid} ORDER BY y")
+        target_tuple = cur.fetchall()
+        vec_count = str(cur.rowcount)
+        cur.execute(f"SELECT * FROM index.notes WHERE piece_id = {pid}")
+        note_count = str(cur.rowcount)
+
+    print("constructing csv...")
+    target_csv = "\n".join(["empty_headers", note_count, vec_count])
+    for _, _, a, b, c, d, e, f, g, h in target_tuple:
+        target_csv += "\n"
+        target_csv += ",".join([str(x) for x in [a, b, c, d, e, f, g, h]])
+
+    res = ffi.new("struct Result*")
+
+    result = lib.search_return_chains(query_csv.encode('utf-8'), target_csv.encode('utf-8'), res)
+
+    assert res.num_occs > 0
+    # TODO: make an sql to Struct* Score function so you can store the data structure in mem
+
+    return res
+
 
 def search_lemstrom():
 

@@ -2,6 +2,8 @@ import sys
 import os
 import csv
 import io
+import xml.etree.ElementTree as ET
+import base64
 import music21
 import pandas as pd
 import numpy as np
@@ -9,6 +11,8 @@ from indexers.errors import *
 
 us = music21.environment.UserSettings()
 us.restoreDefaults()
+
+
 
 def _note_indexer(note):
     return {
@@ -67,9 +71,9 @@ def intra_vectors(symbolic_data):
             .reset_index(drop=True)
 
 def legacy_intra_vectors_to_sql(df_intra_vectors, piece_id):
-    sub_df = df_intra_vectors[['x', 'y', 'startIndex', 'endIndex', 'startPitch', 'endPitch', 'chromaticDiff', 'diatonicDiff']]
+    sub_df = df_intra_vectors[['x', 'y', 'startIndex', 'endIndex', 'startPitch', 'endPitch', 'diatonicDiff', 'chromaticDiff']]
     return f"""
-        INSERT INTO index.legacy_intra_vectors (piece_id, x, y, startIndex, endIndex, startPitch, endPitch, chromaticDiff, diatonicDiff)
+        INSERT INTO index.legacy_intra_vectors (piece_id, x, y, startIndex, endIndex, startPitch, endPitch, diatonicDiff, chromaticDiff)
         VALUES {", ".join([f"('{piece_id}', '{float(x)}', '{float(y)}', '{start}', '{end}', '{float(startPitch)}', '{float(endPitch)}', '{float(chromaticDiff)}', '{float(diatonicDiff)}')"
         for _, x, y, start, end, startPitch, endPitch, chromaticDiff, diatonicDiff in sub_df.itertuples()])}
         """
@@ -196,6 +200,22 @@ class NotePointSet(music21.stream.Stream):
             self.insert(n)
 
 
+
+def index_measures(symbolic_data, piece_id, db_conn):
+    m21_score = music21.converter.parse(symbolic_data)
+
+    measured_score = m21_score.makeMeasures()
+    for mid, m21_measure in enumerate(measured_score):
+        exporter = music21.musicxml.m21ToXml.ScoreExporter(m21_measure)
+        return exporter.parse()
+        print(ET.tostringlist(exporter.parse()))
+        xml_dump = base64.b64encode(ET.tostring(exporter.parse()))
+        with db_conn, db_conn.cursor() as cur:
+            cur.execute(f"""
+                INSERT INTO music.measures (pid, mid, data)
+                VALUES ('{piece_id}', '{mid}', '{xml_dump.hex()}')
+            """)
+
 if __name__ == "__main__":
 
     if (len(sys.argv) < 3) or any(x in ("-h", "--help") for x in sys.argv):
@@ -216,7 +236,6 @@ if __name__ == "__main__":
     
     with open(input_filename + '.' + method, 'w') as f:
         df.to_csv(f)
-
 
 """
     if (len(sys.argv) < 1) or (sys.argv[1] in ("-h", "--help")):

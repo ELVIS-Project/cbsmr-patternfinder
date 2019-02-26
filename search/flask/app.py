@@ -52,6 +52,8 @@ def index_id(piece_id):
                 )
             except Exception as e:
                 failures['piece'] = (True, str(e))
+
+
             try:
                 cur.execute(indexers.notes_to_sql(notes, piece_id))
             except Exception as e:
@@ -65,16 +67,32 @@ def index_id(piece_id):
     else:
         return str(failures), 600
         
-@app.route("/search/<piece_id>", methods=["GET"])
-def search_one(piece_id):
+@app.route("/search", methods=["GET"])
+def search_all():
     """
-    Searches database for the query string
+    Searches entire database for the query string
     """
     query_str = request.args("query")
 
     df = indexers.legacy_intra_vectors(query_str, 1)
     query_csv = indexers.legacy_intra_vectors_to_csv(df)
 
+    with CONN, CONN.cursor() as cur:
+        cur.execute(f"SELECT * FROM index.legacy_intra_vectors ORDER BY y")
+        target_tuple = cur.fetchall()
+        vec_count = str(cur.rowcount)
+        cur.execute(f"SELECT COUNT(*) FROM index.notes WHERE piece_id = {pid}")
+        note_count = str(cur.rowcount)
+
+    print("constructing csv...")
+    target_csv = "\n".join(["empty_headers", note_count, vec_count])
+    for _, _, a, b, c, d, e, f, g, h in target_tuple:
+        target_csv += "\n"
+        target_csv += ",".join([str(x) for x in [a, b, c, d, e, f, g, h]])
+
+    res = ffi.new("struct Result*")
+
+    result = lib.search_return_chains(query_csv.encode('utf-8'), target_csv.encode('utf-8'), res)
 
 
 
