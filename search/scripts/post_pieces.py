@@ -48,6 +48,22 @@ def index_one(path=None):
     from pprint import pprint
     pprint(response.content.decode('utf-8'))
 
+def post_search(query):
+    return requests.get(ENDPOINT + "search", params={'query': query})
+
+def search():
+    query_str = """**kern
+        *clefG2
+        *k[]
+        *M4/4
+        =-
+        4c 4e 4a 4cc
+        4B- f b- dd"""
+    
+    res = post_search(query_str)
+
+    return res
+
 def search_one():
     p = "000000000011007_Missa-Io-mi-son-giovinetta-primi-toni-_Credo_Palestrina-Giovanni-Pierluigi-da_file2.mid"
 

@@ -1,3 +1,7 @@
-message notesIndex{
-
+message Note {
+    required float onset = 1;
+    required float offset = 2;
+    required int32 pitch_b40 = 3;
+    required uint32 piece_id = 4;
+    required uint32 measure_id = 5; 
 }
