@@ -24,10 +24,10 @@ def _note_indexer(note):
     }
 
 def notes_to_sql(df_notes, piece_id):
-    sub_df = df_notes[['onset', 'pitch-b40']]
+    sub_df = df_notes[['onset', 'offset', 'pitch-b40']]
     return f"""
-        INSERT INTO index.notes (piece_id, note)
-        VALUES {", ".join([f"('{piece_id}', '({float(o)}, {float(p)})')" for _, o, p in sub_df.itertuples()])}
+        INSERT INTO Note (piece_id, piece_idx, onset, "offset", "pitch-b40")
+        VALUES {", ".join([f"('{piece_id}', {idx}, '{float(on)}', '{float(off)}', '{p}')" for idx, (_, on, off, p) in enumerate(sub_df.itertuples())])}
         """
 
 def notes(symbolic_data):
@@ -49,7 +49,7 @@ def notes(symbolic_data):
 def intra_vectors_to_sql(df_intra_vectors, piece_id):
     sub_df = df_intra_vectors[['onset', 'pitch-b40', 'startIndex', 'endIndex']]
     return f"""
-        INSERT INTO index.intra_vectors (piece_id, vector, left_id, right_id)
+        INSERT INTO intra_vectors (piece_id, vector, left_id, right_id)
         VALUES {", ".join([f"('{piece_id}', '({float(x)}, {float(y)})', {start}, {end})" for _, x, y, start, end in sub_df.itertuples()])}
         """
 
@@ -73,7 +73,7 @@ def intra_vectors(symbolic_data):
 def legacy_intra_vectors_to_sql(df_intra_vectors, piece_id):
     sub_df = df_intra_vectors[['x', 'y', 'startIndex', 'endIndex', 'startPitch', 'endPitch', 'diatonicDiff', 'chromaticDiff']]
     return f"""
-        INSERT INTO index.legacy_intra_vectors (piece_id, x, y, startIndex, endIndex, startPitch, endPitch, diatonicDiff, chromaticDiff)
+        INSERT INTO legacy_intra_vectors (piece_id, x, y, startIndex, endIndex, startPitch, endPitch, diatonicDiff, chromaticDiff)
         VALUES {", ".join([f"('{piece_id}', '{float(x)}', '{float(y)}', '{start}', '{end}', '{float(startPitch)}', '{float(endPitch)}', '{float(chromaticDiff)}', '{float(diatonicDiff)}')"
         for _, x, y, start, end, startPitch, endPitch, chromaticDiff, diatonicDiff in sub_df.itertuples()])}
         """
@@ -120,6 +120,18 @@ def legacy_intra_vectors_to_csv(df):
     output = file_obj.getvalue()
     file_obj.close()
     return output
+
+def parse_piece_path(piece_path):
+	base, fmt = os.path.splitext(piece_path)
+	fmt = fmt[1:] # skip '.'
+	base = [x for x in os.path.basename(base).split("_") if not "file" in x]
+
+	piece_id = base[0]
+	name = base[1].replace('-', ' ')
+	composer = base[2].replace('-', ' ')
+	corpus = 'elvis'
+
+	return piece_id, name, composer, corpus, fmt
 
 def music21Chord_to_music21Notes(chord):
     """
@@ -204,22 +216,34 @@ class NotePointSet(music21.stream.Stream):
 def index_measures(symbolic_data, piece_id, db_conn):
     m21_score = music21.converter.parse(symbolic_data)
 
-    measured_score = m21_score.makeMeasures()
-    for mid, m21_measure in enumerate(measured_score):
-        exporter = music21.musicxml.m21ToXml.ScoreExporter(m21_measure)
-        return exporter.parse()
-        print(ET.tostringlist(exporter.parse()))
-        xml_dump = base64.b64encode(ET.tostring(exporter.parse()))
-        with db_conn, db_conn.cursor() as cur:
-            cur.execute(f"""
-                INSERT INTO music.measures (pid, mid, data)
-                VALUES ('{piece_id}', '{mid}', '{xml_dump.hex()}')
-            """)
+    #print("Hanging on MakeMeasures", flush=True)
+    #measured_score = m21_score.makeMeasures()
+    #print("enumerating measures", flush=True)
+    #enumerated_measures = enumerate(measured_score)
+
+    mid = 1
+    m21_measures = list(m21_score.measures(mid, mid).recurse(classFilter=['Measure']))
+    while len(m21_measures) > 0:
+        print(mid, end=' ', flush=True)
+        for m21_measure in m21_measures:
+            measure_out = m21_measure.write('xml')
+            with open(measure_out, 'rb') as f:
+                data = base64.b64encode(f.read()).decode('utf-8')
+
+            with db_conn, db_conn.cursor() as cur:
+                cur.execute(f"""
+                    INSERT INTO Measure (pid, mid, onset, data)
+                    VALUES ('{piece_id}', '{mid}', '{float(m21_measure.offset)}', '{data}')
+                """)
+        
+        mid += 1
+        m21_measures = list(m21_score.measures(mid, mid).recurse(classFilter=['Measure']))
 
 if __name__ == "__main__":
 
-    if (len(sys.argv) < 3) or any(x in ("-h", "--help") for x in sys.argv):
+    if (len(sys.argv) < 3):
         print("indexers.py method input")
+        sys.exit(0)
 
     method = sys.argv[1]
     input = sys.argv[2]

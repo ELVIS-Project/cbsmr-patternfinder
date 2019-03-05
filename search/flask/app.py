@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from errors import *
 from _w2 import ffi, lib
 import indexers
@@ -13,7 +13,7 @@ app = Flask(__name__)
 POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
 
 CONN = psycopg2.connect(POSTGRES_CONN_STR)
-CONN.autocommit = True
+CONN.autocommit = False
 
 @app.route("/")
 def root():
@@ -27,6 +27,15 @@ def index():
     if request.method == "POST":
         return "yay", 200
 
+def is_piece_in_db(piece_id):
+    with CONN, CONN.cursor() as cur:
+        cur.execute(
+            f"""
+                SELECT id FROM Piece WHERE id={piece_id};
+            """
+        )
+        return cur.rowcount == 1
+
 @app.route("/index/<piece_id>", methods=["GET", "POST"])
 def index_id(piece_id):
     """
@@ -36,22 +45,54 @@ def index_id(piece_id):
     if request.method == "POST":
         data = request.get_data()
         #data = base64.b64decode(data).decode('utf-8')
+        if is_piece_in_db(piece_id) is True:
+            return "piece already in db", 400
         try:
+            print("notes...")
             notes = indexers.notes(data)
-            legacy_intra_vectors = indexers.legacy_intra_vectors(data, 15)
+            print("vectors...")
+            legacy_intra_vectors = indexers.legacy_intra_vectors(data, 4)
         except Exception as e:
             raise IndexerError from e
 
-        failures = { key: (False, "") for key in ("piece", "notes", "legacy_intra_vectors") }
         with CONN, CONN.cursor() as cur:
-            csv_vectors = indexers.legacy_intra_vectors_to_csv(legacy_intra_vectors)
-            cur.execute(
-                f"""
-                INSERT INTO music.pieces (id, name, vectors, num_notes, format, diskpath)
-                VALUES ({piece_id}, '', '{csv_vectors}', '{len(notes.index)}', '', '');
-                """
-            )
+            print("inserting to db...")
+            try:
+                csv_vectors = indexers.legacy_intra_vectors_to_csv(legacy_intra_vectors)
+                cur.execute(
+                    f"""
+                    INSERT INTO Piece (id, vectors)
+                    VALUES ({piece_id}, '{csv_vectors}');
+                    """
+                )
+                cur.execute(indexers.notes_to_sql(notes, piece_id))
+                print("measures...")
+                #indexers.index_measures(data, piece_id, CONN)
+            except Exception as e:
+                print(f"Failed to enter {piece_id}: \n{str(e)}")
+                return "no", 500
+
     return "yay!", 200
+
+def extract_chain(c_array):
+    i = 0
+    note_indices = []
+    while c_array[i] != 0 and c_array[i] != '\0':
+        note_indices.append(c_array[i])
+        i += 1
+    return note_indices
+
+def filter_chain(chain, window):
+    return sum((r - l <= window) for l, r in zip(chain, chain[1:])) == len(chain) - 1
+
+def query_measures(chain, piece_id):
+    with CONN, CONN.cursor() as cur:
+        cur.execute(f"""
+            SELECT DISTINCT (data) FROM Measure JOIN Note
+            ON Measure.onset = Note.onset
+            WHERE Note.piece_id = {piece_id} AND Note.piece_idx IN {tuple(chain)} AND Measure.pid={piece_id};
+        """)
+        return [res[0] for res in cur.fetchall()]
         
 @app.route("/search", methods=["GET"])
 def search_all():
@@ -64,17 +105,22 @@ def search_all():
     query_csv = indexers.legacy_intra_vectors_to_csv(df)
 
     with CONN, CONN.cursor() as cur:
-        cur.execute(f"SELECT vectors, id FROM music.pieces")
+        cur.execute(f"SELECT vectors, id FROM Piece")
         target_csv_list = cur.fetchall()
 
-    chains = []
-    for target in target_csv_list:
-        print(target[1])
+    resp = {'chains' : [], 'measures': []}
+    for target_csv, piece_id in target_csv_list:
+        print(piece_id)
         res = ffi.new("struct Result*")
-        result = lib.search_return_chains(query_csv.encode('utf-8'), target[0].encode('utf-8'), res)
-        chains.append(res.num_occs)
+        result = lib.search_return_chains(query_csv.encode('utf-8'), target_csv.encode('utf-8'), res)
 
-    return str(sum(chains)), 200
+        for i in range(res.num_occs):
+            chain = extract_chain(res.chains[i])
+            if filter_chain(chain, 10):
+                resp['chains'].append(chain)
+                resp['measures'].append(query_measures(chain, piece_id))
+
+    return jsonify(resp)
 
 
 if __name__ == '__main__':

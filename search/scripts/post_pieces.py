@@ -37,7 +37,7 @@ def index_all():
         files.append(filepath)
 
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "post_piece.log"), "w", buffering=1) as f:
-        for p in tqdm(files):
+        for p in tqdm(files[:95]):
             response = post_piece(p)
             f.write(f"p {p}, resp {response.content}\n")
 
@@ -142,3 +142,7 @@ def search_lemstrom():
     result = lib.search_return_chains(q_str.encode('utf-8'), t_str.encode('utf-8'), res)
 
     return res
+
+def res_to_measures(res):
+    list_of_measures = res.json()['measures']
+    return [[base64.b64decode(m).decode('utf-8') for m in sublist] for sublist in list_of_measures]

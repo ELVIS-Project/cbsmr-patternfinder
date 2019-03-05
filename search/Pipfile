@@ -17,6 +17,8 @@ requests = "*"
 scmr-search = {editable = true,path = "."}
 sqlalchemy = "*"
 psycopg2 = "*"
+ipython = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.7"
