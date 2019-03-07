@@ -3,6 +3,7 @@ import requests
 import base64
 import psycopg2
 import indexers
+import json
 from tqdm import tqdm
 from _w2 import ffi, lib
 
@@ -61,6 +62,13 @@ def search():
         4B- f b- dd"""
     
     res = post_search(query_str)
+
+    for chain, measures in zip(*json.loads(res.content.decode('utf-8')).values()):
+        print("Found these note indices: ")
+        print(chain)
+        for measure in measures:
+            print("corresponding to these measures")
+            print(base64.b64decode(measure.encode('utf-8')).decode('utf-8'))
 
     return res
 
