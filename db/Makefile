@@ -1,11 +1,8 @@
-db: dockerclean dockerbuild rmdb
+db: dockerclean rmdb
 	docker-compose up db
 
 rmdb:
 	rm -rf postgres-data
 
-dockerbuild:
-	docker build . -t scmr_db:latest
-
-make dockerclean:
+dockerclean:
 	docker-compose down
