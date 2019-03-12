@@ -1,3 +1,3 @@
 [submodule "search/helsinki-ttwi"]
 	path = search/helsinki-ttwi
-	url = git@github.com:davidgarfinkle/helsinki-ttwi
+	url = https://github.com/davidgarfinkle/helsinki-ttwi
