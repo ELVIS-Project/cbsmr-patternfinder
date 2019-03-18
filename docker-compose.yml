@@ -1,0 +1,13 @@
+version: "3.1"
+
+services:
+  search:
+    build: search/
+  db:
+    image: 'postgres:10'
+    volumes:
+      - ../elvisdump:/var/elvisdump
+      - ./db/db-init-scripts/:/docker-entrypoint-initdb.d/
+      - ./db/postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
