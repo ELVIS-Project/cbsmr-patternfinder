@@ -22,6 +22,7 @@ CREATE TABLE Measure (
 	id SERIAL PRIMARY KEY,
 	mid INT,
 	pid INT REFERENCES Piece(id),
+	nid INT REFERENCES Note(id),
 	onset REAL,
 	data TEXT
 );
