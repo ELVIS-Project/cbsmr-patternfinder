@@ -22,7 +22,6 @@ CREATE TABLE Measure (
 	id SERIAL PRIMARY KEY,
 	mid INT,
 	pid INT REFERENCES Piece(id),
-	nid INT REFERENCES Note(id),
 	onset REAL,
 	data TEXT
 );
@@ -36,6 +35,8 @@ CREATE TABLE Note (
 	"offset" REAL,
 	"pitch-b40" REAL
 );
+
+ALTER TABLE Measure ADD COLUMN nid INT REFERENCES Note(id);
 
 CREATE TABLE Trigram (
 	id SERIAL PRIMARY KEY,
