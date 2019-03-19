@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 from flask import Flask, request, jsonify
 from errors import *
 from _w2 import ffi, lib
@@ -12,7 +14,12 @@ app = Flask(__name__)
 #engine = sqlalchemy.create_engine(POSTGRES_CONN_STR)
 POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
 
-CONN = psycopg2.connect(POSTGRES_CONN_STR)
+try:
+	CONN = psycopg2.connect(POSTGRES_CONN_STR)
+except Exception as e:
+	import time
+	time.sleep(7)
+	CONN = psycopg2.connect(POSTGRES_CONN_STR)
 CONN.autocommit = False
 
 @app.route("/")
@@ -124,4 +131,4 @@ def search_all():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0", port=80)
