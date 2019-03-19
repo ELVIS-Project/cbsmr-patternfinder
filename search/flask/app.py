@@ -74,7 +74,7 @@ def index_id(piece_id):
                 )
                 cur.execute(indexers.notes_to_sql(notes, piece_id))
                 print("measures...")
-                indexers.index_measures(data, piece_id, CONN, notes)
+                indexers.index_measures(data, piece_id, CONN)
             except Exception as e:
                 print(f"Failed to enter {piece_id}: \n{str(e)}")
                 return "no", 500
@@ -128,6 +128,43 @@ def search_all():
                 resp['measures'].append(query_measures(chain, piece_id))
 
     return jsonify(resp)
+
+def coloured_excerpt(note_list, piece_id):
+    excerpt = music21.stream.Stream()
+    score_note_ids = []
+
+    with CONN, CONN.cursor() as cur:
+        cur.execute(f"SELECT data, nid FROM Measure WHERE pid={piece_id} AND nid BETWEEN {note_list[0]} AND {note_list[-1]}")
+        results = cur.fetchall()
+
+    for measure_data, nid in results:
+        measure = music21.converter.parse(base64.b64decode(measure_data))
+        excerpt.append(measure)
+
+        nps = indexers.NotePointSet(measure)
+        note_list_from_measure_start = [n - nid for n in note_list]
+        score_note_ids.extend([nps[i].original_note_id for i in note_list_from_measure_start])
+        
+    for note in excerpt.flat.notes:
+        if note.id in score_note_ids:
+            note.style.color = 'red'
+    
+    excerpt_out = excerpt.write('xml')
+    with open(excerpt_out, 'rb') as f:
+        excerpt_encoded = base64.b64encode(f.read()).decode('utf-8')
+
+    return excerpt_encoded
+
+
+@app.route("/excerpt", methods=["GET"])
+def excerpt():
+    """
+    Returns a highlighted excerpt of a score
+    """
+    piece_id = request.args.get("piece_id")
+    notes = request.args.get("notes").split(",")
+
+    
 
 
 if __name__ == '__main__':

@@ -213,7 +213,7 @@ class NotePointSet(music21.stream.Stream):
 
 
 
-def index_measures(symbolic_data, piece_id, db_conn, notes):
+def index_measures(symbolic_data, piece_id, db_conn):
     m21_score = music21.converter.parse(symbolic_data)
 
     #print("Hanging on MakeMeasures", flush=True)
@@ -221,27 +221,23 @@ def index_measures(symbolic_data, piece_id, db_conn, notes):
     #print("enumerating measures", flush=True)
     #enumerated_measures = enumerate(measured_score)
 
-    notes_idx = 0
-    mid = 1
-    m21_measures = list(m21_score.measures(mid, mid).recurse(classFilter=['Measure']))
-    while len(m21_measures) > 0:
-        print(mid, end=' ', flush=True)
-        for m21_measure in m21_measures:
-            measure_out = m21_measure.write('xml')
-            with open(measure_out, 'rb') as f:
-                data = base64.b64encode(f.read()).decode('utf-8')
+    nps = NotePointSet(music21.converter.parse(symbolic_data))
+    m21_measures = list(m21_score.measures(1, None).recurse(classFilter=['Measure']))
+    for m21_measure in m21_measures:
+        notes_idx = 0
+        print(m21_measure.number, end=' ', flush=True)
+        measure_out = m21_measure.write('xml')
+        with open(measure_out, 'rb') as f:
+            data = base64.b64encode(f.read()).decode('utf-8')
 
-            while notes[notes_idx].offset < m21_measure.offset:
-                notes_idx += 1
+        while nps[notes_idx].offset < m21_measure.offset:
+            notes_idx += 1
 
-            with db_conn, db_conn.cursor() as cur:
-                cur.execute(f"""
-                    INSERT INTO Measure (pid, mid, nid, onset, data)
-                    VALUES ('{piece_id}', '{mid}', '{notes[notes_idx].offset}', '{float(m21_measure.offset)}', '{data}')
-                """)
-        
-        mid += 1
-        m21_measures = list(m21_score.measures(mid, mid).recurse(classFilter=['Measure']))
+        with db_conn, db_conn.cursor() as cur:
+            cur.execute(f"""
+                INSERT INTO Measure (pid, mid, nid, onset, data)
+                VALUES ('{piece_id}', '{m21_measure.number}', '{notes_idx}', '{float(m21_measure.offset)}', '{data}')
+            """)
 
 if __name__ == "__main__":
 

@@ -11,7 +11,7 @@ CREATE TABLE Composer (
 CREATE TABLE Piece (
 	id SERIAL PRIMARY KEY,
 	encoding CHAR(3),
-  vectors TEXT,
+	vectors TEXT,
 	composer VARCHAR(80) REFERENCES Composer(name),
 	corpus VARCHAR(80) REFERENCES Corpus(name),
 	name VARCHAR(80),
@@ -36,7 +36,7 @@ CREATE TABLE Note (
 	"pitch-b40" REAL
 );
 
-ALTER TABLE Measure ADD COLUMN nid INT REFERENCES Note(id);
+ALTER TABLE Measure ADD COLUMN nid INT;
 
 CREATE TABLE Trigram (
 	id SERIAL PRIMARY KEY,
