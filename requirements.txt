@@ -1,2 +1,5 @@
 grpcio-tools
 -e ./
+music21
+pandas
+numpy
