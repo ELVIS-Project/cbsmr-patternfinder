@@ -19,7 +19,7 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 class Indexer(indexer_pb2_grpc.IndexerServicer):
 
     def IndexPiece(self, request, context):
-        return request.type
+        return indexer_pb2.IndexResponse(measures=[types_pb2.Measure(symbolicData=b'', number=5)])
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
