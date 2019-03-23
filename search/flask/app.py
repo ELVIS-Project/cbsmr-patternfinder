@@ -74,7 +74,7 @@ def index_id(piece_id):
                 )
                 cur.execute(indexers.notes_to_sql(notes, piece_id))
                 print("measures...")
-                indexers.index_measures(data, piece_id, CONN)
+                indexers.index_and_insert_measures(data, piece_id, CONN)
             except Exception as e:
                 print(f"Failed to enter {piece_id}: \n{str(e)}")
                 return "no", 500

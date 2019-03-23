@@ -210,8 +210,28 @@ class NotePointSet(music21.stream.Stream):
             self.insert(n)
 
 
+def index_measures(symbolic_data):
+    measures = []
 
-def index_measures(symbolic_data, piece_id, db_conn):
+    m21_score = music21.converter.parse(symbolic_data)
+
+    nps = NotePointSet(music21.converter.parse(symbolic_data))
+    m21_measures = list(m21_score.measures(1, None).recurse(classFilter=['Measure']))
+    for m21_measure in m21_measures:
+        measure_out = m21_measure.write('xml')
+        with open(measure_out, 'rb') as f:
+            data = base64.b64encode(f.read()).decode('utf-8')
+        os.remove(measure_out)
+
+        first_note_id = m21_measure.flat.notes[0].id
+        note_idx = next(idx for idx, n in enumerate(nps) if n.id = first_note_id)
+
+        measures.append((data, m21_measure.number, note_idx))
+
+    return measures
+
+
+def index_and_insert_measures(symbolic_data, piece_id, db_conn):
     m21_score = music21.converter.parse(symbolic_data)
 
     #print("Hanging on MakeMeasures", flush=True)

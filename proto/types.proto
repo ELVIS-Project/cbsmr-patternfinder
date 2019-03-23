@@ -20,6 +20,7 @@ message Note {
 message Measure {
     bytes symbolicData = 1;
     uint32 number = 2;
+    uint32 noteIdx = 3;
 }
 
 message Vector {

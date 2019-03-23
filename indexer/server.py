@@ -21,7 +21,6 @@ class Indexer(indexer_pb2_grpc.IndexerServicer):
 
     def IndexPiece(self, request, context):
         notes = indexers.notes(request.piece.symbolicData)[['onset', 'offset', 'pitch-b40']]
-        print(list(enumerate(notes.itertuples())))
         pb_notes = [
             types_pb2.Note(
                 onset=on,
@@ -29,6 +28,17 @@ class Indexer(indexer_pb2_grpc.IndexerServicer):
                 pitchB40=p,
                 pieceIdx=idx)
                 for idx, (_, on, off, p) in enumerate(notes.itertuples())]
+
+        """
+        measures = indexers.index_measures(request.piece.symbolicData)
+        pb_measures = [
+            types_pb2.Measure(
+                symbolicData = data,
+                number = num,
+                noteIdx = idx)
+                for data, num, idx in measures]
+        """
+
         response = indexer_pb2.IndexResponse(notes=pb_notes)
         return response
 
