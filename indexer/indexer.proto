@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "types.proto";
+import "proto/types.proto";
 
 service Indexer {
     rpc IndexPiece (IndexRequest) returns (IndexResponse);
