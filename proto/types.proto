@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package proto;
+
 message Piece {
     bytes symbolicData = 1;
     string encoding = 2;

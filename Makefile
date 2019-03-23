@@ -1,6 +1,7 @@
 proto:
-	protoc --python_out=./ proto/types.proto
-	python -m grpc_tools.protoc -I=indexer/ --python_out=indexer/ --grpc_python_out=indexer/ indexer/indexer.proto --proto_path=./
+	protoc --python_out=./ --go_out=./ proto/types.proto
+	python -m grpc_tools.protoc -I=indexer/ --python_out=indexer/ --grpc_python_out=indexer/ --proto_path=./ indexer/indexer.proto
+	protoc -I indexer/ indexer/indexer.proto --go_out=plugins=grpc:proto --proto_path=./
 
 venv:
 	rm -rf venv
