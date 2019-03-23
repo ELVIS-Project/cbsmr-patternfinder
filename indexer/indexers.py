@@ -7,7 +7,7 @@ import base64
 import music21
 import pandas as pd
 import numpy as np
-from errors import *
+from indexer.errors import *
 
 us = music21.environment.UserSettings()
 us.restoreDefaults()
@@ -218,13 +218,15 @@ def index_measures(symbolic_data):
     nps = NotePointSet(music21.converter.parse(symbolic_data))
     m21_measures = list(m21_score.measures(1, None).recurse(classFilter=['Measure']))
     for m21_measure in m21_measures:
+        note_idx = 0
+
         measure_out = m21_measure.write('xml')
         with open(measure_out, 'rb') as f:
-            data = base64.b64encode(f.read()).decode('utf-8')
+            data = base64.b64encode(f.read())
         os.remove(measure_out)
 
-        first_note_id = m21_measure.flat.notes[0].id
-        note_idx = next(idx for idx, n in enumerate(nps) if n.id = first_note_id)
+        while nps[note_idx].offset < m21_measure.offset:
+            note_idx += 1
 
         measures.append((data, m21_measure.number, note_idx))
 

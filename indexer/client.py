@@ -4,6 +4,7 @@ import sys
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'proto'))
 
 import logging
+import base64
 
 import grpc
 
@@ -44,4 +45,5 @@ if __name__ == '__main__':
     logging.basicConfig()
     response = index_piece(sys.argv[1])
 
-    print(response)
+    print(response.notes)
+    print(base64.b64decode(response.measures[0].symbolicData).decode('utf-8'))
