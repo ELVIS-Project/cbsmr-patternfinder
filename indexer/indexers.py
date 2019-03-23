@@ -7,12 +7,10 @@ import base64
 import music21
 import pandas as pd
 import numpy as np
-from indexers.errors import *
+from errors import *
 
 us = music21.environment.UserSettings()
 us.restoreDefaults()
-
-
 
 def _note_indexer(note):
     return {

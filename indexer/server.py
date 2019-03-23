@@ -9,6 +9,7 @@ import logging
 
 import grpc
 
+import indexers
 import types_pb2
 import indexer_pb2
 import indexer_pb2_grpc
@@ -19,7 +20,17 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 class Indexer(indexer_pb2_grpc.IndexerServicer):
 
     def IndexPiece(self, request, context):
-        return indexer_pb2.IndexResponse(measures=[types_pb2.Measure(symbolicData=b'', number=5)])
+        notes = indexers.notes(request.piece.symbolicData)[['onset', 'offset', 'pitch-b40']]
+        print(list(enumerate(notes.itertuples())))
+        pb_notes = [
+            types_pb2.Note(
+                onset=on,
+                offset=off,
+                pitchB40=p,
+                pieceIdx=idx)
+                for idx, (_, on, off, p) in enumerate(notes.itertuples())]
+        response = indexer_pb2.IndexResponse(notes=pb_notes)
+        return response
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
