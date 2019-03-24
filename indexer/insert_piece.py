@@ -3,6 +3,7 @@ import os
 import io
 import csv
 import psycopg2
+import base64
 from client import index_piece
 from indexer import indexers
 
@@ -50,19 +51,24 @@ def notes_to_vectors_csv(piece_id, pb_notes):
     file_obj.close()
     return output
 
-def piece_to_sql(piece_id, csv_vectors):
+def piece_to_sql(piece_id, csv_vectors, data):
 
     return f"""
-    INSERT INTO Piece (id, vectors)
-    VALUES ({piece_id}, '{csv_vectors}')
+    INSERT INTO Piece (id, vectors, data)
+    VALUES ({piece_id}, '{csv_vectors}', '{data}')
     ;
     """
 
-def insert(piece_id, conn, name="", encoding=""):
+def insert(path, conn):
+    piece_id, name, composer, corpus, encoding = indexers.parse_piece_path(path)
+
     response = index_piece(path, name, encoding)
 
+    with open(path, 'rb') as f:
+        symbolic_data = base64.b64encode(f.read()).decode('utf-8')
+
     with conn, conn.cursor() as cur:
-        cur.execute(f"INSERT INTO Piece (id) VALUES ({piece_id}) ON CONFLICT (id) DO NOTHING;")
+        cur.execute(f"INSERT INTO Piece (id, data) VALUES ('{piece_id}', '{symbolic_data}') ON CONFLICT (id) DO NOTHING;")
 
         for pb_note in response.notes:
             cur.execute(note_to_sql(piece_id, pb_note))
@@ -75,12 +81,11 @@ def insert(piece_id, conn, name="", encoding=""):
 
 if __name__ == '__main__':
     path = sys.argv[1]
-    piece_id, name, composer, corpus, encoding = indexers.parse_piece_path(path)
 
     POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
     CONN = psycopg2.connect(POSTGRES_CONN_STR)
 
-    insert(piece_id, CONN, name, encoding)
+    insert(path, CONN)
 
 """
     return f

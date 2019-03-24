@@ -87,52 +87,49 @@ def search_all():
     return jsonify(resp)
 
 def coloured_excerpt(note_list, piece_id):
-    excerpt = music21.stream.Stream()
-    score_note_ids = []
 
     with CONN, CONN.cursor() as cur:
         cur.execute(f"""
-            SELECT data, nid, mid
-            FROM Measure
-            WHERE pid={piece_id} AND nid BETWEEN {note_list[0]} AND {note_list[-1]}
-            ORDER BY mid
+            SELECT data
+            FROM Piece
+            WHERE id={piece_id}
             ;
             """)
         results = cur.fetchall()
         if not results:
-            print(f"Warning: no measures found for piece {piece_id} btwn notes {note_list[0]} and {note_list[-1]}")
+            print(f"Warning: no piece found at id {piece_id}")
             return results
 
-    _, _, start_mid = results[0]
-    _, _, end_mid = results[-1]
-    cur = start_mid
-    newOffset = 0
+    score = music21.converter.parse(base64.b64decode(results[0][0]).decode('utf-8'))
+    nps = indexers.NotePointSet(score)
+    nps_ids = [nps[i].original_note_id for i in note_list]
 
-    for i in range(len(results)):
-        measure_data, nid, mid = results[i]
-        m21_measure = music21.converter.parse(base64.b64decode(measure_data))
-        print("inserting")
-        excerpt.insert(newOffset, m21_measure)
+    # Get stream excerpt
+    _, start_measure = score.beatAndMeasureFromOffset(nps[note_list[0]].offset)
+    _, end_measure = score.beatAndMeasureFromOffset(nps[note_list[-1]].offset + nps[-1].duration.quarterLength - 1)
+    excerpt = score.measures(numberStart=start_measure.number, numberEnd=end_measure.number)
 
-        if i < len(results) - 1:
-            _, _, next_mid = results[i + 1]
-            if next_mid > cur:
-                newOffset += m21_measure.duration.quarterLength
-                cur += 1
-
-    nps = indexers.NotePointSet(excerpt)
-    note_list_from_measure_start = [n - results[0][1] for n in note_list]
-    score_note_ids.extend([nps[i].original_note_id for i in note_list_from_measure_start])
-        
+    # Colour notes
     for note in excerpt.flat.notes:
-        if note.id in score_note_ids:
+        if note.id in nps_ids:
             note.style.color = 'red'
-    
-    excerpt_out = excerpt.write('xml')
-    with open(excerpt_out, 'r') as f:
-        excerpt_xml = f.read()
 
-    return excerpt
+    # Delete part names (midi files have bad data)
+    for part in excerpt:
+        part.partName = ''
+
+    sx = music21.musicxml.m21ToXml.ScoreExporter(excerpt)
+    musicxml = sx.parse()
+
+    from io import StringIO
+    import sys
+    bfr = StringIO()
+    sys.stdout = bfr
+    sx.dump(musicxml)
+    output = bfr.getvalue()
+    sys.stdout = sys.__stdout__
+
+    return output
 
 
 @app.route("/excerpt", methods=["GET"])
