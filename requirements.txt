@@ -3,3 +3,5 @@ grpcio-tools
 music21
 pandas
 numpy
+
+psycopg2

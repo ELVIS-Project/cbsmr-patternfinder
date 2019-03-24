@@ -29,11 +29,11 @@ CREATE TABLE Measure (
 CREATE TABLE Note (
 	id SERIAL PRIMARY KEY,
 	measure INT REFERENCES Measure(id),
-	piece_id INT REFERENCES Piece(id),
-	piece_idx INT,
+	pid INT REFERENCES Piece(id),
+	pidx INT,
 	onset REAL,
 	"offset" REAL,
-	"pitch-b40" REAL
+	pitchB40 REAL
 );
 
 ALTER TABLE Measure ADD COLUMN nid INT;

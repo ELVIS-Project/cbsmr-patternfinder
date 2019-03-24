@@ -12,11 +12,9 @@ import types_pb2
 import indexer_pb2
 import indexer_pb2_grpc
 
-def index_piece(path):
+def index_piece(path, name, encoding):
     with open(path, 'rb') as f:
         symbolic_data = f.read()
-
-    name, encoding = os.path.splitext(os.path.basename(path))
 
     pb_piece = types_pb2.Piece(
         symbolicData = symbolic_data,
@@ -30,17 +28,6 @@ def index_piece(path):
 
     return response
     
-
-def run():
-    # NOTE(gRPC Python Team): .close() is possible on a channel and should be
-    # used in circumstances in which the with statement does not fit the needs
-    # of the code.
-    with grpc.insecure_channel('localhost:50051') as channel:
-        stub = indexer_pb2_grpc.IndexerStub(channel)
-        response = stub.IndexPiece(indexer_pb2.IndexRequest(type=indexer_pb2.NOTE))
-    print("Greeter client received: " + str(response.measures))
-
-
 if __name__ == '__main__':
     logging.basicConfig()
     response = index_piece(sys.argv[1])

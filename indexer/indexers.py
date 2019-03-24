@@ -30,6 +30,7 @@ def notes_to_sql(df_notes, piece_id):
 
 def notes(symbolic_data):
     try:
+        print(symbolic_data[0:5])
         m21_score = music21.converter.parse(symbolic_data)
     except Exception as e:
         raise music21.Music21Exception from e
