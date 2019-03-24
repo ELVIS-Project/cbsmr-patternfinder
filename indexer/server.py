@@ -20,8 +20,10 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 class Indexer(indexer_pb2_grpc.IndexerServicer):
 
     def IndexPiece(self, request, context):
-        print(f"Indexing piece {request.piece.name}, type {type(request.piece.symbolicData)}")
-        notes = indexers.notes(request.piece.symbolicData)[['onset', 'offset', 'pitch-b40']]
+        sd = request.piece.symbolicData.decode('utf-8')
+
+        print(f"Indexing piece {request.piece.name}")
+        notes = indexers.notes(sd)[['onset', 'offset', 'pitch-b40']]
         pb_notes = [
             types_pb2.Note(
                 onset=on,
@@ -30,7 +32,7 @@ class Indexer(indexer_pb2_grpc.IndexerServicer):
                 pieceIdx=idx)
                 for idx, (_, on, off, p) in enumerate(notes.itertuples())]
 
-        measures = indexers.index_measures(request.piece.symbolicData)
+        measures = indexers.index_measures(sd)
         pb_measures = [
             types_pb2.Measure(
                 symbolicData = data,

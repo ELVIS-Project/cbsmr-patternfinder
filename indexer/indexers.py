@@ -30,7 +30,6 @@ def notes_to_sql(df_notes, piece_id):
 
 def notes(symbolic_data):
     try:
-        print(symbolic_data[0:5])
         m21_score = music21.converter.parse(symbolic_data)
     except Exception as e:
         raise music21.Music21Exception from e
@@ -121,16 +120,18 @@ def legacy_intra_vectors_to_csv(df):
     return output
 
 def parse_piece_path(piece_path):
-	base, fmt = os.path.splitext(piece_path)
-	fmt = fmt[1:] # skip '.'
-	base = [x for x in os.path.basename(base).split("_") if not "file" in x]
+    basename, fmt = os.path.splitext(os.path.basename(piece_path))
+    fmt = fmt[1:] # skip '.'
+    base = [x for x in os.path.basename(basename).split("_") if not "file" in x]
 
-	piece_id = base[0]
-	name = base[1].replace('-', ' ')
-	composer = base[2].replace('-', ' ')
-	corpus = 'elvis'
+    piece_id = base[0]
+    name = base[1]
+	#name = base[1].replace('-', ' ')
+	#composer = base[2].replace('-', ' ')
+    composer = ""
+    corpus = 'elvis'
 
-	return piece_id, name, composer, corpus, fmt
+    return piece_id, name, composer, corpus, fmt
 
 def music21Chord_to_music21Notes(chord):
     """
