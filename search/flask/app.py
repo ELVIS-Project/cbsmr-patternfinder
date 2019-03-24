@@ -3,8 +3,9 @@
 from flask import Flask, request, jsonify
 from errors import *
 from _w2 import ffi, lib
-import indexers
+from indexer.insert_piece import insert, indexers
 import sqlalchemy
+import music21
 import psycopg2
 import base64
 
@@ -26,23 +27,6 @@ CONN.autocommit = False
 def root():
     return "Hello World!"
 
-@app.route("/index", methods=["GET", "POST"])
-def index():
-    """
-    Indexes a piece with ALL available indexers
-    """
-    if request.method == "POST":
-        return "yay", 200
-
-def is_piece_in_db(piece_id):
-    with CONN, CONN.cursor() as cur:
-        cur.execute(
-            f"""
-                SELECT id FROM Piece WHERE id={piece_id};
-            """
-        )
-        return cur.rowcount == 1
-
 @app.route("/index/<piece_id>", methods=["GET", "POST"])
 def index_id(piece_id):
     """
@@ -50,34 +34,7 @@ def index_id(piece_id):
     """
     piece_id = int(piece_id)
     if request.method == "POST":
-        data = request.get_data()
-        #data = base64.b64decode(data).decode('utf-8')
-        if is_piece_in_db(piece_id) is True:
-            return "piece already in db", 400
-        try:
-            print("notes...")
-            notes = indexers.notes(data)
-            print("vectors...")
-            legacy_intra_vectors = indexers.legacy_intra_vectors(data, 4)
-        except Exception as e:
-            raise IndexerError from e
-
-        with CONN, CONN.cursor() as cur:
-            print("inserting to db...")
-            try:
-                csv_vectors = indexers.legacy_intra_vectors_to_csv(legacy_intra_vectors)
-                cur.execute(
-                    f"""
-                    INSERT INTO Piece (id, vectors)
-                    VALUES ({piece_id}, '{csv_vectors}');
-                    """
-                )
-                cur.execute(indexers.notes_to_sql(notes, piece_id))
-                print("measures...")
-                indexers.index_and_insert_measures(data, piece_id, CONN)
-            except Exception as e:
-                print(f"Failed to enter {piece_id}: \n{str(e)}")
-                return "no", 500
+        insert(piece_id, CONN)
 
     return "yay!", 200
 
@@ -134,26 +91,48 @@ def coloured_excerpt(note_list, piece_id):
     score_note_ids = []
 
     with CONN, CONN.cursor() as cur:
-        cur.execute(f"SELECT data, nid FROM Measure WHERE pid={piece_id} AND nid BETWEEN {note_list[0]} AND {note_list[-1]}")
+        cur.execute(f"""
+            SELECT data, nid, mid
+            FROM Measure
+            WHERE pid={piece_id} AND nid BETWEEN {note_list[0]} AND {note_list[-1]}
+            ORDER BY mid
+            ;
+            """)
         results = cur.fetchall()
+        if not results:
+            print(f"Warning: no measures found for piece {piece_id} btwn notes {note_list[0]} and {note_list[-1]}")
+            return results
 
-    for measure_data, nid in results:
-        measure = music21.converter.parse(base64.b64decode(measure_data))
-        excerpt.append(measure)
+    _, _, start_mid = results[0]
+    _, _, end_mid = results[-1]
+    cur = start_mid
+    newOffset = 0
 
-        nps = indexers.NotePointSet(measure)
-        note_list_from_measure_start = [n - nid for n in note_list]
-        score_note_ids.extend([nps[i].original_note_id for i in note_list_from_measure_start])
+    for i in range(len(results)):
+        measure_data, nid, mid = results[i]
+        m21_measure = music21.converter.parse(base64.b64decode(measure_data))
+        print("inserting")
+        excerpt.insert(newOffset, m21_measure)
+
+        if i < len(results) - 1:
+            _, _, next_mid = results[i + 1]
+            if next_mid > cur:
+                newOffset += m21_measure.duration.quarterLength
+                cur += 1
+
+    nps = indexers.NotePointSet(excerpt)
+    note_list_from_measure_start = [n - results[0][1] for n in note_list]
+    score_note_ids.extend([nps[i].original_note_id for i in note_list_from_measure_start])
         
     for note in excerpt.flat.notes:
         if note.id in score_note_ids:
             note.style.color = 'red'
     
     excerpt_out = excerpt.write('xml')
-    with open(excerpt_out, 'rb') as f:
-        excerpt_encoded = base64.b64encode(f.read()).decode('utf-8')
+    with open(excerpt_out, 'r') as f:
+        excerpt_xml = f.read()
 
-    return excerpt_encoded
+    return excerpt
 
 
 @app.route("/excerpt", methods=["GET"])
@@ -164,8 +143,12 @@ def excerpt():
     piece_id = request.args.get("piece_id")
     notes = request.args.get("notes").split(",")
 
+    excerpt = coloured_excerpt(notes, piece_id)
+    return Response(excerpt_xml, mimetype='text/xml')
+
     
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=80)
+    print("main")
+    #app.run(host="0.0.0.0", port=80)
