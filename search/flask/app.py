@@ -4,8 +4,10 @@ from flask import Flask, request, jsonify
 from errors import *
 from _w2 import ffi, lib
 from indexer.insert_piece import insert, indexers
+from tqdm import tqdm
 import sqlalchemy
 import music21
+import legacy
 import psycopg2
 import base64
 
@@ -22,6 +24,17 @@ except Exception as e:
 	time.sleep(7)
 	CONN = psycopg2.connect(POSTGRES_CONN_STR)
 CONN.autocommit = False
+
+
+SCORES = {}
+def load_scores():
+    print("Selecting pieces from database")
+    with CONN, CONN.cursor() as cur:
+        cur.execute(f"SELECT vectors, id, name FROM Piece")
+        results = cur.fetchall()
+
+    for vectors, idx, name in tqdm(results[:10]):
+        SCORES[idx] = lib.init_score(vectors.encode('utf-8'))
 
 @app.route("/")
 def root():
@@ -67,25 +80,23 @@ def search_all():
     """
     query_str = request.args.get("query")
 
-    print("Parsing query...")
+    print("Parsing query...", end='')
     query_notes = music21.converter.parse(query_str).flat.notes
     df = indexers.legacy_intra_vectors(query_str, 1)
     query_csv = indexers.legacy_intra_vectors_to_csv(df)
-
-    print("Selecting pieces from database")
-    with CONN, CONN.cursor() as cur:
-        cur.execute(f"SELECT vectors, id FROM Piece")
-        target_csv_list = cur.fetchall()
+    print(query_csv)
+    query = lib.init_score(query_csv.encode('utf-8'))
 
     resp = {'occs': []}
-    for target_csv, piece_id in target_csv_list:
-        print("Searching " + str(piece_id))
+    for idx, target in app.config['SCORES'].items():
+        print("Searching " + str(idx))
         res = ffi.new("struct Result*")
-        result = lib.search_return_chains(query_csv.encode('utf-8'), target_csv.encode('utf-8'), res)
+        lib.search_return_chains(query, target, res)
+        chains = legacy.extract_chains(res.table, target.num_notes)
 
-        print("Extracting chains")
-        for i in range(res.num_occs):
-            chain = extract_chain(res.chains[i])
+        print(chains)
+
+        for chain in chains:
             if filter_chain(chain, window=10, num_notes=len(query_notes)):
                 resp['occs'].append({
                     'pid': piece_id,
@@ -155,4 +166,6 @@ def excerpt():
 
 
 if __name__ == '__main__':
+    load_scores()
+    app.config['SCORES'] = SCORES
     app.run(host="0.0.0.0", port=80)

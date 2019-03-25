@@ -4,6 +4,7 @@ import base64
 import psycopg2
 import json
 import music21
+import legacy
 from indexer import indexers
 from tqdm import tqdm
 from _w2 import ffi, lib
@@ -57,8 +58,10 @@ def get_search(query):
             *k[]
             *M4/4
             =-
-            4c 4e 4a 4cc
-            4B- f b- dd"""
+            4c
+            4e
+            4g
+            4a"""
         
     return requests.get(ENDPOINT + "search", params={'query': query})
 
@@ -90,23 +93,24 @@ def search_one():
         *k[]
         *M4/4
         =-
-        4c 4e 4a 4cc
-        4B- f b- dd"""
+        4c 4e"""
     df = indexers.legacy_intra_vectors(query_str, 1)
     query_csv = indexers.legacy_intra_vectors_to_csv(df)
+    query = lib.init_score(query_csv.encode('utf-8'))
 
     with open(os.path.join(ELVISDUMP, "MID", p), "rb") as f:
         data = f.read()
         df = indexers.legacy_intra_vectors(data, 15)
         target_csv = indexers.legacy_intra_vectors_to_csv(df)
+        target = lib.init_score(target_csv.encode('utf-8'))
 
     res = ffi.new("struct Result*")
 
-    result = lib.search_return_chains(query_csv.encode('utf-8'), target_csv.encode('utf-8'), res)
+    lib.search_return_chains(query, target, res)
 
-    assert res.num_occs > 0
+    chains = legacy.extract_chains(res.table, target.num_notes)
 
-    return res
+    return chains
 
 def search_one_db():
     p = "000000000011007_Missa-Io-mi-son-giovinetta-primi-toni-_Credo_Palestrina-Giovanni-Pierluigi-da_file2.mid"
@@ -150,16 +154,18 @@ def search_lemstrom():
 
     with open("helsinki-ttwi/tests/query_a.vectors", "r") as f:
         q_str = f.read()
+        q = lib.init_score(q_str.encode('utf-8'))
 
     with open("helsinki-ttwi/tests/leiermann.vectors" , "r") as f:
         t_str = f.read()
+        t = lib.init_score(t_str.encode('utf-8'))
 
     
     res = ffi.new("struct Result*")
 
-    result = lib.search_return_chains(q_str.encode('utf-8'), t_str.encode('utf-8'), res)
+    lib.search_return_chains(q, t, res)
 
-    return res
+    return legacy.extract_chains(res.table, t.num_notes)
 
 def res_to_measures(res):
     list_of_measures = res.json()['measures']
