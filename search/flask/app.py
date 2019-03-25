@@ -46,8 +46,10 @@ def extract_chain(c_array):
         i += 1
     return note_indices
 
-def filter_chain(chain, window):
-    return sum((r - l <= window) for l, r in zip(chain, chain[1:])) == len(chain) - 1
+def filter_chain(chain, window, num_notes):
+    return (
+        sum((r - l <= window) for l, r in zip(chain, chain[1:])) == len(chain) - 1
+        and len(chain) >= num_notes)
 
 def query_measures(chain, piece_id):
     with CONN, CONN.cursor() as cur:
@@ -65,24 +67,30 @@ def search_all():
     """
     query_str = request.args.get("query")
 
+    print("Parsing query...")
+    query_notes = music21.converter.parse(query_str).flat.notes
     df = indexers.legacy_intra_vectors(query_str, 1)
     query_csv = indexers.legacy_intra_vectors_to_csv(df)
 
+    print("Selecting pieces from database")
     with CONN, CONN.cursor() as cur:
         cur.execute(f"SELECT vectors, id FROM Piece")
         target_csv_list = cur.fetchall()
 
-    resp = {'chains' : [], 'measures': []}
+    resp = {'occs': []}
     for target_csv, piece_id in target_csv_list:
-        print(piece_id)
+        print("Searching " + str(piece_id))
         res = ffi.new("struct Result*")
         result = lib.search_return_chains(query_csv.encode('utf-8'), target_csv.encode('utf-8'), res)
 
+        print("Extracting chains")
         for i in range(res.num_occs):
             chain = extract_chain(res.chains[i])
-            if filter_chain(chain, 10):
-                resp['chains'].append(chain)
-                resp['measures'].append(query_measures(chain, piece_id))
+            if filter_chain(chain, window=10, num_notes=len(query_notes)):
+                resp['occs'].append({
+                    'pid': piece_id,
+                    'chain': chain
+                })
 
     return jsonify(resp)
 
@@ -147,5 +155,4 @@ def excerpt():
 
 
 if __name__ == '__main__':
-    print("main")
-    #app.run(host="0.0.0.0", port=80)
+    app.run(host="0.0.0.0", port=80)

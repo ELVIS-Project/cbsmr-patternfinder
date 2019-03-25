@@ -4,8 +4,10 @@ import io
 import csv
 import psycopg2
 import base64
-from client import index_piece
+from indexer.client import index_piece
 from indexer import indexers
+
+ELVIS_DUMP="/Users/davidgarfinkle/elvis-project/elvisdump"
 
 WINDOW = 10
 
@@ -51,14 +53,6 @@ def notes_to_vectors_csv(piece_id, pb_notes):
     file_obj.close()
     return output
 
-def piece_to_sql(piece_id, csv_vectors, data):
-
-    return f"""
-    INSERT INTO Piece (id, vectors, data)
-    VALUES ({piece_id}, '{csv_vectors}', '{data}')
-    ;
-    """
-
 def insert(path, conn):
     piece_id, name, composer, corpus, encoding = indexers.parse_piece_path(path)
 
@@ -68,29 +62,33 @@ def insert(path, conn):
         symbolic_data = base64.b64encode(f.read()).decode('utf-8')
 
     with conn, conn.cursor() as cur:
-        cur.execute(f"INSERT INTO Piece (id, data) VALUES ('{piece_id}', '{symbolic_data}') ON CONFLICT (id) DO NOTHING;")
+        cur.execute(f"INSERT INTO Piece (id, name, data) VALUES ('{piece_id}', '{name}', '{symbolic_data}') ON CONFLICT (id) DO NOTHING;")
 
         for pb_note in response.notes:
             cur.execute(note_to_sql(piece_id, pb_note))
 
         cur.execute(f"UPDATE Piece SET vectors='{notes_to_vectors_csv(piece_id, response.notes)}' WHERE id={piece_id}")
 
+        """
         for pb_measure in response.measures:
             cur.execute(measure_to_sql(piece_id, pb_measure))
+        """
 
 
 if __name__ == '__main__':
+    subdirs = ("MEI", "MID", "XML")
+
     path = sys.argv[1]
 
     POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
     CONN = psycopg2.connect(POSTGRES_CONN_STR)
 
-    insert(path, CONN)
+    if path in subdirs:
+        from tqdm import tqdm
+        subdir_path = os.path.join(os.path.abspath(ELVIS_DUMP), path)
 
-"""
-    return f
-        INSERT INTO legacy_intra_vectors (piece_id, x, y, startIndex, endIndex, startPitch, endPitch, diatonicDiff, chromaticDiff)
-        {",".join(
-            f"('{piece_id}', '{x}', '{y}', '{start}', '{end}', '{startPitch}', '{endPitch}', '{y}', '{y}')")
-            for x, y, start, end, startPitch, endPitch in values}
-"""
+        for fname in tqdm(os.listdir(subdir_path)):
+            fullpath = os.path.join(subdir_path, fname)
+            insert(fullpath, CONN)
+    else:
+        insert(path, CONN)

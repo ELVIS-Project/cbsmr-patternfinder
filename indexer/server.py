@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pard
 from concurrent import futures
 import time
 import logging
+import base64
 
 import grpc
 
@@ -20,7 +21,7 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 class Indexer(indexer_pb2_grpc.IndexerServicer):
 
     def IndexPiece(self, request, context):
-        sd = request.piece.symbolicData.decode('utf-8')
+        sd = request.piece.symbolicData
 
         print(f"Indexing piece {request.piece.name}")
         notes = indexers.notes(sd)[['onset', 'offset', 'pitch-b40']]
@@ -32,6 +33,7 @@ class Indexer(indexer_pb2_grpc.IndexerServicer):
                 pieceIdx=idx)
                 for idx, (_, on, off, p) in enumerate(notes.itertuples())]
 
+        """
         measures = indexers.index_measures(sd)
         pb_measures = [
             types_pb2.Measure(
@@ -39,8 +41,9 @@ class Indexer(indexer_pb2_grpc.IndexerServicer):
                 number = num,
                 noteIdx = idx)
                 for data, num, idx in measures]
+        """
 
-        response = indexer_pb2.IndexResponse(notes=pb_notes, measures=pb_measures)
+        response = indexer_pb2.IndexResponse(notes=pb_notes)
         return response
 
 def serve():

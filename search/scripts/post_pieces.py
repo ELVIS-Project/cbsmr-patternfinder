@@ -2,9 +2,9 @@ import os
 import requests
 import base64
 import psycopg2
-import indexers
 import json
 import music21
+from indexer import indexers
 from tqdm import tqdm
 from _w2 import ffi, lib
 
@@ -50,7 +50,16 @@ def index_one(path=None):
     from pprint import pprint
     pprint(response.content.decode('utf-8'))
 
-def post_search(query):
+def get_search(query):
+    if not query:
+        query = """**kern
+            *clefG2
+            *k[]
+            *M4/4
+            =-
+            4c 4e 4a 4cc
+            4B- f b- dd"""
+        
     return requests.get(ENDPOINT + "search", params={'query': query})
 
 def search():

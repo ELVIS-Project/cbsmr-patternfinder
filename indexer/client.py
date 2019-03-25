@@ -2,6 +2,7 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'proto'))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'indexer'))
 
 import logging
 import base64
@@ -9,16 +10,15 @@ import base64
 import grpc
 
 import types_pb2
-import indexer_pb2
-import indexer_pb2_grpc
+from indexer import indexer_pb2, indexer_pb2_grpc
 
-def index_piece(path, name, encoding):
+def index_piece(path, name, fmt):
     with open(path, 'rb') as f:
         symbolic_data = f.read()
 
     pb_piece = types_pb2.Piece(
         symbolicData = symbolic_data,
-        encoding = encoding,
+        encoding = fmt,
         name = name
     )
 
