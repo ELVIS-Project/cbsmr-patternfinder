@@ -39,7 +39,6 @@ CREATE TABLE Note (
 ALTER TABLE Measure ADD COLUMN nid INT;
 
 CREATE TABLE Trigram (
-	id SERIAL PRIMARY KEY,
-	notes Note[3],
+	pitches REAL[3] PRIMARY KEY,
 	document_frequency INT
 );

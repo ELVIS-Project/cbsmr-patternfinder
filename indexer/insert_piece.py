@@ -31,13 +31,13 @@ def measure_to_sql(piece_id, pb_measure):
 def notes_to_vector(left, right):
     x = right.onset - left.onset
     y = right.pitchB40 - left.pitchB40
-    return (x, y, left.pieceIdx, right.pieceIdx, left.pitchB40, right.pitchB40)
+    return (x, y, left.pieceIdx, right.pieceIdx, left.pitchB40, right.pitchB40, y, y)
 
 def notes_to_vectors_csv(piece_id, pb_notes):
     values = []
     pb_notes.sort(key = lambda x: (x.onset, x.pitchB40))
     for i in range(len(pb_notes)):
-        for j in range(1, WINDOW):
+        for j in range(i, min(i + WINDOW, len(pb_notes))):
             values.append(notes_to_vector(pb_notes[i], pb_notes[j]))
 
     file_obj = io.StringIO()
@@ -47,11 +47,27 @@ def notes_to_vectors_csv(piece_id, pb_notes):
     csv_writer.writerow([len(values)])
 
     for vec in values:
-        csv_writer.writerow(",".join(str(v) for v in vec))
+        csv_writer.writerow([str(v) for v in vec])
 
     output = file_obj.getvalue()
     file_obj.close()
     return output
+
+def notes_to_trigrams_sql(pb_notes):
+    trigrams = []
+
+    # Combinatorial explosion
+    for i in range(len(pb_notes)):
+        for j in range(i, min(WINDOW, len(pb_notes))):
+            for k in range(j, min(WINDOW, len(pb_notes))):
+                trigrams.append((pb_notes[i], pb_notes[j], pb_notes[k]))
+
+    return [f"""
+            INSERT INTO Trigram (pitches, document_frequency)
+            VALUES ('{'{' + ",".join(str(n.pitchB40) for n in trigram) + '}'}', 1)
+            ON CONFLICT (pitches)
+            DO UPDATE SET document_frequency = Trigram.document_frequency + 1;
+        """ for trigram in trigrams]
 
 def insert(path, conn):
     piece_id, name, composer, corpus, encoding = indexers.parse_piece_path(path)
@@ -69,10 +85,11 @@ def insert(path, conn):
 
         cur.execute(f"UPDATE Piece SET vectors='{notes_to_vectors_csv(piece_id, response.notes)}' WHERE id={piece_id}")
 
-        """
+        for trigram_insert_sql in notes_to_trigrams_sql(response.notes):
+            cur.execute(trigram_insert_sql)
+
         for pb_measure in response.measures:
             cur.execute(measure_to_sql(piece_id, pb_measure))
-        """
 
 
 if __name__ == '__main__':

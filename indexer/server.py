@@ -33,7 +33,6 @@ class Indexer(indexer_pb2_grpc.IndexerServicer):
                 pieceIdx=idx)
                 for idx, (_, on, off, p) in enumerate(notes.itertuples())]
 
-        """
         measures = indexers.index_measures(sd)
         pb_measures = [
             types_pb2.Measure(
@@ -41,9 +40,8 @@ class Indexer(indexer_pb2_grpc.IndexerServicer):
                 number = num,
                 noteIdx = idx)
                 for data, num, idx in measures]
-        """
 
-        response = indexer_pb2.IndexResponse(notes=pb_notes)
+        response = indexer_pb2.IndexResponse(notes=pb_notes, measures=pb_measures)
         return response
 
 def serve():

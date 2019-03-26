@@ -227,7 +227,7 @@ def index_measures(symbolic_data):
             data = base64.b64encode(f.read())
         os.remove(measure_out)
 
-        while nps[note_idx].offset < m21_measure.offset:
+        while nps[note_idx].offset < m21_measure.offset and note_idx < len(nps) - 1:
             note_idx += 1
 
         measures.append((data, m21_measure.number, note_idx))
