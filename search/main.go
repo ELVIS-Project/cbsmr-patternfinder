@@ -1,50 +1,63 @@
 package main
 
 import (
-	indexer "../indexer"
 	pb "../proto"
+	"context"
 	"github.com/boltdb/bolt"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"io/ioutil"
-	"os"
+	"time"
 )
 
 const (
-	TESTPIECE = {"./test_data/lemstrom2011/leiermann.xml"}
-	TESTQUERY = {"./test_data/lemstrom2011/query_a.mid"}
+	TESTPIECE = "./test_data/lemstrom2011/leiermann.xml"
+	TESTQUERY = "./test_data/lemstrom2011/query_a.mid"
 )
 
-type SearchService struct{}
+type SearchServer struct{}
 
 var db *bolt.DB
 
-func (s SearchService) Search(req pb.SearchRequest) (*pb.SearchResponse, error) {
+func (s SearchServer) Search(ctx context.Context, req *pb.SearchRequest) (*pb.SearchResponse, error) {
+	var resp pb.SearchResponse
+	return &resp, nil
 }
 
-func indexTestPiece() indexer.IndexResponse {
-	db, err := bolt.Open("./search.db", 0666)
+func indexTestPiece() *pb.IndexResponse {
+	_, err := bolt.Open("./search.db", 0666, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Panicln("Failed to open search database")
 	}
 
-	indexerClient, err := grpc.Dial("localhost:50051")
+	conn, err := grpc.Dial("localhost:50051")
 	if err != nil {
 		log.Panicln("Failed to connect to indexer service")
 	}
+	indexerClient := pb.NewIndexerClient(conn)
 
 	pieceData, err := ioutil.ReadFile(TESTPIECE)
 	if err != nil {
 		log.Panicln("Failed to open test piece")
 	}
 
-	return indexerClient.IndexPiece(indexer.IndexRequest{piece: pieceData})
+	piece := &pb.Piece{
+		SymbolicData: pieceData,
+		Encoding:     "xml",
+		Name:         "leiermann",
+	}
+
+	resp, err := indexerClient.IndexPiece(context.Background(), &pb.IndexRequest{Piece: piece})
+	if err != nil {
+		log.Panicln("Failed to index grpc")
+	}
+	return resp
 }
 
 func main() {
 
 	s := grpc.NewServer()
-	pb.RegisterNewSearchService(s, &SearchService{})
+	pb.RegisterSearchServiceServer(s, &SearchServer{})
 
 	indexTestPiece()
 }
