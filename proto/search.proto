@@ -1,8 +1,10 @@
 syntax = "proto3";
 
+package proto;
+
 import "proto/types.proto";
 
-service Indexer {
+service SearchService {
     rpc Search (SearchRequest) returns (SearchResponse);
 }
 
@@ -12,7 +14,7 @@ message SearchRequest {
 
 message SearchResponse {
 	// If it's fast enough, we could just make this a repeated Measure
-  repeated Occurrence = 1;
+  repeated Occurrence occs = 1;
 }
 
 message Occurrence {

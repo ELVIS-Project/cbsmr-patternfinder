@@ -6,7 +6,7 @@ setup(
     packages=['indexer', 'proto'],
     package_dir={
         'indexer': 'indexer/',
-        'types_pb2': 'proto/'
+        'proto': 'proto/'
     },
     long_description=open('README.md').read()
 )

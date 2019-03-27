@@ -11,9 +11,9 @@ import base64
 import grpc
 
 from indexer import indexers
-import types_pb2
-import indexer_pb2
-import indexer_pb2_grpc
+from proto import types_pb2
+from proto import indexer_pb2
+from proto import indexer_pb2_grpc
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
