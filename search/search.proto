@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "proto/types.proto";
+
+service Indexer {
+    rpc Search (SearchRequest) returns (SearchResponse);
+}
+
+message SearchRequest {
+	repeated Note query = 1;
+}
+
+message SearchResponse {
+	// If it's fast enough, we could just make this a repeated Measure
+  repeated Occurrence = 1;
+}
+
+message Occurrence {
+	uint32 pieceId = 1;
+	repeated uint32 noteIdx = 2;
+	repeated Measure highlightedExcerpt = 3;
+}
