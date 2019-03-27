@@ -183,7 +183,7 @@ def coloured_excerpt(note_list, piece_id):
         measure = music21.converter.parse(base64.b64decode(measure_data))
         excerpt.append(measure)
 
-        nps = indexers.NotePointSet(measure)
+        nps = list(indexers.NotePointSet(measure))
         note_list_from_measure_start = [n - nid for n in note_list if n - nid > 0]
         score_note_ids.extend([nps[i].original_note_id for i in note_list_from_measure_start])
         

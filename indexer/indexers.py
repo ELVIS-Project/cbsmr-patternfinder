@@ -217,7 +217,7 @@ def index_measures(symbolic_data):
 
     m21_score = music21.converter.parse(symbolic_data)
 
-    nps = NotePointSet(music21.converter.parse(symbolic_data))
+    nps = list(NotePointSet(music21.converter.parse(symbolic_data)))
     m21_measures = list(m21_score.measures(1, None).recurse(classFilter=['Measure']))
     for m21_measure in m21_measures:
         note_idx = 0

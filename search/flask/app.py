@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from errors import *
 from _w2 import ffi, lib
 from indexer.insert_piece import insert, indexers
@@ -106,6 +106,7 @@ def search_all():
     return jsonify(resp)
 
 def coloured_excerpt(note_list, piece_id):
+    note_list = [int(i) for i in note_list]
 
     with CONN, CONN.cursor() as cur:
         cur.execute(f"""
@@ -120,7 +121,7 @@ def coloured_excerpt(note_list, piece_id):
             return results
 
     score = music21.converter.parse(base64.b64decode(results[0][0]).decode('utf-8'))
-    nps = indexers.NotePointSet(score)
+    nps = list(indexers.NotePointSet(score))
     nps_ids = [nps[i].original_note_id for i in note_list]
 
     # Get stream excerpt
@@ -159,7 +160,7 @@ def excerpt():
     piece_id = request.args.get("piece_id")
     notes = request.args.get("notes").split(",")
 
-    excerpt = coloured_excerpt(notes, piece_id)
+    excerpt_xml = coloured_excerpt(notes, piece_id)
     return Response(excerpt_xml, mimetype='text/xml')
 
     
