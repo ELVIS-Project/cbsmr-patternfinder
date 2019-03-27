@@ -9,7 +9,7 @@ import base64
 
 import grpc
 
-from proto import types_pb2, indexer_pb2, indexer_pb2_grpc
+from proto import smr_pb2, smr_pb2_grpc
 
 def index_piece(path, name, fmt):
     with open(path, 'rb') as f:

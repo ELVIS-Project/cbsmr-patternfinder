@@ -1,8 +1,12 @@
 proto:
-	protoc --python_out=./ --go_out=./ proto/types.proto
-	python -m grpc_tools.protoc -I=proto/ --python_out=proto/ --grpc_python_out=proto/ --proto_path=./ proto/indexer.proto
-	protoc -I proto/ proto/indexer.proto --go_out=plugins=grpc:proto --proto_path=./
-	protoc -I proto/ proto/search.proto --go_out=plugins=grpc:proto --proto_path=./
+	# Regular proto gen for python & golang
+	protoc --python_out=./ --go_out=./ proto/smr.proto
+
+	# Python grpc
+	python -m grpc_tools.protoc -I=proto/ --python_out=proto/ --grpc_python_out=proto/ --proto_path=./ proto/smr.proto
+
+	# Golang grpc
+	protoc -I proto/ proto/smr.proto --go_out=plugins=grpc:proto --proto_path=./
 
 venv:
 	rm -rf venv
