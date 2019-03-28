@@ -9,7 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"io/ioutil"
-	"time"
 )
 
 const (
@@ -27,27 +26,27 @@ func (s SearchServer) Search(ctx context.Context, req *pb.SearchRequest) (*pb.Se
 	return &resp, nil
 }
 
-func indexTestPiece() *pb.IndexResponse {
-	_, err := bolt.Open("./search.db", 0666, &bolt.Options{Timeout: 1 * time.Second})
-	if err != nil {
-		log.Panicln("Failed to open search database")
-	}
+func indexPieceFromDisk(path string) *pb.IndexResponse {
+	/*
+		_, err := bolt.Open("./search.db", 0666, &bolt.Options{Timeout: 1 * time.Second})
+		if err != nil {
+			log.Panicln("Failed to open search database")
+		}
+	*/
 
-	conn, err := grpc.Dial("localhost:50051")
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	if err != nil {
-		log.Panicln("Failed to connect to indexer service")
+		log.Panicf("Failed to connect to indexer service, %v", err)
 	}
 	indexerClient := pb.NewIndexerClient(conn)
 
-	pieceData, err := ioutil.ReadFile(TESTPIECE)
+	pieceData, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Panicln("Failed to open test piece")
 	}
 
 	piece := &pb.Piece{
 		SymbolicData: pieceData,
-		Encoding:     "xml",
-		Name:         "leiermann",
 	}
 
 	resp, err := indexerClient.IndexPiece(context.Background(), &pb.IndexRequest{Piece: piece})
@@ -62,6 +61,7 @@ func main() {
 	s := grpc.NewServer()
 	pb.RegisterSearcherServer(s, &SearchServer{})
 
+	println("Opening connection")
 	db, err := sql.Open("postgres", DBSTRING)
 	if err != nil {
 		panic(err)
@@ -71,4 +71,29 @@ func main() {
 		panic(err)
 	}
 
+	leiermannIndexed := indexPieceFromDisk(TESTPIECE)
+	queryIndexed := indexPieceFromDisk(TESTQUERY)
+
+	vecs := VecsFromNotes(leiermannIndexed.Notes)
+	println(vecs)
+	for _, vec := range vecs {
+		println(vec.a.PieceIdx, vec.b.PieceIdx)
+	}
+
+	target := InitScoreFromNotes(leiermannIndexed.Notes)
+	pattern := InitScoreFromNotes(queryIndexed.Notes)
+	res := Search(&pattern, &target)
+	print(res.num_occs)
+
+	/*
+		var vectors string
+		println("querying")
+		rows := db.QueryRowContext(context.Background(), "SELECT vectors FROM Piece;")
+		rows.Scan(&vectors)
+		println("vectors: %v", vectors[0:200])
+		score := InitScoreFromCsv(vectors)
+		print(score.num_notes)
+		print(score.num_vectors)
+		print(score.vectors)
+	*/
 }

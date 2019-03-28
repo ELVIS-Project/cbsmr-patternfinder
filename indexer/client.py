@@ -15,15 +15,15 @@ def index_piece(path, name, fmt):
     with open(path, 'rb') as f:
         symbolic_data = f.read()
 
-    pb_piece = types_pb2.Piece(
+    pb_piece = smr_pb2.Piece(
         symbolicData = symbolic_data,
         encoding = fmt,
         name = name
     )
 
     with grpc.insecure_channel('localhost:50051') as channel:
-        stub = indexer_pb2_grpc.IndexerStub(channel)
-        response = stub.IndexPiece(indexer_pb2.IndexRequest(piece=pb_piece))
+        stub = smr_pb2_grpc.IndexerStub(channel)
+        response = stub.IndexPiece(smr_pb2.IndexRequest(piece=pb_piece))
 
     return response
     
