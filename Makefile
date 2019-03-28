@@ -1,3 +1,6 @@
+VERSION_TAG?=dev-$(shell git rev-parse --short HEAD)
+export VERSION_TAG
+
 proto:
 	# Regular proto gen for python & golang
 	protoc --python_out=./ --go_out=./ proto/smr.proto
@@ -22,3 +25,7 @@ rmdb:
 
 down:
 	docker-compose down
+
+docker:
+	docker build . -f search/Dockerfile -t searcher:${VERSION_TAG}
+	docker build . -f indexer/Dockerfile -t indexer:${VERSION_TAG}

@@ -10,6 +10,7 @@ import music21
 import legacy
 import psycopg2
 import base64
+import os
 
 app = Flask(__name__)
 
@@ -17,12 +18,14 @@ app = Flask(__name__)
 #engine = sqlalchemy.create_engine(POSTGRES_CONN_STR)
 POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
 
+print(os.environ.get('SMR_DB_STRING', 'GOT THIS INSTEAD'))
+
 try:
-	CONN = psycopg2.connect(POSTGRES_CONN_STR)
+	CONN = psycopg2.connect(os.environ.get('SMR_DB_STRING', POSTGRES_CONN_STR))
 except Exception as e:
 	import time
 	time.sleep(7)
-	CONN = psycopg2.connect(POSTGRES_CONN_STR)
+	CONN = psycopg2.connect(os.environ.get('SMR_DB_STRING', POSTGRES_CONN_STR))
 CONN.autocommit = False
 
 

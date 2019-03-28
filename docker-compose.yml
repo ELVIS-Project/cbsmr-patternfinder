@@ -1,8 +1,14 @@
 version: "3.1"
 
 services:
+  indexer:
+    build: indexer/
+    environment:
+      - SMR_DB_STRING='postgres://db:5432'
   search:
     build: search/
+    environment:
+      - SMR_DB_STRING='postgres://db:5432'
   db:
     image: 'postgres:10'
     volumes:
