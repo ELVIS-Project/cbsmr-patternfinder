@@ -6,7 +6,6 @@ services:
   db:
     image: 'postgres:10'
     volumes:
-      - ../elvisdump:/var/elvisdump
       - ./db/db-init-scripts/:/docker-entrypoint-initdb.d/
       - ./db/postgres-data:/var/lib/postgresql/data
     ports:
