@@ -13,3 +13,12 @@ venv:
 	virtualenv venv --python=python3
 	source venv/bin/activate
 	pip install -r requirements.txt
+
+db: down rmdb
+	docker-compose up db
+
+rmdb:
+	rm -rf db/postgres-data
+
+down:
+	docker-compose down

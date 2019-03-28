@@ -3,7 +3,9 @@ package main
 import (
 	pb "../proto"
 	"context"
+	"database/sql"
 	"github.com/boltdb/bolt"
+	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"io/ioutil"
@@ -13,6 +15,7 @@ import (
 const (
 	TESTPIECE = "./test_data/lemstrom2011/leiermann.xml"
 	TESTQUERY = "./test_data/lemstrom2011/query_a.mid"
+	DBSTRING  = "host=localhost port=5432 user=postgres password=postgres sslmode=disable"
 )
 
 type SearchServer struct{}
@@ -57,7 +60,15 @@ func indexTestPiece() *pb.IndexResponse {
 func main() {
 
 	s := grpc.NewServer()
-	pb.RegisterSearchServiceServer(s, &SearchServer{})
+	pb.RegisterSearcherServer(s, &SearchServer{})
 
-	indexTestPiece()
+	db, err := sql.Open("postgres", DBSTRING)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	if err = db.Ping(); err != nil {
+		panic(err)
+	}
+
 }
