@@ -55,6 +55,7 @@ message IndexResponse {
     repeated Note notes = 1;
     repeated Measure measures = 2;
     repeated Vector vectors = 3;
+		string vectors_csv = 4;
 }
 
 message SearchRequest {

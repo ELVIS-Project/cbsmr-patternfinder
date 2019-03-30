@@ -4,6 +4,7 @@ import (
 	pb "../proto"
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/boltdb/bolt"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
@@ -74,16 +75,21 @@ func main() {
 	leiermannIndexed := indexPieceFromDisk(TESTPIECE)
 	queryIndexed := indexPieceFromDisk(TESTQUERY)
 
-	vecs := VecsFromNotes(leiermannIndexed.Notes)
-	println(vecs)
-	for _, vec := range vecs {
-		println(vec.a.PieceIdx, vec.b.PieceIdx)
+	/*
+		vecs := VecsFromNotes(leiermannIndexed.Notes)
+		println(vecs)
+		for _, vec := range vecs {
+			println(vec.a.PieceIdx, vec.b.PieceIdx)
+		}
+	*/
+	println(queryIndexed.VectorsCsv)
+
+	for _, note := range queryIndexed.Notes {
+		println(note)
 	}
 
-	target := InitScoreFromNotes(leiermannIndexed.Notes)
-	pattern := InitScoreFromNotes(queryIndexed.Notes)
-	res := Search(&pattern, &target)
-	print(res.num_occs)
+	arrays := Search(queryIndexed, leiermannIndexed)
+	fmt.Println(arrays)
 
 	/*
 		var vectors string

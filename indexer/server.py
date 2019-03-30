@@ -39,7 +39,9 @@ class Indexer(smr_pb2_grpc.IndexerServicer):
                 noteIdx = idx)
                 for data, num, idx in measures]
 
-        response = smr_pb2.IndexResponse(notes=pb_notes, measures=pb_measures)
+        vectors_csv = indexers.legacy_intra_vectors_to_csv(indexers.legacy_intra_vectors(sd, 10))
+
+        response = smr_pb2.IndexResponse(notes=pb_notes, measures=pb_measures, vectors_csv=vectors_csv)
         return response
 
 def serve():

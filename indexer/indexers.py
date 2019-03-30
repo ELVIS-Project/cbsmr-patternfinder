@@ -81,7 +81,7 @@ def legacy_intra_vectors(piece, window):
     df = notes(piece)
 
     intervals = []
-    for window in range(1, window + 1):
+    for window in range(1, min(window + 1, len(df))):
         vectors = df.diff(periods = window).dropna()
         vectors['window'] = window
 
@@ -106,7 +106,7 @@ def legacy_intra_vectors_to_csv(df):
 
     csv_writer = csv.writer(file_obj, delimiter=',')
     csv_writer.writerow(['x', 'y', 'startIndex', 'endIndex', 'startPitch', 'endPitch', 'diatonicDiff', 'chromaticDiff'])
-    csv_writer.writerow([len(set(df.index))])
+    csv_writer.writerow([len(set(df.index)) + 1]) # the df.diff() takes vectors between notes, so the indices must be incremended
     csv_writer.writerow([len(df.index)])
 
     df.to_csv(
