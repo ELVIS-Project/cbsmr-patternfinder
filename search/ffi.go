@@ -1,7 +1,6 @@
 package main
 
 import (
-	pb "../proto"
 	"unsafe"
 )
 
@@ -13,6 +12,8 @@ const (
 	WINDOW = 10
 )
 
+type CScore *C.struct_Score
+
 func min(a int, b int) (minimum int) {
 	if a < b {
 		return a
@@ -20,13 +21,11 @@ func min(a int, b int) (minimum int) {
 	return b
 }
 
-func Search(pattern *pb.IndexResponse, target *pb.IndexResponse) (arrays [][]int) {
+func search(pattern CScore, target CScore) (arrays [][]uint32) {
 
-	CPattern := InitScoreFromCsv(pattern.VectorsCsv)
-	CTarget := InitScoreFromCsv(target.VectorsCsv)
-	result := CSearch(CPattern, CTarget)
+	result := CSearch(pattern, target)
 
-	return resultToIntArrays(result, CPattern)
+	return resultToIntArrays(result, pattern)
 }
 
 func InitScoreFromCsv(vector_csv string) (score *C.struct_Score) {
@@ -44,17 +43,17 @@ func CSearch(pattern *C.struct_Score, target *C.struct_Score) (result *C.struct_
 	return
 }
 
-func resultToIntArrays(result *C.struct_Result, pattern *C.struct_Score) (arrays [][]int) {
+func resultToIntArrays(result *C.struct_Result, pattern *C.struct_Score) (arrays [][]uint32) {
 
 	chains := (*[1 << 30]*C.int)(unsafe.Pointer(result.chains))
 	println(result.num_occs)
 	for i := 0; (C.int)(i) < result.num_occs; i++ {
 		// weird.. can't cast a pointer to a larger array with variable size at compile time?
 		chain := (*[1 << 10]C.int)(unsafe.Pointer(chains[i]))
-		arr := make([]int, pattern.num_notes)
+		arr := make([]uint32, pattern.num_notes)
 
 		for j := 0; (C.int)(j) < pattern.num_notes; j++ {
-			arr[j] = (int)(chain[j])
+			arr[j] = (uint32)(chain[j])
 			if chain[j] == 0 {
 				break
 			}

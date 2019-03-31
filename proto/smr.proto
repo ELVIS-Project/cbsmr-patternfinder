@@ -59,7 +59,9 @@ message IndexResponse {
 }
 
 message SearchRequest {
-	repeated Note query = 1;
+	repeated Note notes = 1;
+	string vectors_csv = 2;
+	bytes symbolicData = 3;
 }
 
 message SearchResponse {
