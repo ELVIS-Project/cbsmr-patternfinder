@@ -49,7 +49,8 @@ func (s SearchServer) Search(ctx context.Context, req *pb.SearchRequest) (resp *
 }
 
 func openBolt() (db *bolt.DB) {
-	db, err := bolt.Open("smr.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+	var err error
+	db, err = bolt.Open("smr.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		panic("Failed to open bolt database")
 	}
@@ -61,7 +62,7 @@ func dialIndexer() (client pb.IndexerClient) {
 	if err != nil {
 		log.Panicf("Failed to connect to indexer service, %v", err)
 	}
-	client = pb.NewIndexerClient(conn)
+	indexerClient = pb.NewIndexerClient(conn)
 	return
 }
 
@@ -69,10 +70,6 @@ func dialPostgres() (db *sql.DB) {
 	var err error
 	db, err = sql.Open("postgres", DBSTRING)
 	if err != nil {
-		panic(err)
-	}
-
-	if err = db.Ping(); err != nil {
 		panic(err)
 	}
 
@@ -86,11 +83,15 @@ func loadScores() {
 		vectors string
 	)
 
-	rows, err := psqlDb.QueryContext(context.Background(), "SELECT id, vectors FROM Piece;")
+	timeoutCtx, cancelFunc := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancelFunc()
+	println("query")
+	rows, err := psqlDb.QueryContext(timeoutCtx, "SELECT id, vectors FROM Piece;")
 	if err != nil {
 		panic(err)
 	}
 
+	println("scans")
 	for rows.Next() {
 		err = rows.Scan(&id, &vectors)
 		if err != nil {
@@ -99,6 +100,8 @@ func loadScores() {
 
 		score := InitScoreFromCsv(vectors)
 		pieceMap[id] = score
+		println(vectors)
+		break
 	}
 
 	/*

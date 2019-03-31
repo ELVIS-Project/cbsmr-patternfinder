@@ -45,6 +45,8 @@ func TestLemstrom(t *testing.T) {
 
 	arrays := search(query, leiermann)
 
+	println(fmt.Sprintf("%v", arrays))
+
 	if fmt.Sprintf("%v", arrays) != "[[3 6 8 9 16 21] [13 14 16 17 18 21]]" {
 		t.Fail()
 	}

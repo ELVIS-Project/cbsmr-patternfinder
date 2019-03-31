@@ -26,9 +26,9 @@ func TestServiceWithLemstrom(t *testing.T) {
 	server := StartServer()
 
 	query := rpanic(TESTQUERY)
-	_ = InitScoreFromCsv(indexPieceFromDisk(TESTPIECE).VectorsCsv)
+	target := InitScoreFromCsv(indexPieceFromDisk(TESTPIECE).VectorsCsv)
 
-	//pieceMap = map[uint32]CScore{0: target}
+	pieceMap = map[uint32]CScore{0: target}
 
 	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
 	if err != nil {
@@ -43,10 +43,10 @@ func TestServiceWithLemstrom(t *testing.T) {
 	}
 
 	if fmt.Sprintf("%v", resp.Occs[0].NoteIdx) != "[3 6 8 9 16 21]" {
-		//t.Fail()
+		t.Fail()
 	}
 	if fmt.Sprintf("%v", resp.Occs[1].NoteIdx) != "[13 14 16 17 18 21]" {
-		//t.Fail()
+		t.Fail()
 	}
 	server.GracefulStop()
 }
