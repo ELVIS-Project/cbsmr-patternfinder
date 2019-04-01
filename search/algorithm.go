@@ -7,12 +7,9 @@ import (
 	"sort"
 )
 
-const (
-	windowSize = 2
-)
-
 var (
 	bins = make(map[Note][]Basis)
+	windowSize = 2
 )
 
 type Basis struct {
@@ -28,6 +25,12 @@ type Note struct {
 
 func binsInit() {
 	bins = make(map[Note][]Basis)
+}
+
+func printBins() {
+	for note, bases := range bins {
+		fmt.Printf("%v: %v\n", note, bases)
+	}
 }
 
 func NewNote(protoNote *pb.Note) (n Note) {
@@ -79,6 +82,36 @@ func (ns byOnsetPitch) Less(i, j int) bool {
 	return ns[i].onset <= ns[j].onset && ns[i].pitch < ns[j].pitch
 }
 
+
+type Results [][]Note
+
+func (rs Results) Len() int {
+	return len(rs)
+}
+func (rs Results) Swap(i, j int) {
+	rs[i], rs[j] = rs[j], rs[i]
+}
+func (rs Results) Less(i, j int) bool {
+	for k := 0; k < min(len(rs[i]), len(rs[j])); k++ {
+		if rs[i][k].onset < rs[j][k].onset { return true }
+	}
+	return false
+}
+
+/*
+func (rs Results) ToNoteIndices(target []*pb.Note) (indices [][]uint32){
+	for i, res := range rs {
+		sort.Sort(res)
+		for j, note := range res {
+			k := sort.Search(len(target), func (i int) bool { return target[i] == note })
+			indices[i][j] = target[k].PieceIdx
+		}
+	}
+	return indices
+}
+*/
+
+
 type Window []Note
 
 func NewWindow(notes []Note, idx int) (w Window) {
@@ -88,6 +121,7 @@ func NewWindow(notes []Note, idx int) (w Window) {
 	for i := 0; i < len(slice); i++ {
 		w[i] = slice[i]
 	}
+
 	return
 }
 
@@ -112,19 +146,21 @@ func (w Window) Denormalize(b Basis) Window {
 func PreProcess(notes []Note) {
 	sort.Sort(byOnsetPitch(notes))
 
-	println(fmt.Sprintf("Notes: %v", notes))
+	//println(fmt.Sprintf("Notes: %v", notes))
 	// :uncertain is it bad to take time window only forwards, not backwards?
 	for i, u := range notes {
-		print("Processing window centered at ", i)
+		//print("Processing window centered at ", i)
 		window := NewWindow(notes, i)
-		println(fmt.Sprintf("	%v", window))
+		//println(fmt.Sprintf("	%v", window))
 
 		// skip the basis note `u'
 		for _, v := range window[1:] {
 			basis := Basis{u, v}
-			println("Normalizing with basis: ", fmt.Sprintf("%v", basis))
+			//println("Normalizing with basis: ", fmt.Sprintf("%v", basis))
+
 			nw := window.Normalize(basis)
-			println(fmt.Sprintf("	%v", nw))
+
+			//println(fmt.Sprintf("	%v", nw))
 
 			for _, note := range nw {
 				bins[note] = append(bins[note], basis)
@@ -133,33 +169,40 @@ func PreProcess(notes []Note) {
 	}
 }
 
-func Query(notes []Note) (result [][]Note) {
+func Query(notes []Note) (results Results) {
 	matchSet := make(map[Basis][]Note)
 
 	sort.Sort(byOnsetPitch(notes))
 
 	queryAsWindow := NewWindow(notes, 0)
-	println("Query: %v", fmt.Sprintf("%v", queryAsWindow))
 
 	for i := range queryAsWindow {
 		for j := i + 1; j < len(queryAsWindow); j++ {
 			basis := Basis{queryAsWindow[i], queryAsWindow[j]}
-			println("query considering basis %v", fmt.Sprintf("%v", basis))
+			//println("query considering basis %v", fmt.Sprintf("%v", basis))
 			nw := queryAsWindow.Normalize(basis)
-			println("query normalized: %v", fmt.Sprintf("%v", nw))
+			//println("query normalized: %v", fmt.Sprintf("%v", nw))
 
 			for _, note := range nw {
 				for _, basis := range bins[note] {
-					matchSet[basis] = append(matchSet[basis], note)
+
+					alreadyExists:= false
+					for _, n := range matchSet[basis] {
+						if n == note { alreadyExists = true }
+					}
+					if !alreadyExists {
+						matchSet[basis] = append(matchSet[basis], note)
+					}
+
 				}
 			}
 		}
 	}
 
-	println("\nMATCH SET")
-	for basis, notes := range matchSet {
-		println(fmt.Sprintf("%v: %v", basis, notes))
-	}
+	//println("\nMATCH SET")
+	//for basis, notes := range matchSet {
+		//println(fmt.Sprintf("%v: %v", basis, notes))
+	//}
 
 	for basis, notes := range matchSet {
 		if len(notes) > 1 {
@@ -167,9 +210,10 @@ func Query(notes []Note) (result [][]Note) {
 				notes[i] = notes[i].Denormalize(basis)
 			}
 			sort.Sort(byOnsetPitch(notes))
-			result = append(result, notes)
+			results = append(results, notes)
 		}
 	}
+	sort.Sort(results)
 
 	return
 }
