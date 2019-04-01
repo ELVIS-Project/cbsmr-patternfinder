@@ -13,6 +13,11 @@ module.exports = {
   devServer: {
     contentBase: __dirname,
     compress: false,
-    port: 8080
+    port: 8080,
+		headers: {
+			'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': '*'
+		}
+
   }
 };

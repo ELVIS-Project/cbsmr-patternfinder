@@ -2,12 +2,9 @@
 
 from flask import Flask, request, jsonify, Response
 from errors import *
-from _w2 import ffi, lib
 from indexer.insert_piece import insert, indexers
 from tqdm import tqdm
-import sqlalchemy
 import music21
-import legacy
 import psycopg2
 import base64
 import os
@@ -27,21 +24,6 @@ except Exception as e:
 	time.sleep(7)
 	CONN = psycopg2.connect(os.environ.get('SMR_DB_STRING', POSTGRES_CONN_STR))
 CONN.autocommit = False
-
-
-SCORES = {}
-def load_scores():
-    print("Selecting pieces from database")
-    with CONN, CONN.cursor() as cur:
-        cur.execute(f"SELECT vectors, id, name FROM Piece")
-        results = cur.fetchall()
-
-    for vectors, idx, name in tqdm(results[:10]):
-        SCORES[idx] = lib.init_score(vectors.encode('utf-8'))
-
-@app.route("/")
-def root():
-    return "Hello World!"
 
 @app.route("/index/<piece_id>", methods=["GET", "POST"])
 def index_id(piece_id):
@@ -76,11 +58,10 @@ def query_measures(chain, piece_id):
         """)
         return [res[0] for res in cur.fetchall()]
         
+    """
 @app.route("/search", methods=["GET"])
 def search_all():
-    """
     Searches entire database for the query string
-    """
     query_str = request.args.get("query")
 
     print("Parsing query...", end='')
@@ -107,6 +88,7 @@ def search_all():
                 })
 
     return jsonify(resp)
+    """
 
 def coloured_excerpt(note_list, piece_id):
     note_list = [int(i) for i in note_list]
@@ -160,8 +142,9 @@ def excerpt():
     """
     Returns a highlighted excerpt of a score
     """
-    piece_id = request.args.get("piece_id")
-    notes = request.args.get("notes").split(",")
+    print(str(request.args))
+    piece_id = request.args.get("pid")
+    notes = request.args.get("nid").split(",")
 
     excerpt_xml = coloured_excerpt(notes, piece_id)
     return Response(excerpt_xml, mimetype='text/xml')
@@ -170,6 +153,4 @@ def excerpt():
 
 
 if __name__ == '__main__':
-    load_scores()
-    app.config['SCORES'] = SCORES
     app.run(host="0.0.0.0", port=80)

@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <head>
+  </head>
+  <body>
+    <nav class="navbar navbar-light bg-info">
+      <div class="container">
+
+        <div class="navbar-brand">PatternFinder</div>
+
+        <ul class="nav mr-auto">
+
+          <li class="nav-item">
+            <a target="_blank" class="nav-link" href="about/">About</a>
+          </li>
+
+          <li class="nav-item">
+            <a target="_blank" class="nav-link" href="https://github.com/ELVIS-Project/PatternFinder">Github</a> 
+          </li>
+
+        </ul>
+
+        <span target="_blank" class="nav-text navbar-right">By David Garfinkle</span>
+
+      </div>
+    </nav>
+
+    <div id="search-bar">
+      <form>
+        <input type="search">
+      </form>
+    </div>
+
+    <div id="resultPage">
+      <div id="result-1"></div>
+      <div id="result-2"></div>
+      <div id="result-3"></div>
+      <div id="result-4"></div>
+      <div id="result-5"></div>
+    </div>
+
+    <div id="flat-embed"></div>
+    <div id="paging"> </div>
+
+    <script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>
+    <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
+    <script src="/dist/bundle.js"></script>
+  </body>
+</html>
