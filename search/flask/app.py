@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, Response, send_from_directory
 from errors import *
 from indexer.insert_piece import insert, indexers
 from tqdm import tqdm
+from _w2 import lib, ffi
 import music21
 import psycopg2
 import base64
@@ -24,6 +25,17 @@ except Exception as e:
 	time.sleep(7)
 	CONN = psycopg2.connect(os.environ.get('SMR_DB_STRING', POSTGRES_CONN_STR))
 CONN.autocommit = False
+
+SCORES = {}
+def load_scores():
+    print("Selecting pieces from database")
+    with CONN, CONN.cursor() as cur:
+       cur.execute(f"SELECT vectors, id, name FROM Piece")
+       results = cur.fetchall()
+
+    for vectors, idx, name in tqdm(results[:10]):
+        SCORES[idx] = lib.init_score(vectors.encode('utf-8'))
+
 
 @app.route("/index/<piece_id>", methods=["GET", "POST"])
 def index_id(piece_id):
@@ -67,6 +79,7 @@ def get_dist(path):
 def search_all():
     """
     Searches entire database for the query string
+    """
     query_str = request.args.get("query")
 
     print("Parsing query...", end='')
@@ -92,8 +105,6 @@ def search_all():
                     'chain': chain
                 })
 
-    return jsonify(resp)
-    """
     return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/src', 'search.html')
 
 def coloured_excerpt(note_list, piece_id):
@@ -159,4 +170,6 @@ def excerpt():
 
 
 if __name__ == '__main__':
+    load_scores()
+    app.config['SCORES'] = SCORES
     app.run(host="0.0.0.0", port=80)
