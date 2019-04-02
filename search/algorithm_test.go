@@ -112,6 +112,11 @@ func TestAlgorithmLemstrom(t *testing.T) {
 	query := toAlgNotes(queryResp)
 	target := toAlgNotes(targetResp)
 
+	println("\n QUERY")
+	for i := range query {
+		fmt.Printf("%v %v: %v\n", i, queryResp.Notes[i], query[i])
+	}
+	println("\n TARGET")
 	for i := range target {
 		fmt.Printf("%v %v: %v\n", i, targetResp.Notes[i], target[i])
 	}

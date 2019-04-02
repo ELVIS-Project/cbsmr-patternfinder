@@ -2,3 +2,6 @@
 	path = search/helsinki-ttwi
 	url = git@github.com:davidgarfinkle/helsinki-ttwi
 	branch = c
+[submodule "search/verovio"]
+	path = search/verovio
+	url = git@github.com:rism-ch/verovio.git

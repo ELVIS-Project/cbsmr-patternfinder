@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, send_from_directory
 from errors import *
 from indexer.insert_piece import insert, indexers
 from tqdm import tqdm
@@ -58,9 +58,14 @@ def query_measures(chain, piece_id):
         """)
         return [res[0] for res in cur.fetchall()]
         
-    """
+@app.route("/dist/<path>", methods=["GET"])
+def get_dist(path):
+    return send_from_directory("/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/dist", path)
+
+
 @app.route("/search", methods=["GET"])
 def search_all():
+    """
     Searches entire database for the query string
     query_str = request.args.get("query")
 
@@ -89,6 +94,7 @@ def search_all():
 
     return jsonify(resp)
     """
+    return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/src', 'search.html')
 
 def coloured_excerpt(note_list, piece_id):
     note_list = [int(i) for i in note_list]

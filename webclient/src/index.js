@@ -2,29 +2,37 @@ const redux = require('redux')
 const pagination = require('pagination')
 const urlParams = new URLSearchParams(window.location.search)
 
-console.log("ch")
+let resultStore = redux.createStore(resultCounter)
+
+function resultCounter(state = {count: 0, cur: ""}, action) {
+    switch (action.type) {
+        case 'NEW':
+            state['count']++
+            state['cur'] = action.svg
+            return state
+        default:
+            return state
+    }
+}
 
 var searchResponse = {
     pages: [
-        {pid: 4020, nid: "0,1,2,3"},
+        [{pid: 4020, nid: "0,1,2,3"},
         {pid: 4020, nid: "12,13,14,15"},
         {pid: 4020, nid: "13,21"},
         {pid: 4020, nid: "24,25,26,27,28"},
-        {pid: 4020, nid: "7"}
+        {pid: 4020, nid: "7"}]
     ],
     total: 5
 }
 
-for (var i = 0; i < urlParams.get('rpp'); i++) {
+for (i = 0; i < urlParams.get('rpp'); i++) {
+    console.log(i)
     reqParams = new URLSearchParams()
-    reqParams.set('q', urlParams.get('q'))
-    reqParams.set('rpp', urlParams.get('rpp'))
-    reqParams.set('page', urlParams.get('page'))
-
-    reqParams.set('pid', searchResponse['pages'][urlParams.get('page')]['pid'])
-    reqParams.set('nid', searchResponse['pages'][urlParams.get('page')]['nid'])
+    reqParams.set('pid', searchResponse['pages'][urlParams.get('page')][i]['pid'])
+    reqParams.set('nid', searchResponse['pages'][urlParams.get('page')][i]['nid'])
     var headers = new Headers()
-    headers.append("content-type", "application/xml")
+    headers.append("content-type", "text/xml")
     var url = new URL("http://localhost/excerpt")
     for (key of reqParams.keys()) {
         url.searchParams.set(key, reqParams.get(key))
@@ -35,25 +43,31 @@ for (var i = 0; i < urlParams.get('rpp'); i++) {
         headers: headers,
         mode: 'no-cors'
     })
+    console.log(req)
     fetch(req)
-        .then(function(resp) {
+        .then(response => response.text())
+        .then(str => {
             var vrvToolkit = new verovio.toolkit();
 
             // Render results
-            options = {
+            var options = {
                 scale: 40,
-                pageHeight: 1200
+                font: "Leipzig",
+                adjustPageHeight: 1,
+                noFooter: 1,
+                noHeader: 1
             }
             vrvToolkit.setOptions(options)
-            var svg = vrvToolkit.renderData(resp.text, {});
-            setResultHtml(0, svg)
-            console.log(svg)
+            var svg = vrvToolkit.renderData(str, options);
+            resultStore.dispatch({type:'NEW', svg: svg})
         });
 }
 
 function setResultHtml(i, svg) {
     document.getElementById('result-' + i).innerHTML = svg
 }
+
+resultStore.subscribe(() => setResultHtml(resultStore.getState()['count'], resultStore.getState()['cur']))
 
 //var paginator = new pagination.SearchPaginator({prelink:'/search', current: urlParams.get('page'), rowsPerPage: urlParams.get('rpp'), totalResult: searchResults['total']});
 //console.log(paginator.render());
