@@ -16,38 +16,60 @@ from proto import smr_pb2, smr_pb2_grpc
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
-class Indexer(smr_pb2_grpc.IndexerServicer):
+class Index(smr_pb2_grpc.IndexServicer):
 
-    def IndexPiece(self, request, context):
-        sd = request.piece.symbolicData
+    def _handle_symbolic_data(self, request):
+        if request.encoding == smr_pb2.IndexRequest.BASE64:
+            print("handling BASE64")
+            
+            sd = base64.b64decode(request.symbolic_data)
+            return sd.decode('utf-8')
+        else:    
+            print("Handling else")
+            return request.symbolic_data.decode('utf-8')
 
-        print(f"Indexing piece {request.piece.name}")
+    def IndexNotes(self, request, context):
+        sd = self._handle_symbolic_data(request)
+
         notes = indexers.notes(sd)[['onset', 'offset', 'pitch-b40']]
-        pb_notes = [
+        pb_notes = smr_pb2.Notes(notes = [
             smr_pb2.Note(
                 onset=on,
                 offset=off,
-                pitchB40=p,
-                pieceIdx=idx)
-                for idx, (_, on, off, p) in enumerate(notes.itertuples())]
+                pitch_b40=p,
+                piece_idx=idx)
+                for idx, (_, on, off, p) in enumerate(notes.itertuples())])
+
+        return pb_notes
+
+    def IndexMeasures(self, request, context):
+        sd = self._handle_symbolic_data(request)
 
         measures = indexers.index_measures(sd)
-        pb_measures = [
+        pb_measures = smr_pb2.Measures(measure = [
             smr_pb2.Measure(
-                symbolicData = data,
+                symbolic_data = data,
                 number = num,
-                noteIdx = idx)
-                for data, num, idx in measures]
+                note_idx = idx)
+                for data, num, idx in measures])
+
+        return pb_measures
+
+    def IndexVectorsCsv(self, request, context):
+        sd = self._handle_symbolic_data(request)
 
         vectors_csv = indexers.legacy_intra_vectors_to_csv(indexers.legacy_intra_vectors(sd, 10))
 
-        response = smr_pb2.IndexResponse(notes=pb_notes, measures=pb_measures, vectors_csv=vectors_csv)
-        return response
+        return smr_pb2.VectorsCsv(csv = vectors_csv)
+
+def new_server():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    smr_pb2_grpc.add_IndexServicer_to_server(Index(), server)
+    server.add_insecure_port('[::]:50051')
+    return server
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    smr_pb2_grpc.add_IndexerServicer_to_server(Indexer(), server)
-    server.add_insecure_port('[::]:50051')
+    server = new_server()
     server.start()
     try:
         while True:
@@ -58,4 +80,4 @@ def serve():
 
 if __name__ == '__main__':
     logging.basicConfig()
-serve()
+    serve()

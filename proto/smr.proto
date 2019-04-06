@@ -2,75 +2,56 @@ syntax = "proto3";
 
 package proto;
 
-message Piece {
-    bytes symbolicData = 1;
-    string encoding = 2;
-    string name = 3;
+service Index {
+    rpc IndexNotes (IndexRequest) returns (Notes);
+    rpc IndexMeasures (IndexRequest) returns (Measures);
+    rpc IndexVectorsCsv (IndexRequest) returns (VectorsCsv);
+}
+	
+service Search {
+    rpc Search (Notes) returns (Occurrences);
 }
 
 message Note {
-    float onset = 1;
-    float offset = 2;
-    int32 pitchB40 = 3;
+		float onset = 1;
+		float offset = 2;
+		int32 pitch_b40 = 3;
+		uint32 piece_idx = 6;
+}
 
-    uint32 pieceIdx = 6;
-
-    uint32 measureNumber = 5; 
-    uint32 measureIdx = 7;
+message Notes {
+	repeated Note notes = 1;
 }
 
 message Measure {
-    bytes symbolicData = 1;
-    uint32 number = 2;
-    uint32 noteIdx = 3;
+		bytes symbolic_data = 1;
+		uint32 number = 2;
+		uint32 note_idx = 3;
 }
 
-message Vector {
-    Note left = 1;
-    Note right = 2;
+message Measures {
+	repeated Measure measures = 1;
 }
 
-
-service Indexer {
-    rpc IndexPiece (IndexRequest) returns (IndexResponse);
-}
-	
-service Searcher{
-    rpc Search (SearchRequest) returns (SearchResponse);
-}
-
-enum IndexType {
-    UNKNOWN = 0; // forward compatibility with enum version change
-    NOTE = 1;
-    MEASURE = 2;
-    VECTORS = 3;
-}
-
-message IndexRequest {
-    Piece piece = 1;
-    IndexType type = 2;
-}
-
-message IndexResponse {
-    repeated Note notes = 1;
-    repeated Measure measures = 2;
-    repeated Vector vectors = 3;
-		string vectors_csv = 4;
-}
-
-message SearchRequest {
-	repeated Note notes = 1;
-	string vectors_csv = 2;
-	bytes symbolicData = 3;
-}
-
-message SearchResponse {
-	// If it's fast enough, we could just make this a repeated Measure
-  repeated Occurrence occs = 1;
+message VectorsCsv {
+	string csv = 1;
 }
 
 message Occurrence {
-	uint32 pieceId = 1;
-	repeated uint32 noteIdx = 2;
-	repeated Measure highlightedExcerpt = 3;
+	uint32 pid = 1;
+	Notes notes = 2;
+}
+
+message Occurrences {
+	repeated Occurrence occurrences = 1;
+}
+
+message IndexRequest {
+	enum Encoding {
+		UNKNOWN = 0;
+		BASE64 = 1;
+		UTF8 = 2;
+	}
+	bytes symbolic_data = 1;
+	Encoding encoding = 2;
 }
