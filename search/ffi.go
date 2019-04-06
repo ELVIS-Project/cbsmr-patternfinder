@@ -3,6 +3,7 @@ package main
 import (
 	pb "../proto"
 	"fmt"
+	"sort"
 	"unsafe"
 )
 
@@ -32,7 +33,26 @@ type vector struct {
 	endIndex   uint32
 }
 
+type byHeightThenIndex []vector
+
+func (vs byHeightThenIndex) Len() int {
+	return len(vs)
+}
+func (vs byHeightThenIndex) Swap(i, j int) {
+	vs[i], vs[j] = vs[j], vs[i]
+}
+func (vs byHeightThenIndex) Less(i, j int) bool {
+	if vs[i].y < vs[j].y {
+		return true
+	} else if vs[i].y == vs[j].y {
+		return vs[i].startIndex <= vs[j].startIndex
+	} else {
+		return false
+	}
+}
+
 func VecsFromNotes(notes []*pb.Note) (vecs []vector) {
+	sort.Sort(byHeightThenIndex(vecs))
 	for i, _ := range notes {
 		for j := i; j < min(i+WINDOW, len(notes)); j++ {
 			cvec := vector{
@@ -51,7 +71,6 @@ func InitScoreFromVectors(numNotes int, vecs []vector) (s CScore) {
 	CVectors := (*C.struct_IntraVector)(C.malloc(C.sizeof_struct_IntraVector * (C.ulong)(len(vecs))))
 	GoCVectors := (*[1 << 30]C.struct_IntraVector)(unsafe.Pointer(CVectors))
 	for i, v := range vecs {
-		println("making a vec ", v.x, v.y, v.startIndex, v.endIndex)
 		CVec := (C.struct_IntraVector)(C.NewIntraVector(
 			(C.float)(v.x),
 			(C.int)(v.y),
@@ -62,7 +81,6 @@ func InitScoreFromVectors(numNotes int, vecs []vector) (s CScore) {
 		GoCVectors[i] = CVec
 	}
 
-	println("creating score: ", numNotes, len(vecs))
 	s = C.initScoreFromVectors(
 		(C.int)(numNotes), (C.int)(len(vecs)),
 		CVectors,
@@ -91,7 +109,7 @@ func InitScoreFromCsv(vector_csv string) (score *C.struct_Score) {
 
 func CSearch(pattern *C.struct_Score, target *C.struct_Score) (result *C.struct_Result) {
 	result = (*C.struct_Result)(C.malloc(C.sizeof_struct_Result))
-	C.search_return_chains(
+	C.search(
 		(*C.struct_Score)(unsafe.Pointer(pattern)),
 		(*C.struct_Score)(unsafe.Pointer(target)),
 		(*C.struct_Result)(unsafe.Pointer(result)),

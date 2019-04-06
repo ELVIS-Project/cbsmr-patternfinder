@@ -54,10 +54,18 @@ func TestLemstrom(t *testing.T) {
 
 func TestInitScoreFromVectors(t *testing.T) {
 	queryIndexed := indexPieceFromDisk(TESTQUERY)
+	pieceIndexed := indexPieceFromDisk(TESTPIECE)
 
 	vecs := VecsFromNotes(queryIndexed.Notes)
+	Tvecs := VecsFromNotes(pieceIndexed.Notes)
 
-	s := InitScoreFromVectors(len(queryIndexed.Notes), vecs)
+	pattern := InitScoreFromVectors(len(queryIndexed.Notes), vecs)
+	target := InitScoreFromVectors(len(pieceIndexed.Notes), Tvecs)
 
-	PrintScore(s)
+	//PrintScore(s)
+	//PrintScore(Ts)
+
+	results := search(pattern, target)
+
+	println(fmt.Sprintf("%v", results))
 }
