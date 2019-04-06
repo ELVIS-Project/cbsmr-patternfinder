@@ -54,7 +54,7 @@ func (vs byHeightThenIndex) Less(i, j int) bool {
 func VecsFromNotes(notes []*pb.Note) (vecs []vector) {
 	sort.Sort(byHeightThenIndex(vecs))
 	for i, _ := range notes {
-		for j := i; j < min(i+WINDOW, len(notes)); j++ {
+		for j := i + 1; j < min(i+WINDOW, len(notes)); j++ {
 			cvec := vector{
 				notes[j].Onset - notes[i].Onset,
 				notes[j].PitchB40 - notes[i].PitchB40,
@@ -159,7 +159,6 @@ func kTableToOccurrence(result *C.struct_Result, kTableLength int) pb.Occurrence
 
 	return chains
 }
-
 func twoCombinations(iterable interface{}) (combos [][]interface{}) {
 	for i, a := range iterable {
 		for j, b := range iterable {

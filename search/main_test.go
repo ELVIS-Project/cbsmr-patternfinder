@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	TESTPIECE = "./test_data/lemstrom2011/leiermann.xml"
-	TESTQUERY = "./test_data/lemstrom2011/query_a.mid"
+	TESTPIECE = "./testdata/lemstrom2011/leiermann.xml"
+	TESTQUERY = "./testdata/lemstrom2011/query_a.mid"
 )
 
 func rpanic(path string) []byte {

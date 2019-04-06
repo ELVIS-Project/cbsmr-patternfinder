@@ -10,6 +10,19 @@ import (
 	"testing"
 )
 
+var (
+	TESTPIECES = []string{
+		"000000000002557_Regina-caeli-letare_Josquin-Des-Prez_file5.mei",
+		"000000000002678_Sancta-mater-istud-agas_Penalosa-Francisco_file5.mei",
+		"000000000010113_Sonata-in-G-minor-Op.-4-No.-2_Grave_Corelli-Arcangelo_file1.xml",
+		"000000000010138_Je-me-recommande_Binchois-Gilles-de-Bins-dit_file1.xml",
+	}
+	TESTPALESTRINA = []string{
+		"./testdata/palestrina_masses/000000000011125_Missa-Hodie-christus-natus-est_Sanctus_Palestrina-Giovanni-Pierluigi-da_file2.mid",
+		"./testdata/palestrina_masses/000000000011344_Missa-Primi-toni_Credo_Palestrina-Giovanni-Pierluigi-da_file2.mid",
+	}
+)
+
 func indexPieceFromDisk(path string) *pb.IndexResponse {
 
 	println("Dialing indexer")
@@ -35,6 +48,7 @@ func indexPieceFromDisk(path string) *pb.IndexResponse {
 	return resp
 }
 
+/*
 func TestLemstrom(t *testing.T) {
 
 	leiermannIndexed := indexPieceFromDisk(TESTPIECE)
@@ -51,8 +65,9 @@ func TestLemstrom(t *testing.T) {
 		t.Fail()
 	}
 }
+*/
 
-func TestInitScoreFromVectors(t *testing.T) {
+func TestLemstrom(t *testing.T) {
 	queryIndexed := indexPieceFromDisk(TESTQUERY)
 	pieceIndexed := indexPieceFromDisk(TESTPIECE)
 
@@ -68,4 +83,30 @@ func TestInitScoreFromVectors(t *testing.T) {
 	results := search(pattern, target)
 
 	println(fmt.Sprintf("%v", results))
+}
+
+func TestPalestrina(t *testing.T) {
+	for _, path := range TESTPALESTRINA {
+		targetIndexed := indexPieceFromDisk(path)
+
+		pbNotes := []*pb.Note{
+			&pb.Note{Onset: 0, Offset: 1, PitchB40: 163, PieceIdx: 0},
+			&pb.Note{Onset: 1, Offset: 2, PitchB40: 180, PieceIdx: 1},
+			&pb.Note{Onset: 2, Offset: 3, PitchB40: 163, PieceIdx: 2},
+		}
+		pVecs := VecsFromNotes(pbNotes)
+		tVecs := VecsFromNotes(targetIndexed.Notes[:100])
+
+		println(fmt.Sprintf("%v", pVecs))
+
+		println("pattern score")
+		pattern := InitScoreFromVectors(len(pbNotes), pVecs)
+		println("target score")
+		target := InitScoreFromVectors(len(targetIndexed.Notes), tVecs)
+
+		println("search")
+		results := search(pattern, target)
+
+		println(fmt.Sprintf("%v", results))
+	}
 }
