@@ -1,6 +1,8 @@
 package main
 
 import (
+	pb "../proto"
+	"fmt"
 	"unsafe"
 )
 
@@ -13,6 +15,60 @@ const (
 )
 
 type CScore *C.struct_Score
+
+func PrintScore(s *C.struct_Score) {
+	println(fmt.Sprintf("Score with %v notes and %v vecs:", s.num_notes, s.num_vectors))
+	vecs := (*[1 << 30]C.struct_IntraVector)(unsafe.Pointer(s.vectors))
+	for i := 0; (C.int)(i) < s.num_vectors; i++ {
+		cv := vecs[i]
+		println(fmt.Sprintf("x: %v, y: %v, si: %v, ei; %v", cv.x, cv.y, cv.startIndex, cv.endIndex))
+	}
+}
+
+type vector struct {
+	x          float32
+	y          int32
+	startIndex uint32
+	endIndex   uint32
+}
+
+func VecsFromNotes(notes []*pb.Note) (vecs []vector) {
+	for i, _ := range notes {
+		for j := i; j < min(i+WINDOW, len(notes)); j++ {
+			cvec := vector{
+				notes[j].Onset - notes[i].Onset,
+				notes[j].PitchB40 - notes[i].PitchB40,
+				notes[i].PieceIdx,
+				notes[j].PieceIdx,
+			}
+			vecs = append(vecs, cvec)
+		}
+	}
+	return
+}
+
+func InitScoreFromVectors(numNotes int, vecs []vector) (s CScore) {
+	CVectors := (*C.struct_IntraVector)(C.malloc(C.sizeof_struct_IntraVector * (C.ulong)(len(vecs))))
+	GoCVectors := (*[1 << 30]C.struct_IntraVector)(unsafe.Pointer(CVectors))
+	for i, v := range vecs {
+		println("making a vec ", v.x, v.y, v.startIndex, v.endIndex)
+		CVec := (C.struct_IntraVector)(C.NewIntraVector(
+			(C.float)(v.x),
+			(C.int)(v.y),
+			(C.int)(v.startIndex),
+			(C.int)(v.endIndex),
+		))
+
+		GoCVectors[i] = CVec
+	}
+
+	println("creating score: ", numNotes, len(vecs))
+	s = C.initScoreFromVectors(
+		(C.int)(numNotes), (C.int)(len(vecs)),
+		CVectors,
+	)
+	return
+}
 
 func min(a int, b int) (minimum int) {
 	if a < b {
@@ -174,15 +230,6 @@ func InitScoreFromNotes(notes []*pb.Note) (C_score *C.struct_Score) {
 type NoteVector struct {
 	a *pb.Note
 	b *pb.Note
-}
-
-func VecsFromNotes(notes []*pb.Note) (vecs []NoteVector) {
-	for i, _ := range notes {
-		for j := i; j < min(i+WINDOW, len(notes)); j++ {
-			vecs = append(vecs, NoteVector{notes[i], notes[j]})
-		}
-	}
-	return
 }
 
 */

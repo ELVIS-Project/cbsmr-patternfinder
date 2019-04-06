@@ -51,3 +51,13 @@ func TestLemstrom(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestInitScoreFromVectors(t *testing.T) {
+	queryIndexed := indexPieceFromDisk(TESTQUERY)
+
+	vecs := VecsFromNotes(queryIndexed.Notes)
+
+	s := InitScoreFromVectors(len(queryIndexed.Notes), vecs)
+
+	PrintScore(s)
+}
