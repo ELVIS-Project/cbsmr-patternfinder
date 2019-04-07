@@ -6,7 +6,7 @@ services:
     environment:
       - SMR_DB_STRING='postgres://db:5432'
   search:
-    build: search/
+    build: smr/
     environment:
       - SMR_DB_STRING='postgres://db:5432'
   db:

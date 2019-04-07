@@ -12,10 +12,10 @@ import (
 
 var (
 	TESTPIECES = []string{
-		"000000000002557_Regina-caeli-letare_Josquin-Des-Prez_file5.mei",
-		"000000000002678_Sancta-mater-istud-agas_Penalosa-Francisco_file5.mei",
-		"000000000010113_Sonata-in-G-minor-Op.-4-No.-2_Grave_Corelli-Arcangelo_file1.xml",
-		"000000000010138_Je-me-recommande_Binchois-Gilles-de-Bins-dit_file1.xml",
+		"./testdata/000000000002557_Regina-caeli-letare_Josquin-Des-Prez_file5.mei",
+		"./testdata/000000000002678_Sancta-mater-istud-agas_Penalosa-Francisco_file5.mei",
+		"./testdata/000000000010113_Sonata-in-G-minor-Op.-4-No.-2_Grave_Corelli-Arcangelo_file1.xml",
+		"./testdata/000000000010138_Je-me-recommande_Binchois-Gilles-de-Bins-dit_file1.xml",
 	}
 	TESTPALESTRINA = []string{
 		"./testdata/palestrina_masses/000000000011125_Missa-Hodie-christus-natus-est_Sanctus_Palestrina-Giovanni-Pierluigi-da_file2.mid",

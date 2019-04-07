@@ -8,8 +8,28 @@ service Index {
     rpc IndexVectorsCsv (IndexRequest) returns (VectorsCsv);
 }
 	
-service Search {
+service Smr {
     rpc Search (Notes) returns (Occurrences);
+    rpc AddPiece (AddPieceRequest) returns (AddPieceResponse);
+}
+
+message IndexRequest {
+	enum Encoding {
+		UNKNOWN = 0;
+		BASE64 = 1;
+		UTF8 = 2;
+	}
+	bytes symbolic_data = 1;
+	Encoding encoding = 2;
+}
+
+message AddPieceRequest {
+	uint32 id = 1;
+	Notes notes = 2;
+}
+
+message AddPieceResponse {
+	uint32 id = 1;
 }
 
 message Note {
@@ -21,6 +41,11 @@ message Note {
 
 message Notes {
 	repeated Note notes = 1;
+}
+
+message Vector {
+	Note start = 1;
+	Note end = 2;
 }
 
 message Measure {
@@ -39,19 +64,9 @@ message VectorsCsv {
 
 message Occurrence {
 	uint32 pid = 1;
-	Notes notes = 2;
+	repeated uint32 notes = 2;
 }
 
 message Occurrences {
 	repeated Occurrence occurrences = 1;
-}
-
-message IndexRequest {
-	enum Encoding {
-		UNKNOWN = 0;
-		BASE64 = 1;
-		UTF8 = 2;
-	}
-	bytes symbolic_data = 1;
-	Encoding encoding = 2;
 }

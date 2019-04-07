@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 	"unsafe"
+	"encoding/gob"
+	"bytes"
 )
 
 // #cgo LDFLAGS: -L ./helsinki-ttwi/w2 -l w2
@@ -26,11 +28,26 @@ func PrintScore(s *C.struct_Score) {
 	}
 }
 
+type Score struct {
+	Vectors []vector
+	NumNotes int
+}
+
+func (s Score) Encode() ([]byte, error) {
+	buf := bytes.NewBuffer([]byte{})
+	encoder := gob.NewEncoder(buf)
+	err := encoder.Encode(s)
+	if err != nil {
+		return []byte{}, err
+	}
+	return buf.Bytes(), nil
+}
+
 type vector struct {
-	x          float32
-	y          int32
-	startIndex uint32
-	endIndex   uint32
+	X          float64
+	Y          int32
+	StartIndex uint32
+	EndIndex   uint32
 }
 
 type byHeightThenIndex []vector
@@ -42,21 +59,61 @@ func (vs byHeightThenIndex) Swap(i, j int) {
 	vs[i], vs[j] = vs[j], vs[i]
 }
 func (vs byHeightThenIndex) Less(i, j int) bool {
-	if vs[i].y < vs[j].y {
+	if vs[i].Y < vs[j].Y {
 		return true
-	} else if vs[i].y == vs[j].y {
-		return vs[i].startIndex <= vs[j].startIndex
+	} else if vs[i].Y == vs[j].Y {
+		return vs[i].StartIndex <= vs[j].StartIndex
 	} else {
 		return false
 	}
 }
 
-func VecsFromNotes(notes []*pb.Note) (vecs []vector) {
-	sort.Sort(byHeightThenIndex(vecs))
+/*
+type pbVecHeightIndex []*pb.Vector
+
+func (vs pbVecHeightIndex) Len() int {
+	return len(vs)
+}
+func (vs pbVecHeightIndex) Swap(i, j int) {
+	vs[i], vs[j] = vs[j], vs[i]
+}
+func (vs pbVecHeightIndex) Less(i, j int) bool {
+	yi := vs[i].End.PitchB40 - vs[i].Start.PitchB40
+	yj := vs[j].End.PitchB40 - vs[j].Start.PitchB40
+
+	if yi < yj {
+		return true
+	} else if yi == yj {
+		return vs[i].Start.PieceIdx <= vs[j].Start.PieceIdx
+	} else {
+		return false
+	}
+}
+
+func PbVecsFromPbNotes(Notes *pb.Notes) (vecs []*pb.Vector) {
+	notes := Notes.Notes
+
+	for i, _ := range notes {
+		for j := i + 1; j < min(i+WINDOW, len(notes)); j++ {
+			pbVec := &pb.Vector{
+				Start: notes[i],
+				End: Note[j],
+			}
+			vecs = append(vecs, pbVec)
+		}
+	}
+	sort.Sort(pbVecHeightIndex(vecs))
+	return
+}
+*/
+
+func VecsFromNotes(Notes *pb.Notes) (vecs []vector) {
+	notes := Notes.Notes
+
 	for i, _ := range notes {
 		for j := i + 1; j < min(i+WINDOW, len(notes)); j++ {
 			cvec := vector{
-				notes[j].Onset - notes[i].Onset,
+				(float64)(notes[j].Onset - notes[i].Onset),
 				notes[j].PitchB40 - notes[i].PitchB40,
 				notes[i].PieceIdx,
 				notes[j].PieceIdx,
@@ -64,18 +121,35 @@ func VecsFromNotes(notes []*pb.Note) (vecs []vector) {
 			vecs = append(vecs, cvec)
 		}
 	}
+	sort.Sort(byHeightThenIndex(vecs))
 	return
 }
+
+func InitScoreFromIndexerResp(resp *pb.Notes) (s CScore) {
+	vecs := VecsFromNotes(resp)
+	s = InitScoreFromVectors(len(resp.Notes), vecs)
+	return
+}
+
+/*
+func InitScoreFromPbVectors
+			cvec := vector{
+				(float64)(notes[j].Onset - notes[i].Onset),
+				notes[j].PitchB40 - notes[i].PitchB40,
+				notes[i].PieceIdx,
+				notes[j].PieceIdx,
+			}
+*/
 
 func InitScoreFromVectors(numNotes int, vecs []vector) (s CScore) {
 	CVectors := (*C.struct_IntraVector)(C.malloc(C.sizeof_struct_IntraVector * (C.ulong)(len(vecs))))
 	GoCVectors := (*[1 << 30]C.struct_IntraVector)(unsafe.Pointer(CVectors))
 	for i, v := range vecs {
 		CVec := (C.struct_IntraVector)(C.NewIntraVector(
-			(C.float)(v.x),
-			(C.int)(v.y),
-			(C.int)(v.startIndex),
-			(C.int)(v.endIndex),
+			(C.float)(v.X),
+			(C.int)(v.Y),
+			(C.int)(v.StartIndex),
+			(C.int)(v.EndIndex),
 		))
 
 		GoCVectors[i] = CVec

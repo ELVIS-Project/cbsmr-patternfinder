@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	pb "../proto"
 	"context"
@@ -59,5 +60,5 @@ func loadScores() {
 			}
 			pieceMap[(uint32)(identifier)] = score
 		}
-	*/
 }
+	*/

@@ -7,7 +7,6 @@ import music21
 import legacy
 from indexer import indexers
 from tqdm import tqdm
-from _w2 import ffi, lib
 
 
 ELVISDUMP = "/Users/davidgarfinkle/elvis-project/elvisdump/"
@@ -64,6 +63,18 @@ def get_search(query):
             4a"""
         
     return requests.get(ENDPOINT + "search", params={'query': query})
+
+def search_grpc():
+    query_str = """**kern
+        *clefG2
+        *k[]
+        *M4/4
+        =-
+        4c 4e 4a 4cc
+        4B- f b- dd"""
+    return requests.get(ENDPOINT + "search_test",
+            params={'query': query_str})
+    
 
 def search():
     query_str = """**kern

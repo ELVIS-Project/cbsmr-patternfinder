@@ -62,7 +62,7 @@ func (n Note) Denormalize(b Basis) (denormedNote Note) {
 	return
 }
 
-func toAlgNotes(resp *pb.IndexResponse) []Note {
+func toAlgNotes(resp *pb.Notes) []Note {
 	notes := make([]Note, len(resp.Notes))
 	for i := range resp.Notes {
 		notes[i] = NewNote(resp.Notes[i])

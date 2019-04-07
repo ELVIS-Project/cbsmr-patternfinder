@@ -1,5 +1,5 @@
 [submodule "search/helsinki-ttwi"]
-	path = search/helsinki-ttwi
+	path = smr/helsinki-ttwi
 	url = git@github.com:davidgarfinkle/helsinki-ttwi
 	branch = c
 [submodule "search/verovio"]

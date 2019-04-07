@@ -4,11 +4,13 @@ from flask import Flask, request, jsonify, Response, send_from_directory
 from errors import *
 from indexer.insert_piece import insert, indexers
 from tqdm import tqdm
-from _w2 import lib, ffi
 import music21
 import psycopg2
 import base64
 import os
+
+import grpc
+import smr_pb2, smr_pb2_grpc
 
 app = Flask(__name__)
 
@@ -79,7 +81,6 @@ def get_dist(path):
 def search_all():
     """
     Searches entire database for the query string
-    """
     query_str = request.args.get("query")
 
     print("Parsing query...", end='')
@@ -105,6 +106,7 @@ def search_all():
                     'chain': chain
                 })
 
+    """
     return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/src', 'search.html')
 
 def coloured_excerpt(note_list, piece_id):
@@ -166,10 +168,32 @@ def excerpt():
     excerpt_xml = coloured_excerpt(notes, piece_id)
     return Response(excerpt_xml, mimetype='text/xml')
 
-    
+
+@app.route("/search_test", methods=["GET"])
+def search_test():
+    query_str = request.args.get("query")
+    if not query_str:
+        return "No query parameter included in GET request", 400
+    print(query_str)
+    query_bytes = bytes(query_str, encoding='utf-8')
+
+    pb_piece = smr_pb2.Piece(symbolicData=query_bytes)
+
+    """
+Search service will call indexer... todo: figure out final architecture
+    with grpc.insecure_channel('localhost:50051') as channel:
+        stub = smr_pb2_grpc.IndexerStub(channel)
+        queryIndexResponse = stub.IndexPiece(smr_pb2.IndexRequest(piece=pb_piece))
+    """
+    with grpc.insecure_channel('localhost:8080') as channel:
+        stub = smr_pb2_grpc.SearcherStub(channel)
+        response = stub.Search(smr_pb2.SearchRequest(symbolicData=query_bytes))
+
+    print(response.occs)
+    return str(response.occs), 200
 
 
 if __name__ == '__main__':
-    load_scores()
-    app.config['SCORES'] = SCORES
+    #load_scores()
+    #app.config['SCORES'] = SCORES
     app.run(host="0.0.0.0", port=80)
