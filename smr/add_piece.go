@@ -34,16 +34,19 @@ func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp
 	err = s.boltDb.Update(func(tx *bolt.Tx) error {
 		scoreBucket := tx.Bucket([]byte("scores"))
 		err := scoreBucket.Put(itob(req.Id), scoreBytes)
+		println("Putting in a score! id: ", req.Id)
 		if err != nil {
 			return err
 		}
 		id = req.Id
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
+
+	// :todo make a LoadScore()
+	s.LoadScores(WINDOW)
 
 	return &pb.AddPieceResponse{Id: id}, nil
 }

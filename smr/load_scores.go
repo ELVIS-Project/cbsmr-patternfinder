@@ -2,17 +2,16 @@ package main
 
 import (
 	"github.com/boltdb/bolt"
-	"encoding/asn1"
 )
 
 func (s *SmrServer) LoadScores(window int) error {
+	println("Loading Scores into memory!")
 
 	err := s.boltDb.View(func(tx *bolt.Tx) error {
 		scoreBucket := tx.Bucket([]byte("scores"))
 		err := scoreBucket.ForEach(func(k, v []byte) error {
 
-			score := Score{}
-			_, err := asn1.Unmarshal(v, &score)
+			score, err := DecodeScore(v)
 			if err != nil {
 				return err
 			}
@@ -23,6 +22,7 @@ func (s *SmrServer) LoadScores(window int) error {
 				}
 			}
 
+			println(btoi(k))
 			s.pieceMap[btoi(k)] = InitScoreFromVectors(score.NumNotes, score.Vectors)
 			return nil
 		})

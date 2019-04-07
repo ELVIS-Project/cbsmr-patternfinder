@@ -23,7 +23,7 @@ class Index(smr_pb2_grpc.IndexServicer):
             print("handling BASE64")
             
             sd = base64.b64decode(request.symbolic_data)
-            return sd.decode('utf-8')
+            return sd
         else:    
             print("Handling else")
             return request.symbolic_data.decode('utf-8')

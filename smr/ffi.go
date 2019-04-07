@@ -43,6 +43,16 @@ func (s Score) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func DecodeScore(input []byte) (s Score, err error) {
+	buf := bytes.NewBuffer(input)
+	decoder := gob.NewDecoder(buf)
+	err = decoder.Decode(&s)
+	if err != nil {
+		return Score{}, err
+	}
+	return
+}
+
 type vector struct {
 	X          float64
 	Y          int32
