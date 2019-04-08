@@ -4,7 +4,6 @@ import base64
 import psycopg2
 import json
 import music21
-import legacy
 from indexer import indexers
 from tqdm import tqdm
 
@@ -16,6 +15,10 @@ POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postg
 CONN = psycopg2.connect(POSTGRES_CONN_STR)
 CONN.autocommit = True
 
+xml_pieces = (os.path.join(ELVISDUMP, "XML", f) for f in os.listdir(os.path.join(ELVISDUMP, "XML")))
+mid_pieces = (os.path.join(ELVISDUMP, "MID", f) for f in os.listdir(os.path.join(ELVISDUMP, "MID")))
+mei_pieces = (os.path.join(ELVISDUMP, "MEI", f) for f in os.listdir(os.path.join(ELVISDUMP, "MEI")))
+
 def post_piece(path):
     dumpname, format = os.path.splitext(os.path.basename(path))
     index, _, name = dumpname.partition('_')
@@ -26,6 +29,17 @@ def post_piece(path):
     return requests.post(ENDPOINT + "index/" + str(index),
                         data=data,
                         headers={'Content-Type': 'application/octet-stream'})
+
+def search_grpc():
+    query_str = """**kern
+        *clefG2
+        *k[]
+        *M4/4
+        =-
+        4c 4e 4a 4cc
+        4B- f b- dd"""
+    return requests.get(ENDPOINT + "search",
+            params={'query': query_str})
 
 
 def index_all():
@@ -63,17 +77,6 @@ def get_search(query):
             4a"""
         
     return requests.get(ENDPOINT + "search", params={'query': query})
-
-def search_grpc():
-    query_str = """**kern
-        *clefG2
-        *k[]
-        *M4/4
-        =-
-        4c 4e 4a 4cc
-        4B- f b- dd"""
-    return requests.get(ENDPOINT + "search_test",
-            params={'query': query_str})
     
 
 def search():

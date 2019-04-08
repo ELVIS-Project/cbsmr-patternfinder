@@ -1,8 +1,10 @@
 #!/usr/local/bin/python3
+import os
+import sys
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'proto'))
 
-from flask import Flask, request, jsonify, Response, send_from_directory
+from flask import Flask, request, jsonify, Response, send_from_directory, url_for
 from errors import *
-from indexer.insert_piece import insert, indexers
 from tqdm import tqdm
 import music21
 import psycopg2
@@ -12,13 +14,11 @@ import os
 import grpc
 import smr_pb2, smr_pb2_grpc
 
+from indexer import indexers
+
 app = Flask(__name__)
 
-#POSTGRES_CONN_STR = "postgresql://indexer:indexer@localhost:5432/postgres"
-#engine = sqlalchemy.create_engine(POSTGRES_CONN_STR)
 POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
-
-print(os.environ.get('SMR_DB_STRING', 'GOT THIS INSTEAD'))
 
 try:
 	CONN = psycopg2.connect(os.environ.get('SMR_DB_STRING', POSTGRES_CONN_STR))
@@ -28,86 +28,30 @@ except Exception as e:
 	CONN = psycopg2.connect(os.environ.get('SMR_DB_STRING', POSTGRES_CONN_STR))
 CONN.autocommit = False
 
-SCORES = {}
-def load_scores():
-    print("Selecting pieces from database")
-    with CONN, CONN.cursor() as cur:
-       cur.execute(f"SELECT vectors, id, name FROM Piece")
-       results = cur.fetchall()
+@app.route("/dist/<path>", methods=["GET"])
+def get_dist(path):
+    return send_from_directory("/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/dist", path)
 
-    for vectors, idx, name in tqdm(results[:10]):
-        SCORES[idx] = lib.init_score(vectors.encode('utf-8'))
-
-
-@app.route("/index/<piece_id>", methods=["GET", "POST"])
+@app.route("/index/<piece_id>", methods=["POST"])
 def index_id(piece_id):
     """
     Indexes a piece and stores it at :param id
     """
     piece_id = int(piece_id)
     if request.method == "POST":
-        insert(piece_id, CONN)
+        symbolic_data = base64.b64encode(request.data).decode('utf-8')
+        with CONN, CONN.cursor() as cur:
+            cur.execute(f"INSERT INTO Piece (id, data) VALUES ('{piece_id}', '{symbolic_data}') ON CONFLICT (id) DO NOTHING;")
 
-    return "yay!", 200
+        with grpc.insecure_channel('localhost:50051') as channel:
+            stub = smr_pb2_grpc.IndexStub(channel)
+            pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = request.data))
 
-def extract_chain(c_array):
-    i = 0
-    note_indices = []
-    while c_array[i] != 0 and c_array[i] != '\0':
-        note_indices.append(c_array[i])
-        i += 1
-    return note_indices
+        with grpc.insecure_channel('localhost:8080') as channel:
+            stub = smr_pb2_grpc.SmrStub(channel)
+            response = stub.AddPiece(smr_pb2.AddPieceRequest(id = piece_id, notes = pb_notes))
 
-def filter_chain(chain, window, num_notes):
-    return (
-        sum((r - l <= window) for l, r in zip(chain, chain[1:])) == len(chain) - 1
-        and len(chain) >= num_notes)
-
-def query_measures(chain, piece_id):
-    with CONN, CONN.cursor() as cur:
-        cur.execute(f"""
-            SELECT DISTINCT (data) FROM Measure JOIN Note
-            ON Measure.onset = Note.onset
-            WHERE Note.piece_id = {piece_id} AND Note.piece_idx IN {tuple(chain)} AND Measure.pid={piece_id};
-        """)
-        return [res[0] for res in cur.fetchall()]
-        
-@app.route("/dist/<path>", methods=["GET"])
-def get_dist(path):
-    return send_from_directory("/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/dist", path)
-
-
-@app.route("/search", methods=["GET"])
-def search_all():
-    """
-    Searches entire database for the query string
-    query_str = request.args.get("query")
-
-    print("Parsing query...", end='')
-    query_notes = music21.converter.parse(query_str).flat.notes
-    df = indexers.legacy_intra_vectors(query_str, 1)
-    query_csv = indexers.legacy_intra_vectors_to_csv(df)
-    print(query_csv)
-    query = lib.init_score(query_csv.encode('utf-8'))
-
-    resp = {'occs': []}
-    for idx, target in app.config['SCORES'].items():
-        print("Searching " + str(idx))
-        res = ffi.new("struct Result*")
-        lib.search_return_chains(query, target, res)
-        chains = legacy.extract_chains(res.table, target.num_notes)
-
-        print(chains)
-
-        for chain in chains:
-            if filter_chain(chain, window=10, num_notes=len(query_notes)):
-                resp['occs'].append({
-                    'pid': piece_id,
-                    'chain': chain
-                })
-
-    """
-    return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/src', 'search.html')
+    return Response(str(piece_id), mimetype='text/plain')
 
 def coloured_excerpt(note_list, piece_id):
     note_list = [int(i) for i in note_list]
@@ -161,7 +105,6 @@ def excerpt():
     """
     Returns a highlighted excerpt of a score
     """
-    print(str(request.args))
     piece_id = request.args.get("pid")
     notes = request.args.get("nid").split(",")
 
@@ -169,28 +112,29 @@ def excerpt():
     return Response(excerpt_xml, mimetype='text/xml')
 
 
-@app.route("/search_test", methods=["GET"])
+def pb_occ_to_excerpt_url(pb_occ):
+    return url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes))
+
+
+@app.route("/search", methods=["GET"])
 def search_test():
     query_str = request.args.get("query")
     if not query_str:
         return "No query parameter included in GET request", 400
-    print(query_str)
+
     query_bytes = bytes(query_str, encoding='utf-8')
 
-    pb_piece = smr_pb2.Piece(symbolicData=query_bytes)
-
-    """
-Search service will call indexer... todo: figure out final architecture
     with grpc.insecure_channel('localhost:50051') as channel:
-        stub = smr_pb2_grpc.IndexerStub(channel)
-        queryIndexResponse = stub.IndexPiece(smr_pb2.IndexRequest(piece=pb_piece))
-    """
-    with grpc.insecure_channel('localhost:8080') as channel:
-        stub = smr_pb2_grpc.SearcherStub(channel)
-        response = stub.Search(smr_pb2.SearchRequest(symbolicData=query_bytes))
+        stub = smr_pb2_grpc.IndexStub(channel)
+        pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = query_bytes, encoding = smr_pb2.IndexRequest.UTF8))
 
-    print(response.occs)
-    return str(response.occs), 200
+    with grpc.insecure_channel('localhost:8080') as channel:
+        stub = smr_pb2_grpc.SmrStub(channel)
+        response = stub.Search(pb_notes)
+
+    print(response.occurrences)
+    return Response("\n".join(pb_occ_to_excerpt_url(occ) for occ in response.occurrences), mimetype="uri-list")
+    #return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/src', 'search.html')
 
 
 if __name__ == '__main__':
