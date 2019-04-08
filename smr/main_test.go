@@ -1,18 +1,44 @@
 package main
 
 import (
-	pb "../proto"
-	"context"
-	"fmt"
-	"google.golang.org/grpc"
 	"io/ioutil"
-	"testing"
+	"github.com/golang/protobuf/proto"
+	pb "../proto"
 )
 
-const (
-	TESTPIECE = "./testdata/lemstrom2011/leiermann.xml"
-	TESTQUERY = "./testdata/lemstrom2011/query_a.mid"
+var (
+	LEIERMANN = "./testdata/lemstrom2011/leiermann"
+	LEIERMANN_QUERY = []string{
+		"./testdata/lemstrom2011/query_a",
+		"./testdata/lemstrom2011/query_b",
+		"./testdata/lemstrom2011/query_c",
+		"./testdata/lemstrom2011/query_d",
+		"./testdata/lemstrom2011/query_e",
+		"./testdata/lemstrom2011/query_f",
+	}
+	PALESTRINA = "./testdata/palestrina_masses/"
+	TESTPIECES = []string{
+		"./testdata/000000000002557_Regina-caeli-letare_Josquin-Des-Prez_file5.mei",
+		"./testdata/000000000002678_Sancta-mater-istud-agas_Penalosa-Francisco_file5.mei",
+		"./testdata/000000000010113_Sonata-in-G-minor-Op.-4-No.-2_Grave_Corelli-Arcangelo_file1.xml",
+		"./testdata/000000000010138_Je-me-recommande_Binchois-Gilles-de-Bins-dit_file1.xml",
+	}
 )
+
+func InitScoreFromFile(path string) (CScore) {
+	notes := UnmarshalNotesFromFile(path)
+	vecs := VecsFromNotes(notes)
+	return InitScoreFromVectors(len(notes.Notes), vecs)
+}
+
+func UnmarshalNotesFromFile(path string) (*pb.Notes){
+	fileBytes, err := ioutil.ReadFile(path)
+	xk(err)
+	pbNotes := &pb.Notes{}
+	xk(proto.Unmarshal(fileBytes, pbNotes))
+	return pbNotes
+}
+
 
 func rpanic(path string) []byte {
 	data, err := ioutil.ReadFile(path)
@@ -22,10 +48,16 @@ func rpanic(path string) []byte {
 	return data
 }
 
-func TestServiceWithLemstrom(t *testing.T) {
+func xk(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+/*
+
+func TestPalestrina(t *testing.T) {
 	server := StartServer()
 
-	query := rpanic(TESTQUERY)
 	target := InitScoreFromCsv(indexPieceFromDisk(TESTPIECE).VectorsCsv)
 
 	pieceMap = map[uint32]CScore{0: target}
@@ -50,3 +82,4 @@ func TestServiceWithLemstrom(t *testing.T) {
 	}
 	server.GracefulStop()
 }
+*/

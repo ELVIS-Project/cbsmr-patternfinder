@@ -14,7 +14,7 @@ import (
 import "C"
 
 const (
-	WINDOW = 10
+	WINDOW = 20
 )
 
 type CScore *C.struct_Score

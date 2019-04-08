@@ -24,9 +24,12 @@ class Index(smr_pb2_grpc.IndexServicer):
             
             sd = base64.b64decode(request.symbolic_data)
             return sd
+        elif request.encoding == smr_pb2.IndexRequest.UTF8:
+            print("handling UTF8")
+            return request.symbolic_data.decode('utf-8')
         else:    
             print("Handling else")
-            return request.symbolic_data.decode('utf-8')
+            return request.symbolic_data
 
     def IndexNotes(self, request, context):
         sd = self._handle_symbolic_data(request)
@@ -40,6 +43,7 @@ class Index(smr_pb2_grpc.IndexServicer):
                 piece_idx=idx)
                 for idx, (_, on, off, p) in enumerate(notes.itertuples())])
 
+        pb_notes.notes.sort(key=lambda n: (n.piece_idx))
         return pb_notes
 
     def IndexMeasures(self, request, context):
