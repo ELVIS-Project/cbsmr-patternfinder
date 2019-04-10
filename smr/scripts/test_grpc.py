@@ -56,7 +56,7 @@ def search_grpc():
         smr = smr_pb2_grpc.SmrStub(smr_channel)
         index = smr_pb2_grpc.IndexStub(index_channel)
 
-        pb_notes = index.IndexNotes(smr_pb2.IndexRequest(symbolic_data = bytes(query_str, encoding='utf-8')))
+        pb_notes = index.IndexNotes(smr_pb2.IndexRequest(symbolic_data = bytes(query_str, encoding='utf-8'), encoding = smr_pb2.IndexRequest.UTF8))
         result = smr.Search(pb_notes)
 
         print(result)

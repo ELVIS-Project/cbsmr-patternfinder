@@ -39,7 +39,7 @@ def search_grpc():
         4c 4e 4a 4cc
         4B- f b- dd"""
     return requests.get(ENDPOINT + "search",
-            params={'query': query_str})
+            params={'query': query_str, 'rpp': 5, 'page': 0})
 
 
 def index_all():

@@ -115,9 +115,18 @@ def excerpt():
 def pb_occ_to_excerpt_url(pb_occ):
     return url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes))
 
+def generate_response(occs, rpp, page):
+    num_pages = int(len(occs) / rpp) + 1
+    return {
+        'total': len(occs),
+        'num_pages': num_pages,
+        'pages': [[pb_occ_to_excerpt_url(o) for o in occs[rpp * i : rpp * (i + 1)]] for i in range(num_pages)]
+    }
 
 @app.route("/search", methods=["GET"])
-def search_test():
+def search():
+    page = int(request.args.get("page"))
+    rpp = int(request.args.get("rpp"))
     query_str = request.args.get("query")
     if not query_str:
         return "No query parameter included in GET request", 400
@@ -133,9 +142,10 @@ def search_test():
         response = stub.Search(pb_notes)
 
     print(response.occurrences)
-    return Response("\n".join(pb_occ_to_excerpt_url(occ) for occ in response.occurrences), mimetype="uri-list")
+    #return Response("\n".join(pb_occ_to_excerpt_url(occ) for occ in response.occurrences), mimetype="uri-list")
     #return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/src', 'search.html')
-
+    #return render_template("search", searchResponse =
+    return jsonify(generate_response(response.occurrences, rpp, page))
 
 if __name__ == '__main__':
     #load_scores()
