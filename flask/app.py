@@ -3,13 +3,14 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'proto'))
 
-from flask import Flask, request, jsonify, Response, send_from_directory, url_for
+from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
 from tqdm import tqdm
 import music21
 import psycopg2
 import base64
 import os
+import json
 
 import grpc
 import smr_pb2, smr_pb2_grpc
@@ -120,7 +121,15 @@ def generate_response(occs, rpp, page):
     return {
         'total': len(occs),
         'num_pages': num_pages,
-        'pages': [[pb_occ_to_excerpt_url(o) for o in occs[rpp * i : rpp * (i + 1)]] for i in range(num_pages)]
+        #'pages': [[pb_occ_to_excerpt_url(o) for o in occs[rpp * i : rpp * (i + 1)]] for i in range(num_pages)]
+        'pages': [
+            [
+                {
+                    'pid': o.pid,
+                    'nid': [int(n) for n in o.notes]
+                }
+                for o in occs[rpp * i : rpp * (i + 1)]]
+            for i in range(num_pages)]
     }
 
 @app.route("/search", methods=["GET"])
@@ -144,8 +153,8 @@ def search():
     print(response.occurrences)
     #return Response("\n".join(pb_occ_to_excerpt_url(occ) for occ in response.occurrences), mimetype="uri-list")
     #return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/src', 'search.html')
-    #return render_template("search", searchResponse =
-    return jsonify(generate_response(response.occurrences, rpp, page))
+    return render_template("search.html", searchResponse = generate_response(response.occurrences, rpp, page))
+    #return jsonify(generate_response(response.occurrences, rpp, page))
 
 if __name__ == '__main__':
     #load_scores()

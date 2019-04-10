@@ -15,6 +15,12 @@ function resultCounter(state = {count: 0, cur: ""}, action) {
     }
 }
 
+/*
+function NewResultDiv(id) {
+	var resultPage = document.GetElementById("resultsPage")
+	var resultDiv = document.CreateElement("div")
+
+
 var searchResponse = {
     pages: [
         [{pid: 4020, nid: "0,1,2,3"},
@@ -25,19 +31,22 @@ var searchResponse = {
     ],
     total: 5
 }
+	*/
+var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
 
 for (i = 0; i < urlParams.get('rpp'); i++) {
     console.log(i)
     reqParams = new URLSearchParams()
-    reqParams.set('pid', searchResponse['pages'][urlParams.get('page')][i]['pid'])
+   reqParams.set('pid', searchResponse['pages'][urlParams.get('page')][i]['pid'])
     reqParams.set('nid', searchResponse['pages'][urlParams.get('page')][i]['nid'])
-    var headers = new Headers()
-    headers.append("content-type", "text/xml")
     var url = new URL("http://localhost/excerpt")
     for (key of reqParams.keys()) {
         url.searchParams.set(key, reqParams.get(key))
     }
     console.log(url)
+    var headers = new Headers()
+    headers.append("content-type", "text/xml")
+    //var req = new Request(searchResponse['pages'][urlParams.get('page')], {
     var req = new Request(url, {
         method: 'GET',
         headers: headers,
