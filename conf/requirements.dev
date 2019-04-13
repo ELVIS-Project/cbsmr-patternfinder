@@ -1,9 +1,8 @@
 grpcio-tools
--e ./
+-e ..
 music21
 pandas
 numpy
-cffi
 tqdm
 pytest
 
