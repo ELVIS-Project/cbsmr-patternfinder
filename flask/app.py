@@ -135,7 +135,7 @@ def pb_occ_to_json(pb_occ, get_excerpt):
                 #'pid': o.pid,
                 #'nid': [int(n) for n in o.notes],
                 'url': url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes)),
-                'xml': b64_xml
+                'xmlBase64': b64_xml
             })
 
 def generate_response(occs, rpp, page):
@@ -150,6 +150,10 @@ def generate_response(occs, rpp, page):
 
 @app.route("/search", methods=["GET"])
 def search():
+
+    if not request.args.get("query"):
+        return render_template("search.html", searchResponse = {})
+
     page = int(request.args.get("page"))
     rpp = int(request.args.get("rpp"))
     query_str = request.args.get("query")

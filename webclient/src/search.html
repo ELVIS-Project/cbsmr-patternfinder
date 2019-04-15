@@ -1,18 +1,7 @@
 <!doctype html>
 <html>
   <body>
-    <div id="resultPage">
-			<div id="result-1"></div>
-			<div id="result-2"></div>
-			<div id="result-3"></div>
-			<div id="result-4"></div>
-			<div id="result-5"></div>
-			<div id="result-6"></div>
-			<div id="result-7"></div>
-			<div id="result-8"></div>
-			<div id="result-9"></div>
-			<div id="result-10"></div>
-    </div>
+    <div id="resultPage"></div>
 
     <div id="flat-embed"></div>
     <div id="paging">
@@ -20,6 +9,7 @@
 
     <script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>
     <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
-    <script src="/dist/bundle.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/flat-embed@v0.8.0/dist/embed.min.js"></script>
+    <script src="/dist/search.js"></script>
   </body>
 </html>

@@ -1,6 +1,66 @@
+const urlParams = new URLSearchParams(window.location.search)
+const vrvToolkit = new verovio.toolkit();
+
+function newResultDiv(svg) {
+	var resultDiv = document.createElement("div")
+	resultDiv.innerHTML = svg
+
+	var resultPage = document.getElementById("resultPage")
+	resultPage.appendChild(resultDiv)
+};
+
+function renderSvgFromXml(xmlBase64) {
+	var options = {
+			scale: 40,
+			font: "Leipzig",
+			adjustPageHeight: 1,
+			noFooter: 1,
+			noHeader: 1
+	}
+	vrvToolkit.setOptions(options)
+	xml = window.atob(xmlBase64)
+	var svg = vrvToolkit.renderData(xml, options);
+	return svg
+};
+
+function buildResultDiv(i, occJson) {
+	svg = renderSvgFromXml(occJson['xmlBase64'])
+	newResultDiv(svg)
+};
+
+/*
+(() => {
+	var container = document.getElementById('flat-embed');
+	//container.innerHTML = `<iframe src="https://flat-embed.com/5c95a76645d83371f2c5029f" height="450" width="100%" frameBorder="0" allowfullscreen></iframe>`
+  var embed = new Flat.Embed(container, {
+    score: '5c95a76645d83371f2c5029f',
+    embedParams: {
+      appId: '5c95a7dff2ef0871dba762b9',
+      controlsFloating: true,
+			mode: 'edit'
+    }
+  });
+	embed.focusScore().then(function() {})
+})();
+*/
+
+(() => {
+	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
+
+	var rpp = urlParams.get('rpp')
+	if (rpp == null) {
+		return
+	}
+
+	for (i = 0; i < rpp; i++) {
+		result = JSON.parse(searchResponse['pages'][urlParams.get('page')][i])
+		buildResultDiv(i, result)
+	} 
+})();
+
+/*
 const redux = require('redux')
 const pagination = require('pagination')
-const urlParams = new URLSearchParams(window.location.search)
 
 let resultStore = redux.createStore(resultCounter)
 
@@ -14,25 +74,6 @@ function resultCounter(state = {count: 0, cur: ""}, action) {
             return state
     }
 }
-
-/*
-function NewResultDiv(id) {
-	var resultPage = document.GetElementById("resultsPage")
-	var resultDiv = document.CreateElement("div")
-
-
-var searchResponse = {
-    pages: [
-        [{pid: 4020, nid: "0,1,2,3"},
-        {pid: 4020, nid: "12,13,14,15"},
-        {pid: 4020, nid: "13,21"},
-        {pid: 4020, nid: "24,25,26,27,28"},
-        {pid: 4020, nid: "7"}]
-    ],
-    total: 5
-}
-	*/
-var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
 
 for (i = 0; i < urlParams.get('rpp'); i++) {
     console.log(i)
@@ -56,7 +97,6 @@ for (i = 0; i < urlParams.get('rpp'); i++) {
     fetch(req)
         .then(response => response.text())
         .then(str => {
-            var vrvToolkit = new verovio.toolkit();
 
             // Render results
             var options = {
