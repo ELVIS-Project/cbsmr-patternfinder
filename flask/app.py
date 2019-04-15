@@ -78,10 +78,9 @@ def coloured_excerpt(note_list, piece_id):
             """)
         results = cur.fetchall()
         if not results:
-            print(f"Warning: no piece found at id {piece_id}")
-            return results
+            raise Exception(f"excerpts: no data found for piece {piece_id}!")
 
-    score = music21.converter.parse(base64.b64decode(results[0][0]).decode('utf-8'))
+    score = music21.converter.parse(base64.b64decode(results[0][0]))
     nps = list(indexers.NotePointSet(score))
     nps_ids = [nps[i].original_note_id for i in note_list]
 
@@ -124,23 +123,28 @@ def excerpt():
     excerpt_xml = coloured_excerpt(notes, piece_id)
     return Response(excerpt_xml, mimetype='text/xml')
 
+def pb_occ_to_json(pb_occ, get_excerpt):
+    if get_excerpt:
+        xml = coloured_excerpt(pb_occ.notes, pb_occ.pid)
+        b64_xml = base64.b64encode(bytes(xml, encoding='utf-8')).decode('utf-8')
+    else:
+        b64_xml = ""
 
-def pb_occ_to_excerpt_url(pb_occ):
-    return url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes))
+    return json.dumps(
+            {
+                #'pid': o.pid,
+                #'nid': [int(n) for n in o.notes],
+                'url': url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes)),
+                'xml': b64_xml
+            })
 
 def generate_response(occs, rpp, page):
     num_pages = int(len(occs) / rpp) + 1
     return {
         'total': len(occs),
         'num_pages': num_pages,
-        #'pages': [[pb_occ_to_excerpt_url(o) for o in occs[rpp * i : rpp * (i + 1)]] for i in range(num_pages)]
         'pages': [
-            [
-                {
-                    'pid': o.pid,
-                    'nid': [int(n) for n in o.notes]
-                }
-                for o in occs[rpp * i : rpp * (i + 1)]]
+            [pb_occ_to_json(o, get_excerpt = (i == page)) for o in occs[rpp * i : rpp * (i + 1)]]
             for i in range(num_pages)]
     }
 

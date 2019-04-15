@@ -12,3 +12,6 @@ class InvalidIndexPayload(AppError):
 
 class IndexerError(AppError):
     msg = ""
+
+class ExcerptError(AppError):
+    msg = "Failed to generate excerpt"

@@ -2,40 +2,75 @@ package main
 
 import (
 	"github.com/boltdb/bolt"
+	"errors"
 )
 
-func (s *SmrServer) LoadScores(window int) error {
-	println("Loading Scores into memory!")
-
-	err := s.boltDb.View(func(tx *bolt.Tx) error {
-		scoreBucket := tx.Bucket([]byte("scores"))
-		err := scoreBucket.ForEach(func(k, v []byte) error {
-
-			score, err := DecodeScore(v)
-			if err != nil {
-				return err
-			}
-
-			for i := range score.Vectors {
-				if (int)(score.Vectors[i].EndIndex - score.Vectors[i].StartIndex) > window {
-					score.Vectors = append(score.Vectors[:i], score.Vectors[i+1:]...)
-				}
-			}
-
-			println(btoi(k))
-			s.pieceMap[btoi(k)] = InitScoreFromVectors(score.NumNotes, score.Vectors)
+func (s *SmrServer) GetScoreIds() (ids []uint32, err error) {
+	err = s.boltDb.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("scores"))
+		if bucket == nil {
+			return errors.New("Failed to find 'scores' bucket")
+		}
+		bucket.ForEach(func(k, v []byte) error {
+			ids = append(ids, btoi(k))
 			return nil
 		})
+		return nil
+	})
 
-		if err != nil {
-			return err
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+
+func (s *SmrServer) LoadOneScore(pid uint32, window int) (err error) {
+	var encodedScore []byte
+
+	err = s.boltDb.View(func(tx *bolt.Tx) error {
+		scoreBucket := tx.Bucket([]byte("scores"))
+		if scoreBucket == nil {
+			return errors.New("Failed to find 'scores' bucket")
 		}
+
+		encodedScore = scoreBucket.Get(itob(pid))
+
 		return nil
 	})
 
 	if err != nil {
 		return err
 	}
+
+	score, err := DecodeScore(encodedScore)
+	if err != nil {
+		return err
+	}
+
+	for i := range score.Vectors {
+		if (int)(score.Vectors[i].EndIndex - score.Vectors[i].StartIndex) > window {
+			score.Vectors = append(score.Vectors[:i], score.Vectors[i+1:]...)
+		}
+	}
+
+	s.pieceMap[pid] = InitScoreFromVectors(score.NumNotes, score.Vectors)
+	return nil
+}
+
+func (s *SmrServer) LoadScores(window int) error {
+	println("Loading Scores into memory!")
+
+	ids, err := s.GetScoreIds()
+	if err != nil {
+		return err
+	}
+
+	for _, id := range ids {
+		s.LoadOneScore(id, window)
+	}
+	println("Loaded ", len(ids), " scores")
 
 	return nil
 }

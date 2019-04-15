@@ -46,7 +46,7 @@ func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp
 	}
 
 	// :todo make a LoadScore()
-	s.LoadScores(WINDOW)
+	s.LoadOneScore(req.Id, WINDOW)
 
 	return &pb.AddPieceResponse{Id: id}, nil
 }
