@@ -1,7 +1,8 @@
 FROM cbsmr:latest
 
-ENV GOPATH /go
-ENV GOBIN /go/bin
+# Compile w2 alg
+WORKDIR /cbsmr/smr/helsinki-ttwi
+RUN make -B
 
 WORKDIR /cbsmr/smr
 RUN go get

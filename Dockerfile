@@ -1,5 +1,8 @@
 FROM alpine:latest
 
+ENV GOPATH /go
+ENV GOBIN /gobin
+
 RUN apk add --update --no-cache \
 		git make libtool autoconf automake build-base \
 		postgresql-dev musl-dev \
@@ -10,19 +13,14 @@ WORKDIR /cbsmr
 
 # Cache the python deps
 ADD ./conf/requirements.prod ./conf/requirements.prod
-
 RUN pip3 install --upgrade pip setuptools
 RUN pip3 install -r conf/requirements.prod --timeout 60
 
-ADD . .
-
-RUN pip3 install .
-
-# Compile w2 alg
-RUN git submodule update --init --recursive
-WORKDIR /cbsmr/smr/helsinki-ttwi
-RUN make -B
+# Do the rest
 WORKDIR /cbsmr
+ADD . .
+RUN pip3 install .
+RUN git submodule update --init --recursive
 
 
 #RUN go get github.com/golang/protobuf/protoc-gen-go
