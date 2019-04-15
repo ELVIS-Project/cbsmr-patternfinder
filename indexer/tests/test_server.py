@@ -46,7 +46,7 @@ krn_utf8 = bytes("""**kern
 
 def test_index_notes():
 
-    s = server.new_server()
+    s = server.new_server('50051')
     s.start()
 
     with grpc.insecure_channel('localhost:50051') as channel:
@@ -70,7 +70,7 @@ def test_index_notes():
 
 def test_index_palestrina_notes():
 
-    s = server.new_server()
+    s = server.new_server('50051')
     s.start()
 
     with grpc.insecure_channel('localhost:50051') as channel:

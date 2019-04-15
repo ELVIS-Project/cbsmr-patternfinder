@@ -1,14 +1,10 @@
-FROM grpc/go:latest
+FROM cbsmr:latest
 
-WORKDIR /cbsmr
-ADD . .
-
-RUN git submodule update --init ; \
-		make proto
+ENV GOPATH /go
+ENV GOBIN /go/bin
 
 WORKDIR /cbsmr/smr
+RUN go get
 RUN go build
-
-EXPOSE ${SMR_PORT}
 
 ENTRYPOINT ./smr

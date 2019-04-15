@@ -2,17 +2,32 @@ version: "3.1"
 
 services:
   indexer:
-    build: indexer/
-    environment:
-      - SMR_DB_STRING='postgres://db:5432'
-  search:
-    build: smr/
-    environment:
-      - SMR_DB_STRING='postgres://db:5432'
+    build: ./indexer
+    env_file:
+      - conf/env.dev
+    ports:
+      - '${INDEXER_PORT}:${INDEXER_PORT}'
+  smr:
+    build: ./smr
+    env_file:
+      - conf/env.dev
+    ports:
+      - '${SMR_PORT}:${SMR_PORT}'
+    depends_on:
+      - "indexer"
+  flask:
+    build: ./flask
+    env_file:
+      - conf/env.dev
+    ports:
+      - '${FLASK_PORT}:${FLASK_PORT}'
+    depends_on:
+      - "indexer"
+      - "smr"
+      - "db"
   db:
     image: 'postgres:10'
     volumes:
-      - ./db/db-init-scripts/:/docker-entrypoint-initdb.d/
       - ./db/postgres-data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - '${PSQL_PORT}:${PSQL_PORT}'

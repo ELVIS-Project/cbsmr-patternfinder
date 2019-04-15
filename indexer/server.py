@@ -1,7 +1,7 @@
 # :todo fix paths to proto/
 import os
 import sys
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'proto'))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'conf'))
 
 from concurrent import futures
 import time
@@ -66,14 +66,14 @@ class Index(smr_pb2_grpc.IndexServicer):
 
         return smr_pb2.VectorsCsv(csv = vectors_csv)
 
-def new_server():
+def new_server(port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     smr_pb2_grpc.add_IndexServicer_to_server(Index(), server)
-    server.add_insecure_port('[::]:50051')
+    server.add_insecure_port('[::]:' + port)
     return server
 
-def serve():
-    server = new_server()
+def serve(port):
+    server = new_server(port)
     server.start()
     try:
         while True:
@@ -84,4 +84,8 @@ def serve():
 
 if __name__ == '__main__':
     logging.basicConfig()
-    serve()
+    logger = logging.getLogger('indexer')
+
+    port = os.environ['INDEXER_PORT']
+
+    serve(port)

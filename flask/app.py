@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
-import os
 import sys
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'proto'))
+import os
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'conf'))
 
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
@@ -9,25 +9,35 @@ from tqdm import tqdm
 import music21
 import psycopg2
 import base64
-import os
 import json
 
 import grpc
-import smr_pb2, smr_pb2_grpc
+from proto import smr_pb2, smr_pb2_grpc
 
 from indexer import indexers
 
 app = Flask(__name__)
 
-POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
+def connect_to_psql():
+    db_str = ' '.join('='.join((k, os.environ[v])) for k, v in (
+                ('host', 'PG_HOST'),
+                ('port', 'PG_PORT'),
+                ('dbname', 'PG_DB'),
+                ('user', 'PG_USER'),
+                ('password', 'PG_PASS')))
+    try:
+            conn = psycopg2.connect(db_str)
+    except Exception as e:
+            import time
+            time.sleep(7)
+            conn = psycopg2.connect(db_str)
+    conn.autocommit = False
 
-try:
-	CONN = psycopg2.connect(os.environ.get('SMR_DB_STRING', POSTGRES_CONN_STR))
-except Exception as e:
-	import time
-	time.sleep(7)
-	CONN = psycopg2.connect(os.environ.get('SMR_DB_STRING', POSTGRES_CONN_STR))
-CONN.autocommit = False
+    app.config['PSQL_CONN'] = conn
+
+@app.route("/", methods=["GET"])
+def index():
+    return Response("Hello, World!", mimetype="text/plain")
 
 @app.route("/dist/<path>", methods=["GET"])
 def get_dist(path):
@@ -38,30 +48,32 @@ def index_id(piece_id):
     """
     Indexes a piece and stores it at :param id
     """
+    db_conn = app.config['PSQL_CONN']
     piece_id = int(piece_id)
     if request.method == "POST":
         symbolic_data = base64.b64encode(request.data).decode('utf-8')
-        with CONN, CONN.cursor() as cur:
-            cur.execute(f"INSERT INTO Piece (id, data) VALUES ('{piece_id}', '{symbolic_data}') ON CONFLICT (id) DO NOTHING;")
+        with db_conn, db_conn.cursor() as cur:
+            cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{symbolic_data}') ON CONFLICT (pid) DO NOTHING;")
 
-        with grpc.insecure_channel('localhost:50051') as channel:
+        with grpc.insecure_channel(app.config['INDEXER_URI']) as channel:
             stub = smr_pb2_grpc.IndexStub(channel)
             pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = request.data))
 
-        with grpc.insecure_channel('localhost:8080') as channel:
+        with grpc.insecure_channel(app.config['SMR_URI']) as channel:
             stub = smr_pb2_grpc.SmrStub(channel)
             response = stub.AddPiece(smr_pb2.AddPieceRequest(id = piece_id, notes = pb_notes))
 
     return Response(str(piece_id), mimetype='text/plain')
 
 def coloured_excerpt(note_list, piece_id):
+    db_conn = app.config['PSQL_CONN']
     note_list = [int(i) for i in note_list]
 
-    with CONN, CONN.cursor() as cur:
+    with db_conn, db_conn.cursor() as cur:
         cur.execute(f"""
             SELECT data
             FROM Piece
-            WHERE id={piece_id}
+            WHERE pid={piece_id}
             ;
             """)
         results = cur.fetchall()
@@ -142,21 +154,21 @@ def search():
 
     query_bytes = bytes(query_str, encoding='utf-8')
 
-    with grpc.insecure_channel('localhost:50051') as channel:
+    with grpc.insecure_channel(app.config['INDEXER_URI']) as channel:
         stub = smr_pb2_grpc.IndexStub(channel)
         pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = query_bytes, encoding = smr_pb2.IndexRequest.UTF8))
 
-    with grpc.insecure_channel('localhost:8080') as channel:
+    with grpc.insecure_channel(app.config['SMR_URI']) as channel:
         stub = smr_pb2_grpc.SmrStub(channel)
         response = stub.Search(pb_notes)
 
-    print(response.occurrences)
     #return Response("\n".join(pb_occ_to_excerpt_url(occ) for occ in response.occurrences), mimetype="uri-list")
     #return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/src', 'search.html')
     return render_template("search.html", searchResponse = generate_response(response.occurrences, rpp, page))
     #return jsonify(generate_response(response.occurrences, rpp, page))
 
 if __name__ == '__main__':
-    #load_scores()
-    #app.config['SCORES'] = SCORES
-    app.run(host="0.0.0.0", port=80)
+    app.config['INDEXER_URI'] = f"{os.environ['INDEXER_HOST']}:{os.environ['INDEXER_PORT']}"
+    app.config['SMR_URI'] = f"{os.environ['SMR_HOST']}:{os.environ['SMR_PORT']}"
+    connect_to_psql()
+    app.run(host="0.0.0.0", port=int(os.environ['FLASK_PORT']))

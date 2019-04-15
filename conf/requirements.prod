@@ -1,7 +1,10 @@
 grpcio-tools
-git+https://github.com/ELVIS-project/cbsmr-patternfinder@develop#egg=cbsmr-patternfinder
 music21
 pandas
 numpy
 tqdm
 psycopg2
+grpcio
+pytest
+protobuf
+flask

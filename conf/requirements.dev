@@ -1,9 +1,11 @@
 grpcio-tools
--e ..
+-e .
 music21
 pandas
 numpy
 tqdm
-pytest
-
 psycopg2
+pytest
+grpcio
+protobuf
+flask

@@ -7,12 +7,9 @@ import (
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	vp "github.com/spf13/viper"
 	"net"
 	"time"
-)
-
-const (
-	DBSTRING = "host=localhost port=5432 user=postgres password=postgres sslmode=disable"
 )
 
 var server *SmrServer
@@ -44,7 +41,8 @@ func openBolt() (db *bolt.DB) {
 }
 
 func dialIndex() (client pb.IndexClient) {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial(vp.GetString("INDEXER_URI"), grpc.WithInsecure())
+
 	if err != nil {
 		log.Panicf("Failed to connect to indexer service, %v", err)
 	}
@@ -54,7 +52,7 @@ func dialIndex() (client pb.IndexClient) {
 
 func dialPostgres() (db *sql.DB) {
 	var err error
-	db, err = sql.Open("postgres", DBSTRING)
+	db, err = sql.Open("postgres", vp.GetString("PSQL_STRING"))
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +61,6 @@ func dialPostgres() (db *sql.DB) {
 }
 
 func StartServer() *SmrServer {
-
 	// This is a global handle
 	indexerClient = dialIndex()
 
@@ -84,7 +81,7 @@ func StartServer() *SmrServer {
 
 	smr.LoadScores(WINDOW)
 
-	ln, err := net.Listen("tcp", ":8080")
+	ln, err := net.Listen("tcp", ":" + vp.GetString("SMR_PORT"))
 	if err != nil {
 		panic("Failed to listen on TCP")
 	}
@@ -99,6 +96,7 @@ func StartServer() *SmrServer {
 }
 
 func main() {
+	vp.AutomaticEnv()
 
 	// This is a global handle
 	server = StartServer()

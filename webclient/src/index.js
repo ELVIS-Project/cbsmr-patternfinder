@@ -81,6 +81,7 @@ resultStore.subscribe(() => setResultHtml(resultStore.getState()['count'], resul
 //var paginator = new pagination.SearchPaginator({prelink:'/search', current: urlParams.get('page'), rowsPerPage: urlParams.get('rpp'), totalResult: searchResults['total']});
 //console.log(paginator.render());
 
+*/
 /*
 var bootstrapPaginator = new pagination.TemplatePaginator({
     prelink:'/', current: 3, rowsPerPage: 200,
