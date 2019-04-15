@@ -1,7 +1,11 @@
 FROM cbsmr:latest
 
-WORKDIR /cbsmr/flask
+RUN apk add --update --no-cache nodejs nodejs-npm
 
-ADD . .
+WORKDIR /cbsmr/webclient
+RUN npm install
+RUN node_modules/webpack/bin/webpack.js
+
+WORKDIR /cbsmr/flask
 
 CMD ["python3", "app.py"]
