@@ -2,6 +2,7 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'conf'))
+CURDIR = os.path.abspath(os.path.dirname(__file__))
 
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
@@ -41,7 +42,7 @@ def index():
 
 @app.route("/dist/<path>", methods=["GET"])
 def get_dist(path):
-    return send_from_directory("/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/dist", path)
+    return send_from_directory(os.environ['WEB_DIST'], path)
 
 @app.route("/index/<piece_id>", methods=["POST"])
 def index_id(piece_id):
