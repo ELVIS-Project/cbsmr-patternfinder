@@ -30,4 +30,4 @@ services:
     volumes:
       - ./db/postgres-data:/var/lib/postgresql/data
     ports:
-      - '${PSQL_PORT}:${PSQL_PORT}'
+      - '${PG_PORT}:${PG_PORT}'
