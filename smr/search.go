@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	pb "../proto"
-	"fmt"
 	"sort"
 )
 
@@ -43,18 +42,14 @@ func (occs rankTrivial) Less(i, j int) bool {
 
 
 func (s SmrServer) Search(ctx context.Context, req *pb.Notes) (occs *pb.Occurrences, err error) {
-	print("Handling search!")
 	occs = &pb.Occurrences{}
 
 	vecs := VecsFromNotes(req)
 	queryScore := InitScoreFromVectors(len(req.Notes), vecs)
 
 	for pieceID, cscore := range s.pieceMap {
-		print("searching ", pieceID)
 		intArrays := search(queryScore, cscore)
-		println(fmt.Sprintf("%v", intArrays))
-		for i, arr := range intArrays {
-			print("occ ", i)
+		for _, arr := range intArrays {
 			occs.Occurrences = append(occs.Occurrences, &pb.Occurrence{Pid: pieceID, Notes: arr})
 		}
 	}
@@ -62,6 +57,8 @@ func (s SmrServer) Search(ctx context.Context, req *pb.Notes) (occs *pb.Occurren
 	if len(occs.Occurrences) == 0 {
 		return &pb.Occurrences{}, nil
 	}
+
+	println("Search found ", len(occs.Occurrences))
 
 	sort.Sort(rankTrivial(occs.Occurrences))
 	return occs, nil

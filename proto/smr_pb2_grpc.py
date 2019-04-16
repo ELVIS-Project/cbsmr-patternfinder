@@ -100,6 +100,11 @@ class SmrStub(object):
         request_serializer=smr__pb2.AddPieceRequest.SerializeToString,
         response_deserializer=smr__pb2.AddPieceResponse.FromString,
         )
+    self.AllPieces = channel.unary_unary(
+        '/proto.Smr/AllPieces',
+        request_serializer=smr__pb2.AllPiecesRequest.SerializeToString,
+        response_deserializer=smr__pb2.AllPiecesResponse.FromString,
+        )
 
 
 class SmrServicer(object):
@@ -120,6 +125,13 @@ class SmrServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def AllPieces(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_SmrServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -132,6 +144,11 @@ def add_SmrServicer_to_server(servicer, server):
           servicer.AddPiece,
           request_deserializer=smr__pb2.AddPieceRequest.FromString,
           response_serializer=smr__pb2.AddPieceResponse.SerializeToString,
+      ),
+      'AllPieces': grpc.unary_unary_rpc_method_handler(
+          servicer.AllPieces,
+          request_deserializer=smr__pb2.AllPiecesRequest.FromString,
+          response_serializer=smr__pb2.AllPiecesResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

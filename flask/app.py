@@ -172,7 +172,7 @@ def search():
         response = stub.Search(pb_notes)
 
     #return Response("\n".join(pb_occ_to_excerpt_url(occ) for occ in response.occurrences), mimetype="uri-list")
-    #return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/webclient/src', 'search.html')
+    #return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patternfinder/webclient/src', 'search.html')
     return render_template("search.html", searchResponse = generate_response(response.occurrences, rpp, page))
     #return jsonify(generate_response(response.occurrences, rpp, page))
 

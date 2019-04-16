@@ -11,6 +11,7 @@ service Index {
 service Smr {
     rpc Search (Notes) returns (Occurrences);
     rpc AddPiece (AddPieceRequest) returns (AddPieceResponse);
+		rpc AllPieces (AllPiecesRequest) returns (AllPiecesResponse);
 }
 
 message IndexRequest {
@@ -30,6 +31,11 @@ message AddPieceRequest {
 
 message AddPieceResponse {
 	uint32 id = 1;
+}
+
+message AllPiecesRequest {}
+message AllPiecesResponse {
+	repeated uint32 pids = 1;
 }
 
 message Note {

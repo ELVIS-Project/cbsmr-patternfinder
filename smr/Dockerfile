@@ -5,7 +5,7 @@ WORKDIR /cbsmr/smr/helsinki-ttwi
 RUN make -B
 
 WORKDIR /cbsmr/smr
-RUN go get
-RUN go build
+RUN GO111MODULE=off go get
+RUN GO111MODULE=off go build
 
 ENTRYPOINT ./smr

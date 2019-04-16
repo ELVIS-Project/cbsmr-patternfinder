@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='proto',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\tsmr.proto\x12\x05proto\"K\n\x04Note\x12\r\n\x05onset\x18\x01 \x01(\x02\x12\x0e\n\x06offset\x18\x02 \x01(\x02\x12\x11\n\tpitch_b40\x18\x03 \x01(\x05\x12\x11\n\tpiece_idx\x18\x06 \x01(\r\"#\n\x05Notes\x12\x1a\n\x05notes\x18\x01 \x03(\x0b\x32\x0b.proto.Note\"B\n\x07Measure\x12\x15\n\rsymbolic_data\x18\x01 \x01(\x0c\x12\x0e\n\x06number\x18\x02 \x01(\r\x12\x10\n\x08note_idx\x18\x03 \x01(\r\",\n\x08Measures\x12 \n\x08measures\x18\x01 \x03(\x0b\x32\x0e.proto.Measure\"\x19\n\nVectorsCsv\x12\x0b\n\x03\x63sv\x18\x01 \x01(\t\"(\n\nOccurrence\x12\x0b\n\x03pid\x18\x01 \x01(\r\x12\r\n\x05notes\x18\x02 \x03(\r\"5\n\x0bOccurrences\x12&\n\x0boccurrences\x18\x01 \x03(\x0b\x32\x11.proto.Occurrence\"\x84\x01\n\x0cIndexRequest\x12\x15\n\rsymbolic_data\x18\x01 \x01(\x0c\x12.\n\x08\x65ncoding\x18\x02 \x01(\x0e\x32\x1c.proto.IndexRequest.Encoding\"-\n\x08\x45ncoding\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06\x42\x41SE64\x10\x01\x12\x08\n\x04UTF8\x10\x02\":\n\x0f\x41\x64\x64PieceRequest\x12\n\n\x02id\x18\x01 \x01(\r\x12\x1b\n\x05notes\x18\x02 \x01(\x0b\x32\x0c.proto.Notes\"\x1e\n\x10\x41\x64\x64PieceResponse\x12\n\n\x02id\x18\x01 \x01(\r2\xaa\x01\n\x05Index\x12/\n\nIndexNotes\x12\x13.proto.IndexRequest\x1a\x0c.proto.Notes\x12\x35\n\rIndexMeasures\x12\x13.proto.IndexRequest\x1a\x0f.proto.Measures\x12\x39\n\x0fIndexVectorsCsv\x12\x13.proto.IndexRequest\x1a\x11.proto.VectorsCsv2n\n\x03Smr\x12*\n\x06Search\x12\x0c.proto.Notes\x1a\x12.proto.Occurrences\x12;\n\x08\x41\x64\x64Piece\x12\x16.proto.AddPieceRequest\x1a\x17.proto.AddPieceResponseb\x06proto3')
+  serialized_pb=_b('\n\tsmr.proto\x12\x05proto\"\x84\x01\n\x0cIndexRequest\x12\x15\n\rsymbolic_data\x18\x01 \x01(\x0c\x12.\n\x08\x65ncoding\x18\x02 \x01(\x0e\x32\x1c.proto.IndexRequest.Encoding\"-\n\x08\x45ncoding\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06\x42\x41SE64\x10\x01\x12\x08\n\x04UTF8\x10\x02\":\n\x0f\x41\x64\x64PieceRequest\x12\n\n\x02id\x18\x01 \x01(\r\x12\x1b\n\x05notes\x18\x02 \x01(\x0b\x32\x0c.proto.Notes\"\x1e\n\x10\x41\x64\x64PieceResponse\x12\n\n\x02id\x18\x01 \x01(\r\"\x12\n\x10\x41llPiecesRequest\"!\n\x11\x41llPiecesResponse\x12\x0c\n\x04pids\x18\x01 \x03(\r\"K\n\x04Note\x12\r\n\x05onset\x18\x01 \x01(\x02\x12\x0e\n\x06offset\x18\x02 \x01(\x02\x12\x11\n\tpitch_b40\x18\x03 \x01(\x05\x12\x11\n\tpiece_idx\x18\x06 \x01(\r\"#\n\x05Notes\x12\x1a\n\x05notes\x18\x01 \x03(\x0b\x32\x0b.proto.Note\">\n\x06Vector\x12\x1a\n\x05start\x18\x01 \x01(\x0b\x32\x0b.proto.Note\x12\x18\n\x03\x65nd\x18\x02 \x01(\x0b\x32\x0b.proto.Note\"B\n\x07Measure\x12\x15\n\rsymbolic_data\x18\x01 \x01(\x0c\x12\x0e\n\x06number\x18\x02 \x01(\r\x12\x10\n\x08note_idx\x18\x03 \x01(\r\",\n\x08Measures\x12 \n\x08measures\x18\x01 \x03(\x0b\x32\x0e.proto.Measure\"\x19\n\nVectorsCsv\x12\x0b\n\x03\x63sv\x18\x01 \x01(\t\"(\n\nOccurrence\x12\x0b\n\x03pid\x18\x01 \x01(\r\x12\r\n\x05notes\x18\x02 \x03(\r\"5\n\x0bOccurrences\x12&\n\x0boccurrences\x18\x01 \x03(\x0b\x32\x11.proto.Occurrence2\xaa\x01\n\x05Index\x12/\n\nIndexNotes\x12\x13.proto.IndexRequest\x1a\x0c.proto.Notes\x12\x35\n\rIndexMeasures\x12\x13.proto.IndexRequest\x1a\x0f.proto.Measures\x12\x39\n\x0fIndexVectorsCsv\x12\x13.proto.IndexRequest\x1a\x11.proto.VectorsCsv2\xae\x01\n\x03Smr\x12*\n\x06Search\x12\x0c.proto.Notes\x1a\x12.proto.Occurrences\x12;\n\x08\x41\x64\x64Piece\x12\x16.proto.AddPieceRequest\x1a\x17.proto.AddPieceResponse\x12>\n\tAllPieces\x12\x17.proto.AllPiecesRequest\x1a\x18.proto.AllPiecesResponseb\x06proto3')
 )
 
 
@@ -45,10 +45,173 @@ _INDEXREQUEST_ENCODING = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=460,
-  serialized_end=505,
+  serialized_start=108,
+  serialized_end=153,
 )
 _sym_db.RegisterEnumDescriptor(_INDEXREQUEST_ENCODING)
+
+
+_INDEXREQUEST = _descriptor.Descriptor(
+  name='IndexRequest',
+  full_name='proto.IndexRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='symbolic_data', full_name='proto.IndexRequest.symbolic_data', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='encoding', full_name='proto.IndexRequest.encoding', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _INDEXREQUEST_ENCODING,
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=21,
+  serialized_end=153,
+)
+
+
+_ADDPIECEREQUEST = _descriptor.Descriptor(
+  name='AddPieceRequest',
+  full_name='proto.AddPieceRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='proto.AddPieceRequest.id', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='notes', full_name='proto.AddPieceRequest.notes', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=155,
+  serialized_end=213,
+)
+
+
+_ADDPIECERESPONSE = _descriptor.Descriptor(
+  name='AddPieceResponse',
+  full_name='proto.AddPieceResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='proto.AddPieceResponse.id', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=215,
+  serialized_end=245,
+)
+
+
+_ALLPIECESREQUEST = _descriptor.Descriptor(
+  name='AllPiecesRequest',
+  full_name='proto.AllPiecesRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=247,
+  serialized_end=265,
+)
+
+
+_ALLPIECESRESPONSE = _descriptor.Descriptor(
+  name='AllPiecesResponse',
+  full_name='proto.AllPiecesResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='pids', full_name='proto.AllPiecesResponse.pids', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=267,
+  serialized_end=300,
+)
 
 
 _NOTE = _descriptor.Descriptor(
@@ -98,8 +261,8 @@ _NOTE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=20,
-  serialized_end=95,
+  serialized_start=302,
+  serialized_end=377,
 )
 
 
@@ -129,8 +292,46 @@ _NOTES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=97,
-  serialized_end=132,
+  serialized_start=379,
+  serialized_end=414,
+)
+
+
+_VECTOR = _descriptor.Descriptor(
+  name='Vector',
+  full_name='proto.Vector',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='start', full_name='proto.Vector.start', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='end', full_name='proto.Vector.end', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=416,
+  serialized_end=478,
 )
 
 
@@ -174,8 +375,8 @@ _MEASURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=134,
-  serialized_end=200,
+  serialized_start=480,
+  serialized_end=546,
 )
 
 
@@ -205,8 +406,8 @@ _MEASURES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=202,
-  serialized_end=246,
+  serialized_start=548,
+  serialized_end=592,
 )
 
 
@@ -236,8 +437,8 @@ _VECTORSCSV = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=248,
-  serialized_end=273,
+  serialized_start=594,
+  serialized_end=619,
 )
 
 
@@ -274,8 +475,8 @@ _OCCURRENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=275,
-  serialized_end=315,
+  serialized_start=621,
+  serialized_end=661,
 )
 
 
@@ -305,135 +506,67 @@ _OCCURRENCES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=317,
-  serialized_end=370,
+  serialized_start=663,
+  serialized_end=716,
 )
 
-
-_INDEXREQUEST = _descriptor.Descriptor(
-  name='IndexRequest',
-  full_name='proto.IndexRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='symbolic_data', full_name='proto.IndexRequest.symbolic_data', index=0,
-      number=1, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='encoding', full_name='proto.IndexRequest.encoding', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-    _INDEXREQUEST_ENCODING,
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=373,
-  serialized_end=505,
-)
-
-
-_ADDPIECEREQUEST = _descriptor.Descriptor(
-  name='AddPieceRequest',
-  full_name='proto.AddPieceRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='id', full_name='proto.AddPieceRequest.id', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='notes', full_name='proto.AddPieceRequest.notes', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=507,
-  serialized_end=565,
-)
-
-
-_ADDPIECERESPONSE = _descriptor.Descriptor(
-  name='AddPieceResponse',
-  full_name='proto.AddPieceResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='id', full_name='proto.AddPieceResponse.id', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=567,
-  serialized_end=597,
-)
-
-_NOTES.fields_by_name['notes'].message_type = _NOTE
-_MEASURES.fields_by_name['measures'].message_type = _MEASURE
-_OCCURRENCES.fields_by_name['occurrences'].message_type = _OCCURRENCE
 _INDEXREQUEST.fields_by_name['encoding'].enum_type = _INDEXREQUEST_ENCODING
 _INDEXREQUEST_ENCODING.containing_type = _INDEXREQUEST
 _ADDPIECEREQUEST.fields_by_name['notes'].message_type = _NOTES
+_NOTES.fields_by_name['notes'].message_type = _NOTE
+_VECTOR.fields_by_name['start'].message_type = _NOTE
+_VECTOR.fields_by_name['end'].message_type = _NOTE
+_MEASURES.fields_by_name['measures'].message_type = _MEASURE
+_OCCURRENCES.fields_by_name['occurrences'].message_type = _OCCURRENCE
+DESCRIPTOR.message_types_by_name['IndexRequest'] = _INDEXREQUEST
+DESCRIPTOR.message_types_by_name['AddPieceRequest'] = _ADDPIECEREQUEST
+DESCRIPTOR.message_types_by_name['AddPieceResponse'] = _ADDPIECERESPONSE
+DESCRIPTOR.message_types_by_name['AllPiecesRequest'] = _ALLPIECESREQUEST
+DESCRIPTOR.message_types_by_name['AllPiecesResponse'] = _ALLPIECESRESPONSE
 DESCRIPTOR.message_types_by_name['Note'] = _NOTE
 DESCRIPTOR.message_types_by_name['Notes'] = _NOTES
+DESCRIPTOR.message_types_by_name['Vector'] = _VECTOR
 DESCRIPTOR.message_types_by_name['Measure'] = _MEASURE
 DESCRIPTOR.message_types_by_name['Measures'] = _MEASURES
 DESCRIPTOR.message_types_by_name['VectorsCsv'] = _VECTORSCSV
 DESCRIPTOR.message_types_by_name['Occurrence'] = _OCCURRENCE
 DESCRIPTOR.message_types_by_name['Occurrences'] = _OCCURRENCES
-DESCRIPTOR.message_types_by_name['IndexRequest'] = _INDEXREQUEST
-DESCRIPTOR.message_types_by_name['AddPieceRequest'] = _ADDPIECEREQUEST
-DESCRIPTOR.message_types_by_name['AddPieceResponse'] = _ADDPIECERESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+IndexRequest = _reflection.GeneratedProtocolMessageType('IndexRequest', (_message.Message,), dict(
+  DESCRIPTOR = _INDEXREQUEST,
+  __module__ = 'smr_pb2'
+  # @@protoc_insertion_point(class_scope:proto.IndexRequest)
+  ))
+_sym_db.RegisterMessage(IndexRequest)
+
+AddPieceRequest = _reflection.GeneratedProtocolMessageType('AddPieceRequest', (_message.Message,), dict(
+  DESCRIPTOR = _ADDPIECEREQUEST,
+  __module__ = 'smr_pb2'
+  # @@protoc_insertion_point(class_scope:proto.AddPieceRequest)
+  ))
+_sym_db.RegisterMessage(AddPieceRequest)
+
+AddPieceResponse = _reflection.GeneratedProtocolMessageType('AddPieceResponse', (_message.Message,), dict(
+  DESCRIPTOR = _ADDPIECERESPONSE,
+  __module__ = 'smr_pb2'
+  # @@protoc_insertion_point(class_scope:proto.AddPieceResponse)
+  ))
+_sym_db.RegisterMessage(AddPieceResponse)
+
+AllPiecesRequest = _reflection.GeneratedProtocolMessageType('AllPiecesRequest', (_message.Message,), dict(
+  DESCRIPTOR = _ALLPIECESREQUEST,
+  __module__ = 'smr_pb2'
+  # @@protoc_insertion_point(class_scope:proto.AllPiecesRequest)
+  ))
+_sym_db.RegisterMessage(AllPiecesRequest)
+
+AllPiecesResponse = _reflection.GeneratedProtocolMessageType('AllPiecesResponse', (_message.Message,), dict(
+  DESCRIPTOR = _ALLPIECESRESPONSE,
+  __module__ = 'smr_pb2'
+  # @@protoc_insertion_point(class_scope:proto.AllPiecesResponse)
+  ))
+_sym_db.RegisterMessage(AllPiecesResponse)
 
 Note = _reflection.GeneratedProtocolMessageType('Note', (_message.Message,), dict(
   DESCRIPTOR = _NOTE,
@@ -448,6 +581,13 @@ Notes = _reflection.GeneratedProtocolMessageType('Notes', (_message.Message,), d
   # @@protoc_insertion_point(class_scope:proto.Notes)
   ))
 _sym_db.RegisterMessage(Notes)
+
+Vector = _reflection.GeneratedProtocolMessageType('Vector', (_message.Message,), dict(
+  DESCRIPTOR = _VECTOR,
+  __module__ = 'smr_pb2'
+  # @@protoc_insertion_point(class_scope:proto.Vector)
+  ))
+_sym_db.RegisterMessage(Vector)
 
 Measure = _reflection.GeneratedProtocolMessageType('Measure', (_message.Message,), dict(
   DESCRIPTOR = _MEASURE,
@@ -484,27 +624,6 @@ Occurrences = _reflection.GeneratedProtocolMessageType('Occurrences', (_message.
   ))
 _sym_db.RegisterMessage(Occurrences)
 
-IndexRequest = _reflection.GeneratedProtocolMessageType('IndexRequest', (_message.Message,), dict(
-  DESCRIPTOR = _INDEXREQUEST,
-  __module__ = 'smr_pb2'
-  # @@protoc_insertion_point(class_scope:proto.IndexRequest)
-  ))
-_sym_db.RegisterMessage(IndexRequest)
-
-AddPieceRequest = _reflection.GeneratedProtocolMessageType('AddPieceRequest', (_message.Message,), dict(
-  DESCRIPTOR = _ADDPIECEREQUEST,
-  __module__ = 'smr_pb2'
-  # @@protoc_insertion_point(class_scope:proto.AddPieceRequest)
-  ))
-_sym_db.RegisterMessage(AddPieceRequest)
-
-AddPieceResponse = _reflection.GeneratedProtocolMessageType('AddPieceResponse', (_message.Message,), dict(
-  DESCRIPTOR = _ADDPIECERESPONSE,
-  __module__ = 'smr_pb2'
-  # @@protoc_insertion_point(class_scope:proto.AddPieceResponse)
-  ))
-_sym_db.RegisterMessage(AddPieceResponse)
-
 
 
 _INDEX = _descriptor.ServiceDescriptor(
@@ -513,8 +632,8 @@ _INDEX = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=600,
-  serialized_end=770,
+  serialized_start=719,
+  serialized_end=889,
   methods=[
   _descriptor.MethodDescriptor(
     name='IndexNotes',
@@ -555,8 +674,8 @@ _SMR = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=1,
   serialized_options=None,
-  serialized_start=772,
-  serialized_end=882,
+  serialized_start=892,
+  serialized_end=1066,
   methods=[
   _descriptor.MethodDescriptor(
     name='Search',
@@ -574,6 +693,15 @@ _SMR = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_ADDPIECEREQUEST,
     output_type=_ADDPIECERESPONSE,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='AllPieces',
+    full_name='proto.Smr.AllPieces',
+    index=2,
+    containing_service=None,
+    input_type=_ALLPIECESREQUEST,
+    output_type=_ALLPIECESRESPONSE,
     serialized_options=None,
   ),
 ])

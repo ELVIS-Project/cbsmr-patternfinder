@@ -4,13 +4,13 @@ services:
   indexer:
     build: ./indexer
     env_file:
-      - conf/env.dev
+      - conf/env.docker
     ports:
       - '${INDEXER_PORT}:${INDEXER_PORT}'
   smr:
     build: ./smr
     env_file:
-      - conf/env.dev
+      - conf/env.docker
     ports:
       - '${SMR_PORT}:${SMR_PORT}'
     depends_on:
@@ -18,7 +18,7 @@ services:
   flask:
     build: ./flask
     env_file:
-      - conf/env.dev
+      - conf/env.docker
     ports:
       - '${FLASK_PORT}:${FLASK_PORT}'
     depends_on:

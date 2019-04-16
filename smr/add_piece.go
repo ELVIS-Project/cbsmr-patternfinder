@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/boltdb/bolt"
 	"encoding/binary"
+	"errors"
 )
 
 func itob(v uint32) []byte {
@@ -33,6 +34,9 @@ func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp
 
 	err = s.boltDb.Update(func(tx *bolt.Tx) error {
 		scoreBucket := tx.Bucket([]byte("scores"))
+		if scoreBucket == nil {
+			return errors.New("Can't retrieve 'scores' bucket")
+		}
 		err := scoreBucket.Put(itob(req.Id), scoreBytes)
 		println("Putting in a score! id: ", req.Id)
 		if err != nil {
@@ -49,4 +53,23 @@ func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp
 	s.LoadOneScore(req.Id, WINDOW)
 
 	return &pb.AddPieceResponse{Id: id}, nil
+}
+
+func (s *SmrServer) AllPieces(ctx context.Context, req *pb.AllPiecesRequest) (resp *pb.AllPiecesResponse, err error) {
+	var pids []uint32
+	err = s.boltDb.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("scores"))
+		if bucket == nil {
+			return errors.New("Can't retrieve 'scores' bucket")
+		}
+		bucket.ForEach(func(k, v []byte) error {
+			pids = append(pids, btoi(k))
+			return nil
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &pb.AllPiecesResponse{Pids: pids}, nil
 }

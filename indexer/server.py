@@ -15,6 +15,9 @@ from proto import smr_pb2, smr_pb2_grpc
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
+OPTIONS = [
+        ('grpc.max_send_message_length', int(os.environ['INDEXER_MSG_SIZE'])),
+        ('grpc.max_receive_message_length', int(os.environ['INDEXER_MSG_SIZE']))]
 
 class Index(smr_pb2_grpc.IndexServicer):
 
@@ -67,7 +70,7 @@ class Index(smr_pb2_grpc.IndexServicer):
         return smr_pb2.VectorsCsv(csv = vectors_csv)
 
 def new_server(port):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10), options = OPTIONS)
     smr_pb2_grpc.add_IndexServicer_to_server(Index(), server)
     server.add_insecure_port('[::]:' + port)
     return server
