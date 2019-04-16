@@ -28,6 +28,20 @@ function buildResultDiv(i, occJson) {
 	newResultDiv(svg)
 };
 
+(() => {
+	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
+
+	var rpp = urlParams.get('rpp')
+	if (rpp == null) {
+		return
+	}
+
+	for (i = 0; i < rpp; i++) {
+		result = JSON.parse(searchResponse['pages'][urlParams.get('page')][i])
+		buildResultDiv(i, result)
+	} 
+})();
+
 /*
 (() => {
 	var container = document.getElementById('flat-embed');
@@ -43,20 +57,6 @@ function buildResultDiv(i, occJson) {
 	embed.focusScore().then(function() {})
 })();
 */
-
-(() => {
-	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
-
-	var rpp = urlParams.get('rpp')
-	if (rpp == null) {
-		return
-	}
-
-	for (i = 0; i < rpp; i++) {
-		result = JSON.parse(searchResponse['pages'][urlParams.get('page')][i])
-		buildResultDiv(i, result)
-	} 
-})();
 
 /*
 const redux = require('redux')
