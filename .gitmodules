@@ -1,4 +1,4 @@
 [submodule "search/helsinki-ttwi"]
 	path = smr/helsinki-ttwi
-	url = git@github.com:davidgarfinkle/helsinki-ttwi
+	url = https://github.com/DavidGarfinkle/helsinki-ttwi.git
 	branch = c
