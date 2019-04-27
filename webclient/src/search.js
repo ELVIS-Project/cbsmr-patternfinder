@@ -1,4 +1,4 @@
-const urlParams = new URLSearchParams(window.location.search)
+const URLPARAMS = new URLSearchParams(window.location.search)
 const vrvToolkit = new verovio.toolkit();
 
 function newResultDiv(svg) {
@@ -9,45 +9,84 @@ function newResultDiv(svg) {
 	resultPage.appendChild(resultDiv)
 };
 
-function renderSvgFromXml(xmlBase64) {
+function renderSvgFromBase64Xml(xmlBase64) {
 	var options = {
-			scale: 40,
-			font: "Leipzig",
-			adjustPageHeight: 1,
-			noFooter: 1,
-			noHeader: 1
+		scale: 40,
+		font: "Leipzig",
+		adjustPageHeight: 1,
+		noFooter: 1,
+		noHeader: 1
 	}
 	vrvToolkit.setOptions(options)
 	xml = window.atob(xmlBase64)
 	var svg = vrvToolkit.renderData(xml, options);
 	return svg
-};
+}
+
+function renderQuery(krn) {
+	var options = {
+		scale: 40,
+		font: "Leipzig",
+		adjustPageHeight: 1,
+		noFooter: 1,
+		noHeader: 1
+	}
+	vrvToolkit.setOptions(options)
+
+	var searchBoilerplate = 
+`**kern
+*clefG2
+*k[]
+=-
+`;
+	
+	console.log("query " + krn);
+	var reversedKrn = reverseKrn(krn)
+	console.log("reversed " + reversedKrn);
+
+	var svg = vrvToolkit.renderData(searchBoilerplate + reversedKrn, options);
+	return svg
+}
+
+function setQuery(krn) {
+	var searchBar = document.getElementById("search-bar")
+	var svgContainer = document.getElementById("humdrum-viewer");
+	svgContainer.innerHTML = renderQuery(krn);
+	searchBar.value = krn;
+}
+
+function listenQuery() {
+	krn = document.getElementById("search-bar").value;
+	setQuery(krn);
+}
+
+function reverseKrn(krn) {
+	return krn.replace(new RegExp(" ", 'g'), "\n");
+}
 
 function buildResultDiv(i, occJson) {
-	svg = renderSvgFromXml(occJson['xmlBase64'])
+	svg = renderSvgFromBase64Xml(occJson['xmlBase64'])
 	newResultDiv(svg)
 };
 
-(() => {
-	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
-
-	var rpp = urlParams.get('rpp')
+function ProcessResponse(searchResponse) {
+	var rpp = URLPARAMS.get('rpp')
 	if (rpp == null) {
 		return
 	}
 
 	for (i = 0; i < rpp; i++) {
-		result = JSON.parse(searchResponse['pages'][urlParams.get('page')][i])
+		result = JSON.parse(searchResponse['pages'][URLPARAMS.get('page')][i])
 		buildResultDiv(i, result)
 	} 
-})();
+}
 
-/*
-(() => {
+function NewFlatEditor() {
+	console.log("initiating flat editor")
 	var container = document.getElementById('flat-embed');
 	//container.innerHTML = `<iframe src="https://flat-embed.com/5c95a76645d83371f2c5029f" height="450" width="100%" frameBorder="0" allowfullscreen></iframe>`
   var embed = new Flat.Embed(container, {
-    score: '5c95a76645d83371f2c5029f',
+    score: '5cb402588411a64ef7c90b82',
     embedParams: {
       appId: '5c95a7dff2ef0871dba762b9',
       controlsFloating: true,
@@ -55,7 +94,28 @@ function buildResultDiv(i, occJson) {
     }
   });
 	embed.focusScore().then(function() {})
+}
+
+function NewHumdrumEditor() {
+	console.log("initiating humdrum viewer")
+	var searchBar = document.getElementById('search-bar');
+
+	searchBar.addEventListener('input', listenQuery);
+	setQuery('a4');
+}
+
+(() => {
+	console.log("did changeee");
+	NewHumdrumEditor()
+
+	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
+	if (Object.values(searchResponse).length !== 0)  {
+		ProcessResponse(searchResponse)
+	}
 })();
+
+
+/*
 */
 
 /*
