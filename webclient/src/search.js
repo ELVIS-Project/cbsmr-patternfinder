@@ -35,41 +35,6 @@ function formalizeKrn(singleLineText) {
 	return searchBoilerplate + properKrn;
 }
 
-// onsubmit event handler for search form
-function preprocessSearchForm() {
-	searchForm = document.forms["search"];
-
-	krn = searchForm.elements["query"].value
-	params = newQueryRequestParameters(krn)
-
-	for (key of params.keys()) {
-			searchForm.elements[key] = params.get(key)
-	}
-}
-
-function newQueryRequestParameters(krn) {
-	reqParams = new URLSearchParams()
-  reqParams.set('query', formalizeKrn(krn));
-  reqParams.set('rpp', 5);
-  reqParams.set('page', 0);
-	return reqParams
-}
-
-function buildQueryRequest(krn) {
-
-	reqParams = newQueryRequestParameters(krn);
-
-	url = new URL("http://localhost/search")
-	for (key of reqParams.keys()) {
-			url.searchParams.set(key, reqParams.get(key))
-	}
-	var req = new Request(url, {
-			method: 'GET',
-			mode: 'no-cors'
-	})
-	return req
-}
-
 function renderQuery(krn) {
 	var options = {
 		scale: 40,
@@ -269,18 +234,4 @@ var bootstrapPaginator = new pagination.TemplatePaginator({
     html += paginator.render();
     document.getElementById("paging").innerHTML = html;
 })();
-*/
-
-/*
-const flat = require('flat-embed')
-
-var container = document.getElementById('flat-embed');
-var embed = new flat.Embed(container, {
-    score: '5c95a76645d83371f2c5029f',
-    embedParams: {
-        appId: '5c95a7dff2ef0871dba762b9',
-        controlsFloating: false
-    }
-})
-
 */
