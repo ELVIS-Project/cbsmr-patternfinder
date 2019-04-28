@@ -1,6 +1,13 @@
 const URLPARAMS = new URLSearchParams(window.location.search)
 const vrvToolkit = new verovio.toolkit();
 
+const searchBoilerplate = 
+`**kern
+*clefG2
+*k[]
+=-
+`;
+
 function newResultDiv(svg) {
 	var resultDiv = document.createElement("div")
 	resultDiv.innerHTML = svg
@@ -23,6 +30,46 @@ function renderSvgFromBase64Xml(xmlBase64) {
 	return svg
 }
 
+function formalizeKrn(singleLineText) {
+	var properKrn = uncollapseKrn(singleLineText)
+	return searchBoilerplate + properKrn;
+}
+
+// onsubmit event handler for search form
+function preprocessSearchForm() {
+	searchForm = document.forms["search"];
+
+	krn = searchForm.elements["query"].value
+	params = newQueryRequestParameters(krn)
+
+	for (key of params.keys()) {
+			searchForm.elements[key] = params.get(key)
+	}
+}
+
+function newQueryRequestParameters(krn) {
+	reqParams = new URLSearchParams()
+  reqParams.set('query', formalizeKrn(krn));
+  reqParams.set('rpp', 5);
+  reqParams.set('page', 0);
+	return reqParams
+}
+
+function buildQueryRequest(krn) {
+
+	reqParams = newQueryRequestParameters(krn);
+
+	url = new URL("http://localhost/search")
+	for (key of reqParams.keys()) {
+			url.searchParams.set(key, reqParams.get(key))
+	}
+	var req = new Request(url, {
+			method: 'GET',
+			mode: 'no-cors'
+	})
+	return req
+}
+
 function renderQuery(krn) {
 	var options = {
 		scale: 40,
@@ -33,35 +80,27 @@ function renderQuery(krn) {
 	}
 	vrvToolkit.setOptions(options)
 
-	var searchBoilerplate = 
-`**kern
-*clefG2
-*k[]
-=-
-`;
-	
-	console.log("query " + krn);
-	var reversedKrn = reverseKrn(krn)
-	console.log("reversed " + reversedKrn);
-
-	var svg = vrvToolkit.renderData(searchBoilerplate + reversedKrn, options);
+	var svg = vrvToolkit.renderData(formalizeKrn(krn), options);
 	return svg
 }
 
 function setQuery(krn) {
-	var searchBar = document.getElementById("search-bar")
+	var searchBar = getSearchBar();
 	var svgContainer = document.getElementById("humdrum-viewer");
 	svgContainer.innerHTML = renderQuery(krn);
 	searchBar.value = krn;
+	document.forms["search"].elements["query"].value = formalizeKrn(krn);
 }
 
 function listenQuery() {
-	krn = document.getElementById("search-bar").value;
+	krn = getSearchBar().value;
 	setQuery(krn);
 }
 
-function reverseKrn(krn) {
-	return krn.replace(new RegExp(" ", 'g'), "\n");
+function uncollapseKrn(krn) {
+	vertical = krn.replace(new RegExp(" ", "g"), "\n");
+	horizontal = vertical.replace(new RegExp(",", "g"), " ");
+	return horizontal
 }
 
 function buildResultDiv(i, occJson) {
@@ -70,10 +109,7 @@ function buildResultDiv(i, occJson) {
 };
 
 function ProcessResponse(searchResponse) {
-	var rpp = URLPARAMS.get('rpp')
-	if (rpp == null) {
-		return
-	}
+	setQuery(searchResponse['query']);
 
 	for (i = 0; i < rpp; i++) {
 		result = JSON.parse(searchResponse['pages'][URLPARAMS.get('page')][i])
@@ -98,15 +134,26 @@ function NewFlatEditor() {
 
 function NewHumdrumEditor() {
 	console.log("initiating humdrum viewer")
-	var searchBar = document.getElementById('search-bar');
+	var searchBar = getSearchBar()
 
-	searchBar.addEventListener('input', listenQuery);
-	setQuery('a4');
+	searchBar.addEventListener("input", listenQuery);
+	setQuery("a4");
+}
+
+function getSearchBar() {
+	return document.getElementById("search-bar");
+}
+
+function setSearchFormDefaults() {
+	form = document.forms["search"]
+	form.elements["rpp"].value = "5";
+	form.elements["page"].value = "0";
 }
 
 (() => {
-	console.log("did changeee");
-	NewHumdrumEditor()
+	console.log("did change");
+	NewHumdrumEditor();
+	setSearchFormDefaults();
 
 	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
 	if (Object.values(searchResponse).length !== 0)  {

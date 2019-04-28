@@ -5,11 +5,14 @@
 
     <div id="flat-embed"></div>
 		<div id="humdrum-viewer"></div>
-		<div>
-			<input id="search-bar" type="search">
-		</div>
-    <div id="paging">
-		</div>
+		<input type="search" id="search-bar">
+		<form name="search" action="/search" method="get">
+			<input name="query" type="hidden">
+			<input name="rpp" type="hidden">
+			<input name="page" type="hidden">
+			<input type="submit" value="Search!">
+		</form>
+    <div id="paging"></div>
 
     <script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>
     <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
