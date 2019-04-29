@@ -204,7 +204,6 @@ func CSearch(pattern *C.struct_Score, target *C.struct_Score) (result *C.struct_
 func resultToIntArrays(result *C.struct_Result, pattern *C.struct_Score) (arrays [][]uint32) {
 
 	chains := (*[1 << 30]*C.int)(unsafe.Pointer(result.chains))
-	println(result.num_occs)
 	for i := 0; (C.int)(i) < result.num_occs; i++ {
 		// weird.. can't cast a pointer to a larger array with variable size at compile time?
 		chain := (*[1 << 10]C.int)(unsafe.Pointer(chains[i]))

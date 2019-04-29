@@ -18,6 +18,7 @@ function newResultDiv(svg) {
 
 function renderSvgFromBase64Xml(xmlBase64) {
 	var options = {
+		inputFormat: "xml",
 		scale: 40,
 		font: "Leipzig",
 		adjustPageHeight: 1,
@@ -68,17 +69,13 @@ function uncollapseKrn(krn) {
 	return horizontal
 }
 
-function buildResultDiv(i, occJson) {
-	svg = renderSvgFromBase64Xml(occJson['xmlBase64'])
-	newResultDiv(svg)
-};
-
 function ProcessResponse(searchResponse) {
 	setQuery(searchResponse['query']);
 
-	for (i = 0; i < rpp; i++) {
-		result = JSON.parse(searchResponse['pages'][URLPARAMS.get('page')][i])
-		buildResultDiv(i, result)
+	for (i = 0; i < searchResponse['rpp']; i++) {
+		occJson = JSON.parse(searchResponse['pages'][URLPARAMS.get('page')][i])
+		svg = renderSvgFromBase64Xml(occJson['xmlBase64'])
+		newResultDiv(svg)
 	} 
 }
 

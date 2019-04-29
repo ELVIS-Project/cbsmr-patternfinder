@@ -22,7 +22,7 @@ def index_notes_oneshot(pb_req):
 
 def index_notes(pb_req):
 
-    with grpc.insecure_channel(f"{os.environ['INDEXER_HOST'], os.environ['INDEXER_PORT']}", options = server.OPTIONS) as channel:
+    with grpc.insecure_channel(f"{os.environ['INDEXER_HOST']}:{os.environ['INDEXER_PORT']}", options = server.OPTIONS) as channel:
         stub = smr_pb2_grpc.IndexStub(channel)
         response = stub.IndexNotes(pb_req)
 

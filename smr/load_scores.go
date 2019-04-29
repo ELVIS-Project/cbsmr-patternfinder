@@ -67,8 +67,10 @@ func (s *SmrServer) LoadScores(window int) error {
 		return err
 	}
 
-	for _, id := range ids {
-		s.LoadOneScore(id, window)
+	for i, id := range ids {
+		if (i < 1000) {
+			s.LoadOneScore(id, window)
+		}
 	}
 	println("Loaded ", len(ids), " scores")
 

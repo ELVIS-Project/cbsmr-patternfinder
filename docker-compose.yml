@@ -13,6 +13,8 @@ services:
       - conf/env.docker
     ports:
       - '${SMR_PORT}:${SMR_PORT}'
+    volumes:
+      - ./smr/smr.db:/cbsmr/smr/smr.db
     depends_on:
       - "indexer"
   flask:

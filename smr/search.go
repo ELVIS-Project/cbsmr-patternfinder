@@ -58,8 +58,6 @@ func (s SmrServer) Search(ctx context.Context, req *pb.Notes) (occs *pb.Occurren
 		return &pb.Occurrences{}, nil
 	}
 
-	println("Search found ", len(occs.Occurrences))
-
 	sort.Sort(rankTrivial(occs.Occurrences))
 	return occs, nil
 }

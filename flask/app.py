@@ -26,6 +26,7 @@ def connect_to_psql():
                 ('dbname', 'PG_DB'),
                 ('user', 'PG_USER'),
                 ('password', 'PG_PASS')))
+    print("connecting to " + db_str)
     try:
             conn = psycopg2.connect(db_str)
     except Exception as e:
@@ -126,8 +127,12 @@ def excerpt():
 
 def pb_occ_to_json(pb_occ, get_excerpt):
     if get_excerpt:
-        xml = coloured_excerpt(pb_occ.notes, pb_occ.pid)
-        b64_xml = base64.b64encode(bytes(xml, encoding='utf-8')).decode('utf-8')
+        try:
+            xml = coloured_excerpt(pb_occ.notes, pb_occ.pid)
+        except Exception as e:
+            b64_xml = "excerpt failed: " + str(e)
+        else:
+            b64_xml = base64.b64encode(bytes(xml, encoding='utf-8')).decode('utf-8')
     else:
         b64_xml = ""
 
@@ -139,11 +144,13 @@ def pb_occ_to_json(pb_occ, get_excerpt):
                 'xmlBase64': b64_xml
             })
 
-def generate_response(occs, rpp, page):
+def generate_response(occs, rpp, page, query):
     num_pages = int(len(occs) / rpp) + 1
     return {
         'total': len(occs),
         'num_pages': num_pages,
+        'query': query,
+        'rpp': rpp,
         'pages': [
             [pb_occ_to_json(o, get_excerpt = (i == page)) for o in occs[rpp * i : rpp * (i + 1)]]
             for i in range(num_pages)]
@@ -155,11 +162,16 @@ def search():
     if not request.args.get("query"):
         return render_template("search.html", searchResponse = {})
 
-    page = int(request.args.get("page"))
-    rpp = int(request.args.get("rpp"))
+    page = request.args.get("page")
+    rpp = request.args.get("rpp")
     query_str = request.args.get("query")
     if not query_str:
         return "No query parameter included in GET request", 400
+    elif not page or not rpp:
+        return "missing GET parameters", 400
+    else:
+        page = int(page)
+        rpp = int(rpp)
 
     query_bytes = bytes(query_str, encoding='utf-8')
 
@@ -173,7 +185,7 @@ def search():
 
     #return Response("\n".join(pb_occ_to_excerpt_url(occ) for occ in response.occurrences), mimetype="uri-list")
     #return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patternfinder/webclient/src', 'search.html')
-    return render_template("search.html", searchResponse = generate_response(response.occurrences, rpp, page))
+    return render_template("search.html", searchResponse = generate_response(response.occurrences, rpp, page, query_str))
     #return jsonify(generate_response(response.occurrences, rpp, page))
 
 if __name__ == '__main__':

@@ -22,7 +22,7 @@ def add_piece(i, path):
     smr = smr_pb2_grpc.SmrStub(smr_channel)
     index = smr_pb2_grpc.IndexStub(index_channel)
 
-    with open("/Users/davidgarfinkle/elvis-project/cbsmr-patterfinder/smr/testdata/" + path, "rb") as f:
+    with open("/Users/davidgarfinkle/elvis-project/cbsmr-patternfinder/smr/testdata/" + path, "rb") as f:
         sd = f.read()
 
     pb_notes = index.IndexNotes(smr_pb2.IndexRequest(

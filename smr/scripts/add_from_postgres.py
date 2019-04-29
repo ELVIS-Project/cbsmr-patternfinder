@@ -22,28 +22,35 @@ def add_piece(i, b64_data):
         symbolic_data = bytes(b64_data, encoding='utf-8'))
     pb_notes = client.index_notes(pb_req)
 
-    smr.AddPiece(smr_pb2.AddPieceRequest(id=i, notes=pb_notes))
+    resp = smr.AddPiece(smr_pb2.AddPieceRequest(id=i, notes=pb_notes))
+    print(resp)
 
     smr_channel.__exit__(*sys.exc_info())
     index_channel.__exit__(*sys.exc_info())
 
 def add_all():
+    print("Querying smr")
+    with grpc.insecure_channel(smr_uri) as channel:
+        stub = smr_pb2_grpc.SmrStub(channel)
+        already_existing = stub.AllPieces(smr_pb2.AllPiecesRequest())
+    print(str(len(already_existing.pids)) + " scores already in smr")
+
     print("Querying postgres")
     with conn, conn.cursor() as cur:
         cur.execute("""
             SELECT pid, data
             FROM Piece""")
-        results = cur.fetchall()
 
-    print("Querying smr")
-    with grpc.insecure_channel(smr_uri) as channel:
-        stub = smr_pb2_grpc.SmrStub(channel)
-        already_existing = stub.AllPieces(smr_pb2.AllPiecesRequest())
-    print(already_existing)
-
-    for i, data in tqdm(results):
-        if i not in already_existing.pids:
-            add_piece(i, data)
+        print("inserting " + str(cur.rowcount - len(already_existing.pids)) + " pieces to smr")
+        result = cur.fetchone()
+        while result:
+            i, data = result
+            if i not in already_existing.pids:
+                try: 
+                    add_piece(i, data)
+                except Exception:
+                    print(str(i) + " failed")
+            result = cur.fetchone()
 
 if __name__ == '__main__':
     add_all()
