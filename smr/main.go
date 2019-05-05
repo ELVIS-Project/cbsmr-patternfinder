@@ -28,7 +28,7 @@ func openBolt() (db *bolt.DB) {
 	var err error
 	db, err = bolt.Open("smr.db", 0666, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
-		panic("Failed to open bolt database")
+		panic(err)
 	}
 
 	db.Update(func(tx *bolt.Tx) error {
@@ -83,12 +83,12 @@ func StartServer() *SmrServer {
 
 	ln, err := net.Listen("tcp", ":" + vp.GetString("SMR_PORT"))
 	if err != nil {
-		panic("Failed to listen on TCP")
+		panic(err)
 	}
 
 	go func() {
 		if err := s.Serve(ln); err != nil {
-			panic("Failed to serve!")
+			panic(err)
 		}
 	}()
 
