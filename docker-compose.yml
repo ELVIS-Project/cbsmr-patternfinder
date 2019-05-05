@@ -14,7 +14,7 @@ services:
     ports:
       - '${SMR_PORT}:${SMR_PORT}'
     volumes:
-      - ./smr/smr.db:/cbsmr/smr/smr.db
+      - '${SMR_DB_SRC_DIR}:${SMR_DB_DEST_DIR}'
     depends_on:
       - "indexer"
   flask:

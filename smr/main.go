@@ -26,7 +26,7 @@ var indexerClient pb.IndexClient
 
 func openBolt() (db *bolt.DB) {
 	var err error
-	db, err = bolt.Open("smr.db", 0666, &bolt.Options{Timeout: 1 * time.Second})
+	db, err = bolt.Open(vp.GetString("SMR_DB"), 0666, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		panic(err)
 	}
