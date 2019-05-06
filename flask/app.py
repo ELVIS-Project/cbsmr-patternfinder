@@ -126,23 +126,21 @@ def excerpt():
     return Response(excerpt_xml, mimetype='text/xml')
 
 def pb_occ_to_json(pb_occ, get_excerpt):
+    resp = {"excerptFailed": False}
     if get_excerpt:
         try:
             xml = coloured_excerpt(pb_occ.notes, pb_occ.pid)
         except Exception as e:
             b64_xml = "excerpt failed: " + str(e)
+            resp["excerptFailed"] = True
         else:
             b64_xml = base64.b64encode(bytes(xml, encoding='utf-8')).decode('utf-8')
     else:
         b64_xml = ""
 
-    return json.dumps(
-            {
-                #'pid': o.pid,
-                #'nid': [int(n) for n in o.notes],
-                'url': url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes)),
-                'xmlBase64': b64_xml
-            })
+    resp["url"] = url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes))
+    resp["xmlBase64"] = b64_xml
+    return json.dumps(resp)
 
 def generate_response(occs, rpp, page, query):
     num_pages = int(len(occs) / rpp) + 1

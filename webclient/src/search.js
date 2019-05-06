@@ -74,8 +74,12 @@ function ProcessResponse(searchResponse) {
 
 	for (i = 0; i < searchResponse['rpp']; i++) {
 		occJson = JSON.parse(searchResponse['pages'][URLPARAMS.get('page')][i])
-		svg = renderSvgFromBase64Xml(occJson['xmlBase64'])
-		newResultDiv(svg)
+		if (occJson['excerptFailed']) {
+			console.log("excerpt failed: " + occJson)
+		} else {
+			svg = renderSvgFromBase64Xml(occJson['xmlBase64'])
+			newResultDiv(svg)
+		}
 	} 
 }
 
