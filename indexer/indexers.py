@@ -205,6 +205,9 @@ class NotePointSet(music21.stream.Stream):
             new_notes.extend(to_add)
         new_notes.sort(key=sort_keyfunc)
 
+        # Pointer to original stream
+        self.original_stream = score
+
         # Make sure to turn off stream.autoSort, since streams automatically sort on insert by
         # an internal sortTuple which prioritizes note onset (attack)
         self.autoSort = False
