@@ -1,5 +1,5 @@
 const URLPARAMS = new URLSearchParams(window.location.search)
-const vrvToolkit = new verovio.toolkit();
+const ace = require('ace-builds');
 
 const searchBoilerplate = 
 `**kern
@@ -7,6 +7,9 @@ const searchBoilerplate =
 *k[]
 =-
 `;
+
+var EDITOR;
+var vrvToolkit = new verovio.toolkit();
 
 function newResultDiv(svg) {
 	var resultDiv = document.createElement("div")
@@ -17,6 +20,8 @@ function newResultDiv(svg) {
 };
 
 function renderSvgFromBase64Xml(xmlBase64) {
+	vrvToolkit = new verovio.toolkit();
+
 	var options = {
 		inputFormat: "xml",
 		scale: 40,
@@ -31,12 +36,9 @@ function renderSvgFromBase64Xml(xmlBase64) {
 	return svg
 }
 
-function formalizeKrn(singleLineText) {
-	var properKrn = uncollapseKrn(singleLineText)
-	return searchBoilerplate + properKrn;
-}
-
 function renderQuery(krn) {
+	vrvToolkit = new verovio.toolkit();
+
 	var options = {
 		scale: 40,
 		font: "Leipzig",
@@ -46,21 +48,17 @@ function renderQuery(krn) {
 	}
 	vrvToolkit.setOptions(options)
 
-	var svg = vrvToolkit.renderData(formalizeKrn(krn), options);
+	var svg = vrvToolkit.renderData(krn, options);
 	return svg
 }
 
 function setQuery(krn) {
-	var searchBar = getSearchBar();
+	/* -> updates hidden form field
+	 * -> renders verovio
+	 */
 	var svgContainer = document.getElementById("humdrum-viewer");
 	svgContainer.innerHTML = renderQuery(krn);
-	searchBar.value = krn;
-	document.forms["search"].elements["query"].value = formalizeKrn(krn);
-}
-
-function listenQuery() {
-	krn = getSearchBar().value;
-	setQuery(krn);
+	document.forms["search"].elements["query"].value = krn;
 }
 
 function uncollapseKrn(krn) {
@@ -83,27 +81,20 @@ function ProcessResponse(searchResponse) {
 	} 
 }
 
-function NewFlatEditor() {
-	console.log("initiating flat editor")
-	var container = document.getElementById('flat-embed');
-	//container.innerHTML = `<iframe src="https://flat-embed.com/5c95a76645d83371f2c5029f" height="450" width="100%" frameBorder="0" allowfullscreen></iframe>`
-  var embed = new Flat.Embed(container, {
-    score: '5cb402588411a64ef7c90b82',
-    embedParams: {
-      appId: '5c95a7dff2ef0871dba762b9',
-      controlsFloating: true,
-			mode: 'edit'
-    }
-  });
-	embed.focusScore().then(function() {})
-}
+function newAceEditor() {
+	EDITOR = ace.edit("ace-editor", {
+		autoScrollEditorIntoView: true,
+		value: this.input,
+		minLines: 10,
+		maxLines: 10
+	});
 
-function NewHumdrumEditor() {
-	console.log("initiating humdrum viewer")
-	var searchBar = getSearchBar()
+	EDITOR.setValue(searchBoilerplate);
 
-	searchBar.addEventListener("input", listenQuery);
-	setQuery("a4");
+	// rerender the svg-container on change
+	EDITOR.session.on('change', function(delta){
+		setQuery(EDITOR.getValue())
+	});
 }
 
 function getSearchBar() {
@@ -118,7 +109,7 @@ function setSearchFormDefaults() {
 
 (() => {
 	console.log("did change");
-	NewHumdrumEditor();
+	newAceEditor();
 	setSearchFormDefaults();
 
 	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
@@ -129,6 +120,20 @@ function setSearchFormDefaults() {
 
 
 /*
+function NewFlatEditor() {
+	console.log("initiating flat editor")
+	var container = document.getElementById('flat-embed');
+	//container.innerHTML = `<iframe src="https://flat-embed.com/5c95a76645d83371f2c5029f" height="450" width="100%" frameBorder="0" allowfullscreen></iframe>`
+  var embed = new Flat.Embed(container, {
+    score: '5cb402588411a64ef7c90b82',
+    embedParams: {
+      appId: '5c95a7dff2ef0871dba762b9',
+      controlsFloating: true,
+			mode: 'edit'
+    }
+  });
+	embed.focusScore().then(function() {})
+}
 */
 
 /*
