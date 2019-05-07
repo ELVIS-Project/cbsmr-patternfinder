@@ -16,6 +16,7 @@ import grpc
 from proto import smr_pb2, smr_pb2_grpc
 
 from indexer import indexers
+from excerpt import coloured_excerpt
 
 app = Flask(__name__)
 
@@ -67,52 +68,6 @@ def index_id(piece_id):
 
     return Response(str(piece_id), mimetype='text/plain')
 
-def coloured_excerpt(note_list, piece_id):
-    db_conn = app.config['PSQL_CONN']
-    note_list = [int(i) for i in note_list]
-
-    with db_conn, db_conn.cursor() as cur:
-        cur.execute(f"""
-            SELECT data
-            FROM Piece
-            WHERE pid={piece_id}
-            ;
-            """)
-        results = cur.fetchall()
-        if not results:
-            raise Exception(f"excerpts: no data found for piece {piece_id}!")
-
-    score = music21.converter.parse(base64.b64decode(results[0][0]))
-    nps = list(indexers.NotePointSet(score))
-    nps_ids = [nps[i].original_note_id for i in note_list]
-
-    # Get stream excerpt
-    _, start_measure = score.beatAndMeasureFromOffset(nps[note_list[0]].offset)
-    _, end_measure = score.beatAndMeasureFromOffset(nps[note_list[-1]].offset + nps[-1].duration.quarterLength - 1)
-    excerpt = score.measures(numberStart=start_measure.number, numberEnd=end_measure.number)
-
-    # Colour notes
-    for note in excerpt.flat.notes:
-        if note.id in nps_ids:
-            note.style.color = 'red'
-
-    # Delete part names (midi files have bad data)
-    for part in excerpt:
-        part.partName = ''
-
-    sx = music21.musicxml.m21ToXml.ScoreExporter(excerpt)
-    musicxml = sx.parse()
-
-    from io import StringIO
-    import sys
-    bfr = StringIO()
-    sys.stdout = bfr
-    sx.dump(musicxml)
-    output = bfr.getvalue()
-    sys.stdout = sys.__stdout__
-
-    return output
-
 
 @app.route("/excerpt", methods=["GET"])
 def excerpt():
@@ -122,14 +77,17 @@ def excerpt():
     piece_id = request.args.get("pid")
     notes = request.args.get("nid").split(",")
 
-    excerpt_xml = coloured_excerpt(notes, piece_id)
+    excerpt_xml = coloured_excerpt(app.config["PSQL_CONN"], notes, piece_id)
     return Response(excerpt_xml, mimetype='text/xml')
 
 def pb_occ_to_json(pb_occ, get_excerpt):
-    resp = {"excerptFailed": False}
+    resp = {
+        "excerptFailed": False,
+        "pid": pb_occ.pid
+    }
     if get_excerpt:
         try:
-            xml = coloured_excerpt(pb_occ.notes, pb_occ.pid)
+            xml = coloured_excerpt(app.config["PSQL_CONN"], pb_occ.notes, pb_occ.pid)
         except Exception as e:
             b64_xml = "excerpt failed: " + str(e)
             resp["excerptFailed"] = True
