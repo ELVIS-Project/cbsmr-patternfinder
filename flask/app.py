@@ -11,6 +11,7 @@ import music21
 import psycopg2
 import base64
 import json
+import time
 
 import grpc
 from proto import smr_pb2, smr_pb2_grpc
@@ -29,15 +30,15 @@ def connect_to_psql():
                 ('password', 'PG_PASS')))
     print("connecting to " + db_str)
 
-    unconnected = True
-    while unconnected:
+    while True:
         try:
             conn = psycopg2.connect(db_str)
-            unconnected = False
+            break
         except Exception as e:
-            import time
-            time.sleep(5)
-            conn = psycopg2.connect(db_str)
+            time_to_wait = 5
+            print(f"failed; waiting {time_to_wait} seconds...")
+            time.sleep(time_to_wait)
+            connect_to_psql()
     conn.autocommit = False
 
     app.config['PSQL_CONN'] = conn
