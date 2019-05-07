@@ -57,6 +57,10 @@ func (s SmrServer) Search(ctx context.Context, req *pb.Notes) (occs *pb.Occurren
 	queryScore := InitScoreFromVectors(len(req.Notes), vecs)
 
 	for pieceID, cscore := range s.pieceMap {
+		println(pieceID)
+		if pieceID == 1472 || pieceID == 1082{
+			continue
+		}
 		intArrays := search(queryScore, cscore)
 		for _, arr := range intArrays {
 			occs.Occurrences = append(occs.Occurrences, &pb.Occurrence{Pid: pieceID, Notes: arr})

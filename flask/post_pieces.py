@@ -19,14 +19,14 @@ xml_pieces = (os.path.join(ELVISDUMP, "XML", f) for f in os.listdir(os.path.join
 mid_pieces = (os.path.join(ELVISDUMP, "MID", f) for f in os.listdir(os.path.join(ELVISDUMP, "MID")))
 mei_pieces = (os.path.join(ELVISDUMP, "MEI", f) for f in os.listdir(os.path.join(ELVISDUMP, "MEI")))
 
-def post_piece(path):
+def post_piece(path, endpoint=ENDPOINT):
     dumpname, format = os.path.splitext(os.path.basename(path))
     index, _, name = dumpname.partition('_')
 
     with open(path, 'rb') as f:
         data = f.read()
 
-    return requests.post(ENDPOINT + "index/" + str(index),
+    return requests.post(endpoint + "index/" + str(index),
                         data=data,
                         headers={'Content-Type': 'application/octet-stream'})
 

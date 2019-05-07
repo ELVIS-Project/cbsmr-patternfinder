@@ -4,6 +4,18 @@ Content-based symbolic music retrieval service infrastructure.
 
 ## Basic installation instructions
 
+### With docker-compose
+
+Clone repo
+
+```
+source conf/env.docker
+docker-compose up
+```
+
+
+### Otherwise
+
 Clone repo and launch docker container with database
 
 ```

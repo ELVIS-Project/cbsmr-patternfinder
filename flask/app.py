@@ -86,9 +86,16 @@ def excerpt():
     return Response(excerpt_xml, mimetype='text/xml')
 
 def pb_occ_to_json(pb_occ, get_excerpt):
+
+    db_conn = app.config['PSQL_CONN']
+    with db_conn, db_conn.cursor() as cur:
+        cur.execute(f"SELECT path FROM Piece WHERE pid = {pb_occ.pid}")
+        path = cur.fetchone()
+
     resp = {
         "excerptFailed": False,
-        "pid": pb_occ.pid
+        "pid": pb_occ.pid,
+        "path": path
     }
     if get_excerpt:
         try:

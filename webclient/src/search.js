@@ -26,7 +26,11 @@ function newResultDiv(occ, svg) {
 	// piece id span
 	var pidSpan = document.createElement("span")
 	pidSpan.innerHTML = occ["pid"];
-	resultDiv.appendChild(pidSpan)
+	resultDiv.appendChild(pidSpan);
+
+	var pathSpan = document.createElement("span")
+	pathSpan.innerHTML = occ["path"];
+	resultDiv.appendChild(pathSpan);
 };
 
 function renderSvgFromBase64Xml(xmlBase64) {
