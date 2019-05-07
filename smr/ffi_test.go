@@ -14,8 +14,9 @@ func TestLemstrom(t *testing.T) {
 
 	arrays := search(query, leiermann)
 
-	if fmt.Sprintf("%v", arrays) != "[[3 6 8 9 16 21] [13 14 16 17 18 21]]" {
-		t.Fail()
+	expected := "[[3 6 8 9 16 21] [13 14 16 17 18 21] [13 14 16 17 18 31]]"
+	if fmt.Sprintf("%v", arrays) != expected {
+		t.Errorf("expected %v got %v", expected, arrays)
 	}
 }
 
@@ -35,9 +36,24 @@ func TestPalestrina(t *testing.T) {
 			query := InitScoreFromVectors(len(queryNotes.Notes), queryVecs)
 
 			arr := search(query, target)
+			arr2 := search(query, target)
 
+			// Find something
 			if len(arr) == 0 {
 				t.Errorf("found nothing in %v", file)
+			}
+
+			// Should be sorted
+			if len(arr) != len(arr2) {
+				t.Errorf("two invocations of search got different lists");
+			}
+			for i := range arr {
+				println(fmt.Sprintf("%v\n%v", arr[i], arr2[i]))
+				for j := range arr[i] {
+					if arr[i][j] != arr2[i][j] {
+						t.Errorf("two invocations of search are in different orders");
+					}
+				}
 			}
 		})
 	}

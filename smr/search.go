@@ -37,7 +37,16 @@ func (occs rankTrivial) Less(i, j int) bool {
 		sum_i += occs[i].Notes[k] - occs[i].Notes[k-1]
 		sum_j += occs[j].Notes[k] - occs[j].Notes[k-1]
 	}
-	return sum_i < sum_j
+
+	// Prefer more compact occurrences
+	if sum_i < sum_j {
+		return true
+	} else if sum_i > sum_j {
+		return false
+	} else {
+		// If all else equal, sort on piece id for deterministic results
+		return occs[i].Pid < occs[j].Pid
+	}
 }
 
 
@@ -58,6 +67,8 @@ func (s SmrServer) Search(ctx context.Context, req *pb.Notes) (occs *pb.Occurren
 		return &pb.Occurrences{}, nil
 	}
 
-	sort.Sort(rankTrivial(occs.Occurrences))
+	sortedOccs := rankTrivial(occs.Occurrences)
+	sort.Sort(sortedOccs)
+	occs.Occurrences = sortedOccs
 	return occs, nil
 }
