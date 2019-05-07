@@ -11,12 +11,22 @@ const searchBoilerplate =
 var EDITOR;
 var vrvToolkit = new verovio.toolkit();
 
-function newResultDiv(svg) {
+function newResultDiv(occ, svg) {
+	// Div wrapper
 	var resultDiv = document.createElement("div")
-	resultDiv.innerHTML = svg
-
+	resultDiv.classList.add("occurrence")
 	var resultPage = document.getElementById("resultPage")
 	resultPage.appendChild(resultDiv)
+
+	// SVG container
+	svgSpan = document.createElement("span")
+	svgSpan.innerHTML = svg
+	resultDiv.appendChild(svgSpan)
+
+	// piece id span
+	var pidSpan = document.createElement("span")
+	pidSpan.innerHTML = occ["pid"];
+	resultDiv.appendChild(pidSpan)
 };
 
 function renderSvgFromBase64Xml(xmlBase64) {
@@ -68,6 +78,7 @@ function uncollapseKrn(krn) {
 }
 
 function ProcessResponse(searchResponse) {
+	EDITOR.setValue(searchResponse['query'])
 	setQuery(searchResponse['query']);
 
 	for (i = 0; i < searchResponse['rpp']; i++) {
@@ -76,7 +87,7 @@ function ProcessResponse(searchResponse) {
 			console.log("excerpt failed: " + occJson)
 		} else {
 			svg = renderSvgFromBase64Xml(occJson['xmlBase64'])
-			newResultDiv(svg)
+			newResultDiv(occJson, svg)
 		}
 	} 
 }
