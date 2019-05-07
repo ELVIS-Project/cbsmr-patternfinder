@@ -2,4 +2,4 @@ webclient/node_modules
 db
 venv
 .git/modules/search/verovio
-smr/smr.db
+smr/bolt/

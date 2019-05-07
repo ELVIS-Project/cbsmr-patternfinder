@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/boltdb/bolt"
 	"errors"
+	vp "github.com/spf13/viper"
 )
 
 func (s *SmrServer) GetScoreIds() (ids []uint32, err error) {
@@ -68,11 +69,11 @@ func (s *SmrServer) LoadScores(window int) error {
 	}
 
 	for i, id := range ids {
-		if (i < 1000) {
+		if (i < vp.GetInt("SMR_MAX_SCORES")) {
 			s.LoadOneScore(id, window)
 		}
 	}
-	println("Loaded ", len(ids), " scores")
+	println("Loaded ", vp.GetInt("SMR_MAX_SCORES"), " scores")
 
 	return nil
 }

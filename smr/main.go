@@ -29,7 +29,10 @@ func openBolt() (db *bolt.DB) {
 	db, err = bolt.Open(vp.GetString("SMR_DB"), 0666, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		panic(err)
+	} else {
+		log.Infof("connected to bolt %v", vp.GetString("SMR_DB"))
 	}
+
 
 	db.Update(func(tx *bolt.Tx) error {
 		_, err = tx.CreateBucketIfNotExists([]byte("scores"))
@@ -45,6 +48,8 @@ func dialIndex() (client pb.IndexClient) {
 
 	if err != nil {
 		log.Panicf("Failed to connect to indexer service, %v", err)
+	} else {
+		log.Info("connected to indexer %v", vp.GetString("INDEXDR_URI"))
 	}
 	client = pb.NewIndexClient(conn)
 	return
@@ -55,6 +60,8 @@ func dialPostgres() (db *sql.DB) {
 	db, err = sql.Open("postgres", vp.GetString("PSQL_STRING"))
 	if err != nil {
 		panic(err)
+	} else {
+		log.Infof("connected to postgres %v", vp.GetString("PSQL_STRING"))
 	}
 
 	return
@@ -79,7 +86,10 @@ func StartServer() *SmrServer {
 	}
 	pb.RegisterSmrServer(s, &smr)
 
-	smr.LoadScores(WINDOW)
+	err := smr.LoadScores(WINDOW)
+	if err != nil {
+		panic(err)
+	}
 
 	ln, err := net.Listen("tcp", ":" + vp.GetString("SMR_PORT"))
 	if err != nil {
