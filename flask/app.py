@@ -28,11 +28,15 @@ def connect_to_psql():
                 ('user', 'PG_USER'),
                 ('password', 'PG_PASS')))
     print("connecting to " + db_str)
-    try:
+
+    unconnected = True
+    while unconnected:
+        try:
             conn = psycopg2.connect(db_str)
-    except Exception as e:
+            unconnected = False
+        except Exception as e:
             import time
-            time.sleep(7)
+            time.sleep(5)
             conn = psycopg2.connect(db_str)
     conn.autocommit = False
 
