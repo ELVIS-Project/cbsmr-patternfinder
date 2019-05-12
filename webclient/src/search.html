@@ -47,7 +47,15 @@
     <div id="results-section">
 			<div id="results-report"></div>
 			<div id="results-container"></div>
-			<div id="results-paginator-links" class="paginator"></div>
+			<div id="results-paginator-links" class="paginator">
+				{% for i in searchResponse["paginatorRange"] %}
+				{% if i == searchResponse["curPage"] %}
+				<span>{{i}}</a>
+				{% else %}
+				<a href={{searchResponse["paginatorLinks"][i]}}>{{i}}</a>
+				{% endif %}
+				{% endfor %}
+			</div>
 		</div>
 
 		<script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>

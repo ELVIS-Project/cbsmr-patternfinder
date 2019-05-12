@@ -1,5 +1,6 @@
 import base64
 import json
+import math
 from flask import url_for
 from excerpt import coloured_excerpt
 
@@ -8,7 +9,11 @@ def build_response(db_conn, occs, rpp, page, query):
         num_pages = int(len(occs) / rpp) + 1
     else:
         num_pages = 0
+    paginator_range = calculate_page_range(5, page, num_pages)
+
     return {
+        'paginatorLinks': [url_for("search", query=query, page=i, rpp=rpp) for i in paginator_range],
+        'paginatorRange': paginator_range,
         'totalCount': len(occs),
         'pagesCount': num_pages,
         'query': query,
@@ -43,3 +48,11 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
     resp["xmlBase64"] = b64_xml
 
     return json.dumps(resp)
+
+def calculate_page_range(num, cur, total):
+    page_nums = range(num)
+    if total - cur < 3:
+        page_nums = map(lambda x: x + total - num, page_nums)
+    elif cur > 2:
+        page_nums = map(lambda x: x + math.floor(cur / 2))
+    return list(page_nums)
