@@ -49,7 +49,7 @@ func dialIndex() (client pb.IndexClient) {
 	if err != nil {
 		log.Panicf("Failed to connect to indexer service, %v", err)
 	} else {
-		log.Info("connected to indexer %v", vp.GetString("INDEXDR_URI"))
+		log.Infof("connected to indexer %v", vp.GetString("INDEXDR_URI"))
 	}
 	client = pb.NewIndexClient(conn)
 	return

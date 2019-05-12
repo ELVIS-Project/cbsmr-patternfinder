@@ -39,7 +39,6 @@ func UnmarshalNotesFromFile(path string) (*pb.Notes){
 	return pbNotes
 }
 
-
 func rpanic(path string) []byte {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
