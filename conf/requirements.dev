@@ -9,3 +9,4 @@ pytest
 grpcio
 protobuf
 flask
+uwsgi

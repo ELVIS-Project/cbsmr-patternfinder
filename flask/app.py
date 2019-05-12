@@ -18,7 +18,10 @@ from proto import smr_pb2, smr_pb2_grpc
 from indexer import indexers
 from response import build_response
 
-app = Flask(__name__)
+application = Flask(__name__)
+
+application.config['INDEXER_URI'] = f"{os.environ['INDEXER_HOST']}:{os.environ['INDEXER_PORT']}"
+application.config['SMR_URI'] = f"{os.environ['SMR_HOST']}:{os.environ['SMR_PORT']}"
 
 def connect_to_psql():
     db_str = ' '.join('='.join((k, os.environ[v])) for k, v in (
@@ -40,40 +43,42 @@ def connect_to_psql():
             connect_to_psql()
     conn.autocommit = False
 
-    app.config['PSQL_CONN'] = conn
+    application.config['PSQL_CONN'] = conn
+print("connecting to pg")
+connect_to_psql()
 
-@app.route("/", methods=["GET"])
+@application.route("/", methods=["GET"])
 def index():
     return Response("Hello, World!", mimetype="text/plain")
 
-@app.route("/dist/<path>", methods=["GET"])
+@application.route("/dist/<path>", methods=["GET"])
 def get_dist(path):
     return send_from_directory(os.environ['WEB_DIST'], path)
 
-@app.route("/index/<piece_id>", methods=["POST"])
+@application.route("/index/<piece_id>", methods=["POST"])
 def index_id(piece_id):
     """
     Indexes a piece and stores it at :param id
     """
-    db_conn = app.config['PSQL_CONN']
+    db_conn = application.config['PSQL_CONN']
     piece_id = int(piece_id)
     if request.method == "POST":
         symbolic_data = base64.b64encode(request.data).decode('utf-8')
         with db_conn, db_conn.cursor() as cur:
             cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{symbolic_data}') ON CONFLICT (pid) DO NOTHING;")
 
-        with grpc.insecure_channel(app.config['INDEXER_URI']) as channel:
+        with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
             stub = smr_pb2_grpc.IndexStub(channel)
             pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = request.data))
 
-        with grpc.insecure_channel(app.config['SMR_URI']) as channel:
+        with grpc.insecure_channel(application.config['SMR_URI']) as channel:
             stub = smr_pb2_grpc.SmrStub(channel)
             response = stub.AddPiece(smr_pb2.AddPieceRequest(id = piece_id, notes = pb_notes))
 
     return Response(str(piece_id), mimetype='text/plain')
 
 
-@app.route("/excerpt", methods=["GET"])
+@application.route("/excerpt", methods=["GET"])
 def excerpt():
     """
     Returns a highlighted excerpt of a score
@@ -81,11 +86,11 @@ def excerpt():
     piece_id = request.args.get("pid")
     notes = request.args.get("nid").split(",")
 
-    excerpt_xml = coloured_excerpt(app.config["PSQL_CONN"], notes, piece_id)
+    excerpt_xml = coloured_excerpt(application.config["PSQL_CONN"], notes, piece_id)
     return Response(excerpt_xml, mimetype='text/xml')
 
 
-@app.route("/search", methods=["GET"])
+@application.route("/search", methods=["GET"])
 def search():
 
     if not request.args.get("query"):
@@ -104,18 +109,18 @@ def search():
 
     query_bytes = bytes(query_str, encoding='utf-8')
 
-    with grpc.insecure_channel(app.config['INDEXER_URI']) as channel:
+    with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
         stub = smr_pb2_grpc.IndexStub(channel)
         pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = query_bytes, encoding = smr_pb2.IndexRequest.UTF8))
 
-    with grpc.insecure_channel(app.config['SMR_URI']) as channel:
+    with grpc.insecure_channel(application.config['SMR_URI']) as channel:
         stub = smr_pb2_grpc.SmrStub(channel)
         response = stub.Search(pb_notes)
 
-    return render_template("search.html", searchResponse = build_response(app.config['PSQL_CONN'], response.occurrences, rpp, page, query_str))
+    return render_template("search.html", searchResponse = build_response(application.config['PSQL_CONN'], response.occurrences, rpp, page, query_str))
+
+def main():
+    application.run(host="0.0.0.0", port=int(os.environ['FLASK_PORT']))
 
 if __name__ == '__main__':
-    app.config['INDEXER_URI'] = f"{os.environ['INDEXER_HOST']}:{os.environ['INDEXER_PORT']}"
-    app.config['SMR_URI'] = f"{os.environ['SMR_HOST']}:{os.environ['SMR_PORT']}"
-    connect_to_psql()
-    app.run(host="0.0.0.0", port=int(os.environ['FLASK_PORT']))
+    main()

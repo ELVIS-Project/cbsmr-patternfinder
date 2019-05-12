@@ -28,8 +28,14 @@ services:
       - "smr"
       - "db"
   db:
-    image: 'postgres:10'
+    image: postgres:10
     volumes:
       - ./db/postgres-data:/var/lib/postgresql/data
     ports:
       - '${PG_PORT}:${PG_PORT}'
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./conf/nginx.template:/etc/nginx/conf.d/mysite.template
+    ports:
+      - 80
