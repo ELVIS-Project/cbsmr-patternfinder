@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
-  entry: './src/search.js',
+  entry: __dirname + '/src/search.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'search.js'
@@ -10,6 +10,12 @@ module.exports = {
   optimization: {
       minimize: false
   },
+  module: {
+		rules: [{
+			test: /\.css$/,
+			use: ['style-loader', 'css-loader']
+		}]
+	},
   devServer: {
     contentBase: __dirname,
     compress: false,

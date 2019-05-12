@@ -10,14 +10,13 @@ from tqdm import tqdm
 import music21
 import psycopg2
 import base64
-import json
 import time
 
 import grpc
 from proto import smr_pb2, smr_pb2_grpc
 
 from indexer import indexers
-from excerpt import coloured_excerpt
+from response import build_response
 
 app = Flask(__name__)
 
@@ -85,44 +84,6 @@ def excerpt():
     excerpt_xml = coloured_excerpt(app.config["PSQL_CONN"], notes, piece_id)
     return Response(excerpt_xml, mimetype='text/xml')
 
-def pb_occ_to_json(pb_occ, get_excerpt):
-
-    db_conn = app.config['PSQL_CONN']
-    with db_conn, db_conn.cursor() as cur:
-        cur.execute(f"SELECT path FROM Piece WHERE pid = {pb_occ.pid}")
-        path = cur.fetchone()
-
-    resp = {
-        "excerptFailed": False,
-        "pid": pb_occ.pid,
-        "path": path
-    }
-    if get_excerpt:
-        try:
-            xml = coloured_excerpt(app.config["PSQL_CONN"], pb_occ.notes, pb_occ.pid)
-        except Exception as e:
-            b64_xml = "excerpt failed: " + str(e)
-            resp["excerptFailed"] = True
-        else:
-            b64_xml = base64.b64encode(bytes(xml, encoding='utf-8')).decode('utf-8')
-    else:
-        b64_xml = ""
-
-    resp["url"] = url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes))
-    resp["xmlBase64"] = b64_xml
-    return json.dumps(resp)
-
-def generate_response(occs, rpp, page, query):
-    num_pages = int(len(occs) / rpp) + 1
-    return {
-        'total': len(occs),
-        'num_pages': num_pages,
-        'query': query,
-        'rpp': rpp,
-        'pages': [
-            [pb_occ_to_json(o, get_excerpt = (i == page)) for o in occs[rpp * i : rpp * (i + 1)]]
-            for i in range(num_pages)]
-    }
 
 @app.route("/search", methods=["GET"])
 def search():
@@ -151,10 +112,7 @@ def search():
         stub = smr_pb2_grpc.SmrStub(channel)
         response = stub.Search(pb_notes)
 
-    #return Response("\n".join(pb_occ_to_excerpt_url(occ) for occ in response.occurrences), mimetype="uri-list")
-    #return send_from_directory('/Users/davidgarfinkle/elvis-project/cbsmr-patternfinder/webclient/src', 'search.html')
-    return render_template("search.html", searchResponse = generate_response(response.occurrences, rpp, page, query_str))
-    #return jsonify(generate_response(response.occurrences, rpp, page))
+    return render_template("search.html", searchResponse = build_response(app.config['PSQL_CONN'], response.occurrences, rpp, page, query_str))
 
 if __name__ == '__main__':
     app.config['INDEXER_URI'] = f"{os.environ['INDEXER_HOST']}:{os.environ['INDEXER_PORT']}"

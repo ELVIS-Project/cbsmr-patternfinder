@@ -1,23 +1,65 @@
 <!doctype html>
 <html>
+	<meta charset="UTF-8">
   <body>
-    <div id="resultPage"></div>
+		<div class="navbar">
+			<span class="navbar-brand">Sheet Music Search</span>
+		</div>
 
-		<div id="ace-editor"></div>
-    <div id="flat-embed"></div>
-		<div id="humdrum-viewer"></div>
-		<input type="search" id="search-bar">
 		<form name="search" action="/search" method="get">
 			<input name="query" type="hidden">
 			<input name="rpp" type="hidden">
 			<input name="page" type="hidden">
-			<input type="submit" value="Search!">
+			<input type="submit" id="search-form" style="display: none;">
 		</form>
-    <div id="paging"></div>
+
+		<div id="query-section" class="container-fluid">
+
+				<div class="row">
+					<div class="col-md-4 w-100 pl-0">
+						<div id="ace-editor"></div>
+					</div>
+					<div class="col-md-8">
+						<span id="humdrum-viewer"></span>
+						<label class="btn btn-primary form-control bg-info" for="search-form">Search!</label>
+					</div>
+				</div>
+		</div>
+
+		<div id="results" class="container-fluid">
+			<h1>#{{searchResponse["totalCount"]}} results</h1>
+
+			{% for n in range(searchResponse["rpp"]) %}
+			<div class="row">
+				<div class="col-md-3"></div>
+				<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel panel-header"></div>
+							<div class="panel panel-body" id="occ-{{n}}"></div>
+						</div>
+				</div>
+				<div class="col-md-3"></div>
+			</div>
+			{% endfor %}
+		</div>
+
+			
+    <div id="results-section">
+			<div id="results-report"></div>
+			<div id="results-container"></div>
+			<div id="results-paginator-links" class="paginator"></div>
+		</div>
 
 		<script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>
     <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/flat-embed@v0.8.0/dist/embed.min.js"></script>
     <script src="/dist/search.js"></script>
   </body>
+
+	<footer>
+			<ul>
+				<li><a href="/about">About</a></li>
+				<li><a href="https://github.com/elvis-project/cbsmr-patternfinder">Github</a></li>
+				<li><a href="mailto:david.garfinkle@mail.mcgill.ca">Contact</a></li>
+			</ul>
+	</footer>
 </html>

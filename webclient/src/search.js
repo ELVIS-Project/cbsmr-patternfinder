@@ -1,4 +1,8 @@
+import './search.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 const URLPARAMS = new URLSearchParams(window.location.search)
+const pagination = require('pagination');
 const ace = require('ace-builds');
 
 const searchBoilerplate = 
@@ -8,23 +12,23 @@ const searchBoilerplate =
 =-
 `;
 
-var EDITOR;
-var vrvToolkit = new verovio.toolkit();
+var ACE_EDITOR;
 
 function newResultDiv(occ, svg) {
 	// Div wrapper
 	var resultDiv = document.createElement("div")
-	resultDiv.classList.add("occurrence")
-	var resultPage = document.getElementById("resultPage")
-	resultPage.appendChild(resultDiv)
+	resultsDiv.classList.add("occurrence")
+	var resultsContainer = document.getElementById("results-container")
+	resultsContainer.appendChild(resultDiv)
 
 	// SVG container
-	svgSpan = document.createElement("span")
+	var svgSpan = document.createElement("span")
 	svgSpan.innerHTML = svg
 	resultDiv.appendChild(svgSpan)
 
 	// piece id span
 	var pidSpan = document.createElement("span")
+	pidSpan.classList.add("occurrence-pid")
 	pidSpan.innerHTML = occ["pid"];
 	resultDiv.appendChild(pidSpan);
 
@@ -34,7 +38,7 @@ function newResultDiv(occ, svg) {
 };
 
 function renderSvgFromBase64Xml(xmlBase64) {
-	vrvToolkit = new verovio.toolkit();
+	var vrvToolkit = new verovio.toolkit();
 
 	var options = {
 		inputFormat: "xml",
@@ -45,16 +49,16 @@ function renderSvgFromBase64Xml(xmlBase64) {
 		noHeader: 1
 	}
 	vrvToolkit.setOptions(options)
-	xml = window.atob(xmlBase64)
+	var xml = window.atob(xmlBase64)
 	var svg = vrvToolkit.renderData(xml, options);
 	return svg
 }
 
 function renderQuery(krn) {
-	vrvToolkit = new verovio.toolkit();
+	var vrvToolkit = new verovio.toolkit();
 
 	var options = {
-		scale: 40,
+		scale: 60,
 		font: "Leipzig",
 		adjustPageHeight: 1,
 		noFooter: 1,
@@ -76,58 +80,106 @@ function setQuery(krn) {
 }
 
 function uncollapseKrn(krn) {
-	vertical = krn.replace(new RegExp(" ", "g"), "\n");
-	horizontal = vertical.replace(new RegExp(",", "g"), " ");
+	var vertical = krn.replace(new RegExp(" ", "g"), "\n");
+	var horizontal = vertical.replace(new RegExp(",", "g"), " ");
 	return horizontal
 }
 
 function ProcessResponse(searchResponse) {
-	EDITOR.setValue(searchResponse['query'])
+	ACE_EDITOR.setValue(searchResponse['query'])
+	
+	// Svg Container
 	setQuery(searchResponse['query']);
 
-	for (i = 0; i < searchResponse['rpp']; i++) {
-		occJson = JSON.parse(searchResponse['pages'][URLPARAMS.get('page')][i])
+	//newPaginator(searchResponse);
+
+	// Render Excerpts
+	for (var i = 0; i < searchResponse['rpp']; i++) {
+		var occJson = JSON.parse(searchResponse['pages'][URLPARAMS.get('page')][i])
 		if (occJson['excerptFailed']) {
 			console.log("excerpt failed: " + occJson)
 		} else {
-			svg = renderSvgFromBase64Xml(occJson['xmlBase64'])
-			newResultDiv(occJson, svg)
+			var svg = renderSvgFromBase64Xml(occJson['xmlBase64'])
+			document.getElementById("occ-" + i.toString()).innerHTML = svg
 		}
 	} 
 }
 
-function newAceEditor() {
-	EDITOR = ace.edit("ace-editor", {
-		autoScrollEditorIntoView: true,
-		value: this.input,
-		minLines: 10,
-		maxLines: 10
-	});
+function newPaginator(searchResponse) {
+	var pageCount = searchResponse["pageCount"]
+	var curPage = searchResponse["page"]
 
-	EDITOR.setValue(searchBoilerplate);
+	var pageNumbers = calculatePageNumberRange(5, curPage, pageCount)
+
+	// Generate buttons
+	var buttonsDiv = document.getElementById("results-paginator-links");
+	for (var i = pageNumbers[0]; i < pageNumbers.length; i++) {
+
+		var pageLink = newPaginatorLink(i, i);
+
+		if (i == curPage - 1) {
+			var previousLink = newPaginatorLink(i, "previous");
+			previousLink.classList.add("previous");
+			buttonsDiv.appendChild(previousLink);
+		}
+		if (i == curPage) {
+			pageLink.classList.add("current");
+		}
+		if (i == curPage + 1 ) {
+			var nextLink = newPaginatorLink(i, "next");
+			nextLink.classList.add("next");
+			buttonsDiv.appendChild(nextLink);
+		}
+
+		buttonsDiv.appendChild(pageLink);
+	}
+}
+
+function newPaginatorLink(pageNum, html) {
+	URLPARAMS.set("page", pageNum);
+	var elt = document.createElement("a");
+	elt.href = URLPARAMS.toString();
+	elt.innerHTML = html;
+	return elt
+}
+
+function calculatePageNumberRange(num, cur, total) {
+	var pageNumbers = [...Array(num).keys()].map(i => i + 1) // indexed from 1, not 0
+	if (total - cur < 3) {
+		pageNumbers = pageNumbers.map(i => i + total - num)
+	} else if (cur > 2) {
+		pageNumbers = pageNumbers.map(i => i + Math.floor(cur / 2))
+	}
+	return pageNumbers
+}
+
+function newAceEditor() {
+	ACE_EDITOR = ace.edit("ace-editor", {
+			autoScrollEditorIntoView: true,
+			value: searchBoilerplate,
+			minLines: 10,
+			maxLines: 10
+	});
 
 	// rerender the svg-container on change
-	EDITOR.session.on('change', function(delta){
-		setQuery(EDITOR.getValue())
+	ACE_EDITOR.session.on('change', function(delta){
+		setQuery(ACE_EDITOR.getValue())
 	});
 }
 
-function getSearchBar() {
-	return document.getElementById("search-bar");
-}
-
-function setSearchFormDefaults() {
-	form = document.forms["search"]
-	form.elements["rpp"].value = "5";
-	form.elements["page"].value = "0";
+function setSearchForm(rpp, page) {
+	var form = document.forms["search"]
+	form.elements["rpp"].value = rpp;
+	form.elements["page"].value = page;
 }
 
 (() => {
-	console.log("did change");
 	newAceEditor();
-	setSearchFormDefaults();
+	setSearchForm(5, 0);
 
 	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
+	//var searchResponse = {pageCount: URLPARAMS.get('pageCount'), page: URLPARAMS.get('page'), rpp: URLPARAMS.get('rpp'), query: URLPARAMS.get('query')}
+
 	if (Object.values(searchResponse).length !== 0)  {
 		ProcessResponse(searchResponse)
 	}
