@@ -21,12 +21,13 @@ services:
     build: ./flask
     env_file:
       - conf/env.docker
-    ports:
-      - '${FLASK_PORT}:${FLASK_PORT}'
+    volumes:
+      - ./flask/socket:/cbsmr/flask/socket
     depends_on:
       - "indexer"
       - "smr"
       - "db"
+      - "nginx"
   db:
     image: postgres:10
     volumes:
@@ -36,6 +37,7 @@ services:
   nginx:
     image: nginx:latest
     volumes:
-      - ./conf/nginx.template:/etc/nginx/conf.d/mysite.template
+      - ./conf/nginx.docker:/etc/nginx/conf.d/cbsmr.conf
+      - ./flask/socket:/cbsmr/flask/socket
     ports:
-      - 80
+      - '${NGINX_PORT}:${NGINX_PORT}'

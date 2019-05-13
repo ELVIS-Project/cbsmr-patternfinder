@@ -4,7 +4,7 @@ server {
 
     location / {
         include uwsgi_params;
-        uwsgi_pass unix:/Users/davidgarfinkle/elvis-project/cbsmr-patternfinder/flask/uwsgi.sock;
+        uwsgi_pass unix:/Users/davidgarfinkle/elvis-project/cbsmr-patternfinder/flask/socket/uwsgi.sock;
     }
 }
 

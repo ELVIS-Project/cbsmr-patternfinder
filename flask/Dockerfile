@@ -8,5 +8,5 @@ RUN node_modules/webpack/bin/webpack.js
 
 WORKDIR /cbsmr/flask
 
-CMD ["python3", "app.py"]
-#CMD ["uwsgi", "--module app", "--uwsgi-socket uwsgi.sock", "--workers 3", "--vacuum", "--die-on-term"]
+#CMD ["python3", "app.py"]
+CMD ["uwsgi", "--module", "wsgi", "--uwsgi-socket", "socket/uwsgi.sock", "--workers", "3", "--vacuum", "--die-on-term", "--master"]
