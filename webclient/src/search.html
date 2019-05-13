@@ -26,6 +26,7 @@
 				</div>
 		</div>
 
+		{%if searchResponse %}
 		<div id="results" class="container-fluid">
 			<h1>#{{searchResponse["totalCount"]}} results</h1>
 
@@ -57,6 +58,7 @@
 				{% endfor %}
 			</div>
 		</div>
+		{% endif %}
 
 		<script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>
     <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
