@@ -65,7 +65,7 @@ def index_id(piece_id):
     if request.method == "POST":
         symbolic_data = base64.b64encode(request.data).decode('utf-8')
         with db_conn, db_conn.cursor() as cur:
-            cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{symbolic_data}') ON CONFLICT (pid) DO NOTHING;")
+            cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{symbolic_data}') ON CONFLICT ON CONSTRAINT (piece_pkey) DO NOTHING;")
 
         with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
             stub = smr_pb2_grpc.IndexStub(channel)
