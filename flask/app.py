@@ -49,7 +49,7 @@ connect_to_psql()
 
 @application.route("/", methods=["GET"])
 def index():
-    return Response("Hello, World!", mimetype="text/plain")
+    return render_template("search.html", searchResponse = {})
 
 @application.route("/dist/<path>", methods=["GET"])
 def get_dist(path):
