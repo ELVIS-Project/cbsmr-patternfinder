@@ -1,4 +1,5 @@
 package main
+/*
 
 import (
 	"fmt"
@@ -113,7 +114,6 @@ func TestAlgorithmLemstrom(t *testing.T) {
 	query := NotesFromFile(LEIERMANN_QUERY[0] + ".pb_notes")
 	target := NotesFromFile(LEIERMANN + ".pb_notes")
 
-	/*
 	println("\n QUERY")
 	for i := range query {
 		fmt.Printf("%v: %v\n", i, query)
@@ -122,7 +122,6 @@ func TestAlgorithmLemstrom(t *testing.T) {
 	for i := range target {
 		fmt.Printf("%v: %v\n", i, target)
 	}
-	*/
 
 	PreProcess(target)
 
@@ -168,3 +167,4 @@ func TestDenormalize(t *testing.T) {
 		}
 	}
 }
+*/
