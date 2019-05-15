@@ -7,6 +7,7 @@ import (
 	"unsafe"
 	"encoding/gob"
 	"bytes"
+	"errors"
 )
 
 // #cgo LDFLAGS: -L ./helsinki-ttwi/w2 -l w2
@@ -179,11 +180,15 @@ func min(a int, b int) (minimum int) {
 	return b
 }
 
-func search(pattern CScore, target CScore) (arrays [][]uint32) {
+func search(pattern CScore, target CScore) (arrays [][]uint32, err error) {
+
+	if pattern.num_notes < 2 {
+		return arrays, errors.New("pattern must be at least two notes long")
+	}
 
 	result := CSearch(pattern, target)
 
-	return resultToIntArrays(result, pattern)
+	return resultToIntArrays(result, pattern), nil
 }
 
 func InitScoreFromCsv(vector_csv string) (score *C.struct_Score) {
