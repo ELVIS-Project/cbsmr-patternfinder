@@ -12,7 +12,10 @@ func TestLemstrom(t *testing.T) {
 	query := InitScoreFromFile(LEIERMANN_QUERY[0] + ".pb_notes")
 	leiermann := InitScoreFromFile(LEIERMANN + ".pb_notes")
 
-	arrays := search(query, leiermann)
+	arrays, err := search(query, leiermann)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
 
 	expected := "[[3 6 8 9 16 21] [13 14 16 17 18 21] [13 14 16 17 18 31]]"
 	if fmt.Sprintf("%v", arrays) != expected {
@@ -35,8 +38,15 @@ func TestPalestrina(t *testing.T) {
 			queryVecs := VecsFromNotes(queryNotes)
 			query := InitScoreFromVectors(len(queryNotes.Notes), queryVecs)
 
-			arr := search(query, target)
-			arr2 := search(query, target)
+			arr, err := search(query, target)
+			if err != nil {
+				t.Errorf("%v", err)
+			}
+
+			arr2, err := search(query, target)
+			if err != nil {
+				t.Errorf("%v", err)
+			}
 
 			// Find something
 			if len(arr) == 0 {
@@ -48,7 +58,6 @@ func TestPalestrina(t *testing.T) {
 				t.Errorf("two invocations of search got different lists");
 			}
 			for i := range arr {
-				println(fmt.Sprintf("%v\n%v", arr[i], arr2[i]))
 				for j := range arr[i] {
 					if arr[i][j] != arr2[i][j] {
 						t.Errorf("two invocations of search are in different orders");

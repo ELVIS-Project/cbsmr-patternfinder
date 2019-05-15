@@ -2,7 +2,6 @@ package main
 
 import (
 	"testing"
-	"fmt"
 	"io/ioutil"
 	"path"
 )
@@ -19,11 +18,19 @@ func TestSearchPalestrina(t *testing.T) {
 		pieceMap[(uint32)(i)] = target
 	}
 
-	occs := Search(pieceMap, query)
-
-	for i := range occs.Occurrences[:23] {
-		//fmt.Printf("%v: %v\n", files[occs.Occurrences[i].Pid], occs.Occurrences[i])
+	occs, err := Search(pieceMap, query)
+	if err != nil {
+		t.Errorf("%v", err)
 	}
+
+	if len(occs.Occurrences) < 23 {
+		t.Errorf("not enough occurrences")
+	}
+	/*
+	for i := range occs.Occurrences[:23] {
+		fmt.Printf("%v: %v\n", files[occs.Occurrences[i].Pid], occs.Occurrences[i])
+	}
+	*/
 }
 
 
