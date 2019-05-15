@@ -4,6 +4,8 @@ import (
 	"context"
 	pb "../proto"
 	"sort"
+	"github.com/golang/protobuf/proto"
+	"io/ioutil"
 )
 
 func max(i, j int) int {
@@ -50,17 +52,26 @@ func (occs rankTrivial) Less(i, j int) bool {
 }
 
 
-func (s SmrServer) Search(ctx context.Context, req *pb.Notes) (occs *pb.Occurrences, err error) {
+func Search(pieceMap map[uint32]CScore, req *pb.Notes) (occs *pb.Occurrences, err error) {
 	occs = &pb.Occurrences{}
 
 	vecs := VecsFromNotes(req)
+
+	// log query
+	data, err := proto.Marshal(req)
+	err = ioutil.WriteFile("query.pb_notes", data, 0600)
+
 	queryScore := InitScoreFromVectors(len(req.Notes), vecs)
 
-	for pieceID, cscore := range s.pieceMap {
+	for pieceID, cscore := range pieceMap {
 		if pieceID == 1472 || pieceID == 1082{
 			continue
 		}
-		intArrays := search(queryScore, cscore)
+		println(pieceID)
+		intArrays, err := search(queryScore, cscore)
+		if err != nil {
+			return &pb.Occurrences{}, err
+		}
 		for _, arr := range intArrays {
 			occs.Occurrences = append(occs.Occurrences, &pb.Occurrence{Pid: pieceID, Notes: arr})
 		}
@@ -73,5 +84,15 @@ func (s SmrServer) Search(ctx context.Context, req *pb.Notes) (occs *pb.Occurren
 	sortedOccs := rankTrivial(occs.Occurrences)
 	sort.Sort(sortedOccs)
 	occs.Occurrences = sortedOccs
+
+	return occs, nil
+}
+
+
+func (s SmrServer) Search(ctx context.Context, req *pb.Notes) (occs *pb.Occurrences, err error) {
+	occs, err = Search(s.pieceMap, req)
+	if err != nil {
+		return &pb.Occurrences{}, err
+	}
 	return occs, nil
 }
