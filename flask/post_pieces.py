@@ -1,3 +1,4 @@
+import sys
 import os
 import requests
 import base64
@@ -19,9 +20,18 @@ xml_pieces = (os.path.join(ELVISDUMP, "XML", f) for f in os.listdir(os.path.join
 mid_pieces = (os.path.join(ELVISDUMP, "MID", f) for f in os.listdir(os.path.join(ELVISDUMP, "MID")))
 mei_pieces = (os.path.join(ELVISDUMP, "MEI", f) for f in os.listdir(os.path.join(ELVISDUMP, "MEI")))
 
+def parse_piece_path(piece_path):
+    basename, fmt = os.path.splitext(os.path.basename(piece_path))
+    fmt = fmt[1:] # skip '.'
+    base = [x for x in os.path.basename(basename).split("_") if not "file" in x]
+
+    piece_id = base[0]
+    name = base[1]
+
+    return piece_id, fmt, name
+
 def post_piece(path, endpoint=ENDPOINT):
-    dumpname, format = os.path.splitext(os.path.basename(path))
-    index, _, name = dumpname.partition('_')
+    index, fmt, name = parse_piece_path(path)
 
     with open(path, 'rb') as f:
         data = f.read()
@@ -210,3 +220,8 @@ def coloured_excerpt(note_list, piece_id):
         excerpt_encoded = base64.b64encode(f.read()).decode('utf-8')
 
     return excerpt_encoded
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("post_pieces.py <path>")
+    post_piece(sys.argv[1])
