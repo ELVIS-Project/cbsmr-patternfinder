@@ -73,7 +73,7 @@ func (s *SmrServer) LoadScores(window int) error {
 			s.LoadOneScore(id, window)
 		}
 	}
-	println("Loaded ", vp.GetInt("SMR_MAX_SCORES"), " scores")
+	println("Loaded ", min(len(ids), vp.GetInt("SMR_MAX_SCORES")), " scores")
 
 	return nil
 }
