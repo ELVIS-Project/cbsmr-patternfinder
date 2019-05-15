@@ -10,7 +10,7 @@ import smr_pb2, smr_pb2_grpc
 import music21
 from tqdm import tqdm
 
-ELVISDUMP = "/Users/davidgarfinkle/elvis-project/elvisdump/"
+ELVISDUMP = os.environ['dump'] or "/Users/davidgarfinkle/elvis-project/elvisdump/"
 
 POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
 CONN = psycopg2.connect(POSTGRES_CONN_STR)
