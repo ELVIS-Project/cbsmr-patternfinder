@@ -28,8 +28,8 @@
 				</div>
 		</div>
 
-		{%if searchResponse %}
-		<div class="align-middle font-weight-light text-center">#{{searchResponse["totalCount"]}} Occurrences</div>
+		<div class="align-middle font-weight-light text-center">#{{searchResponse.get("totalCount", 0)}} Occurrences</div>
+		{%if searchResponse.get("totalCount", 0) > 0 %}
 		<div id="results" class="container-fluid">
 
 			{% for n in range(searchResponse["rpp"]) %}
