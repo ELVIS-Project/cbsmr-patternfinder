@@ -24,11 +24,6 @@ ADD ./webclient/package*.json ./webclient/
 WORKDIR /cbsmr/webclient
 RUN npm install
 
-# Cache go deps
-ADD ./smr ./smr
-WORKDIR /cbsmr/smr
-RUN go get
-
 # Do the rest
 WORKDIR /cbsmr
 ADD . .
