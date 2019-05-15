@@ -32,6 +32,7 @@ services:
     image: postgres:10
     volumes:
       - ./db/postgres-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01_init.sql
     ports:
       - '${PG_PORT}:${PG_PORT}'
   nginx:
