@@ -1,4 +1,3 @@
-grpcio-tools
 -e .
 music21
 pandas
@@ -7,6 +6,7 @@ tqdm
 psycopg2
 pytest
 grpcio
+grpcio-tools
 protobuf
 flask
 uwsgi
