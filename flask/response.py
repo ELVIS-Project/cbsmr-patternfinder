@@ -21,7 +21,7 @@ def build_response(db_conn, occs, rpp, page, query):
         'curPage': page,
         'pages': [
             [pb_occ_to_json(db_conn, o, get_excerpt = (i == page)) for o in occs[rpp * i : rpp * (i + 1)]]
-            for i in range(num_pages)]
+            for i in paginator_range]
     }
 
 def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
