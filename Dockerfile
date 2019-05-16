@@ -1,7 +1,8 @@
 FROM alpine:latest
 
 ENV GOPATH /go
-ENV GOBIN /gobin
+ENV GOBIN /go/bin
+ENV PATH $PATH:$GOBIN
 
 RUN apk add --update --no-cache \
 		git make libtool autoconf automake build-base \
@@ -9,8 +10,12 @@ RUN apk add --update --no-cache \
 		musl-dev linux-headers \
 		python3 python3-dev \
 		nodejs nodejs-npm \
+		protobuf \
 		go \
 		nginx
+
+RUN go get -u google.golang.org/grpc
+RUN go get -u github.com/golang/protobuf/protoc-gen-go
 
 WORKDIR /cbsmr
 
@@ -27,5 +32,6 @@ RUN npm install
 # Do the rest
 WORKDIR /cbsmr
 ADD . .
+RUN make proto
 RUN pip3 install .
 RUN git submodule update --init --recursive
