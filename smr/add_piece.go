@@ -21,10 +21,10 @@ func btoi(v []byte) uint32 {
 func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp *pb.AddPieceResponse, err error) {
 	var id uint32
 
-	vecs := VecsFromNotes(req.Notes)
+	vecs := VecsFromNotes(&pb.Notes{Notes: req.Notes})
 	score := Score{
 		Vectors: vecs,
-		NumNotes: len(req.Notes.Notes),
+		NumNotes: len(req.Notes),
 	}
 
 	scoreBytes, err := score.Encode()
@@ -49,7 +49,7 @@ func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp
 	}
 
 	// :todo make a LoadScore()
-	//s.LoadOneScore(req.Id, WINDOW)
+	s.LoadOneScore(req.Id, WINDOW)
 
 	println("Put in a score! id: ", req.Id)
 	return &pb.AddPieceResponse{Id: id}, nil

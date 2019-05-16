@@ -26,7 +26,7 @@ message IndexRequest {
 
 message AddPieceRequest {
 	uint32 id = 1;
-	Notes notes = 2;
+	repeated Note notes = 2;
 }
 
 message AddPieceResponse {

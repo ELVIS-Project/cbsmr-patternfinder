@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='proto',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\tsmr.proto\x12\x05proto\"\x84\x01\n\x0cIndexRequest\x12\x15\n\rsymbolic_data\x18\x01 \x01(\x0c\x12.\n\x08\x65ncoding\x18\x02 \x01(\x0e\x32\x1c.proto.IndexRequest.Encoding\"-\n\x08\x45ncoding\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06\x42\x41SE64\x10\x01\x12\x08\n\x04UTF8\x10\x02\":\n\x0f\x41\x64\x64PieceRequest\x12\n\n\x02id\x18\x01 \x01(\r\x12\x1b\n\x05notes\x18\x02 \x01(\x0b\x32\x0c.proto.Notes\"\x1e\n\x10\x41\x64\x64PieceResponse\x12\n\n\x02id\x18\x01 \x01(\r\"\x12\n\x10\x41llPiecesRequest\"!\n\x11\x41llPiecesResponse\x12\x0c\n\x04pids\x18\x01 \x03(\r\"K\n\x04Note\x12\r\n\x05onset\x18\x01 \x01(\x02\x12\x0e\n\x06offset\x18\x02 \x01(\x02\x12\x11\n\tpitch_b40\x18\x03 \x01(\x05\x12\x11\n\tpiece_idx\x18\x06 \x01(\r\"#\n\x05Notes\x12\x1a\n\x05notes\x18\x01 \x03(\x0b\x32\x0b.proto.Note\">\n\x06Vector\x12\x1a\n\x05start\x18\x01 \x01(\x0b\x32\x0b.proto.Note\x12\x18\n\x03\x65nd\x18\x02 \x01(\x0b\x32\x0b.proto.Note\"B\n\x07Measure\x12\x15\n\rsymbolic_data\x18\x01 \x01(\x0c\x12\x0e\n\x06number\x18\x02 \x01(\r\x12\x10\n\x08note_idx\x18\x03 \x01(\r\",\n\x08Measures\x12 \n\x08measures\x18\x01 \x03(\x0b\x32\x0e.proto.Measure\"\x19\n\nVectorsCsv\x12\x0b\n\x03\x63sv\x18\x01 \x01(\t\"(\n\nOccurrence\x12\x0b\n\x03pid\x18\x01 \x01(\r\x12\r\n\x05notes\x18\x02 \x03(\r\"5\n\x0bOccurrences\x12&\n\x0boccurrences\x18\x01 \x03(\x0b\x32\x11.proto.Occurrence2\xaa\x01\n\x05Index\x12/\n\nIndexNotes\x12\x13.proto.IndexRequest\x1a\x0c.proto.Notes\x12\x35\n\rIndexMeasures\x12\x13.proto.IndexRequest\x1a\x0f.proto.Measures\x12\x39\n\x0fIndexVectorsCsv\x12\x13.proto.IndexRequest\x1a\x11.proto.VectorsCsv2\xae\x01\n\x03Smr\x12*\n\x06Search\x12\x0c.proto.Notes\x1a\x12.proto.Occurrences\x12;\n\x08\x41\x64\x64Piece\x12\x16.proto.AddPieceRequest\x1a\x17.proto.AddPieceResponse\x12>\n\tAllPieces\x12\x17.proto.AllPiecesRequest\x1a\x18.proto.AllPiecesResponseb\x06proto3')
+  serialized_pb=_b('\n\tsmr.proto\x12\x05proto\"\x84\x01\n\x0cIndexRequest\x12\x15\n\rsymbolic_data\x18\x01 \x01(\x0c\x12.\n\x08\x65ncoding\x18\x02 \x01(\x0e\x32\x1c.proto.IndexRequest.Encoding\"-\n\x08\x45ncoding\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06\x42\x41SE64\x10\x01\x12\x08\n\x04UTF8\x10\x02\"9\n\x0f\x41\x64\x64PieceRequest\x12\n\n\x02id\x18\x01 \x01(\r\x12\x1a\n\x05notes\x18\x02 \x03(\x0b\x32\x0b.proto.Note\"\x1e\n\x10\x41\x64\x64PieceResponse\x12\n\n\x02id\x18\x01 \x01(\r\"\x12\n\x10\x41llPiecesRequest\"!\n\x11\x41llPiecesResponse\x12\x0c\n\x04pids\x18\x01 \x03(\r\"K\n\x04Note\x12\r\n\x05onset\x18\x01 \x01(\x02\x12\x0e\n\x06offset\x18\x02 \x01(\x02\x12\x11\n\tpitch_b40\x18\x03 \x01(\x05\x12\x11\n\tpiece_idx\x18\x06 \x01(\r\"#\n\x05Notes\x12\x1a\n\x05notes\x18\x01 \x03(\x0b\x32\x0b.proto.Note\">\n\x06Vector\x12\x1a\n\x05start\x18\x01 \x01(\x0b\x32\x0b.proto.Note\x12\x18\n\x03\x65nd\x18\x02 \x01(\x0b\x32\x0b.proto.Note\"B\n\x07Measure\x12\x15\n\rsymbolic_data\x18\x01 \x01(\x0c\x12\x0e\n\x06number\x18\x02 \x01(\r\x12\x10\n\x08note_idx\x18\x03 \x01(\r\",\n\x08Measures\x12 \n\x08measures\x18\x01 \x03(\x0b\x32\x0e.proto.Measure\"\x19\n\nVectorsCsv\x12\x0b\n\x03\x63sv\x18\x01 \x01(\t\"(\n\nOccurrence\x12\x0b\n\x03pid\x18\x01 \x01(\r\x12\r\n\x05notes\x18\x02 \x03(\r\"5\n\x0bOccurrences\x12&\n\x0boccurrences\x18\x01 \x03(\x0b\x32\x11.proto.Occurrence2\xaa\x01\n\x05Index\x12/\n\nIndexNotes\x12\x13.proto.IndexRequest\x1a\x0c.proto.Notes\x12\x35\n\rIndexMeasures\x12\x13.proto.IndexRequest\x1a\x0f.proto.Measures\x12\x39\n\x0fIndexVectorsCsv\x12\x13.proto.IndexRequest\x1a\x11.proto.VectorsCsv2\xae\x01\n\x03Smr\x12*\n\x06Search\x12\x0c.proto.Notes\x1a\x12.proto.Occurrences\x12;\n\x08\x41\x64\x64Piece\x12\x16.proto.AddPieceRequest\x1a\x17.proto.AddPieceResponse\x12>\n\tAllPieces\x12\x17.proto.AllPiecesRequest\x1a\x18.proto.AllPiecesResponseb\x06proto3')
 )
 
 
@@ -107,8 +107,8 @@ _ADDPIECEREQUEST = _descriptor.Descriptor(
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='notes', full_name='proto.AddPieceRequest.notes', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -125,7 +125,7 @@ _ADDPIECEREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=155,
-  serialized_end=213,
+  serialized_end=212,
 )
 
 
@@ -155,8 +155,8 @@ _ADDPIECERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=215,
-  serialized_end=245,
+  serialized_start=214,
+  serialized_end=244,
 )
 
 
@@ -179,8 +179,8 @@ _ALLPIECESREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=247,
-  serialized_end=265,
+  serialized_start=246,
+  serialized_end=264,
 )
 
 
@@ -210,8 +210,8 @@ _ALLPIECESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=267,
-  serialized_end=300,
+  serialized_start=266,
+  serialized_end=299,
 )
 
 
@@ -262,8 +262,8 @@ _NOTE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=302,
-  serialized_end=377,
+  serialized_start=301,
+  serialized_end=376,
 )
 
 
@@ -293,8 +293,8 @@ _NOTES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=379,
-  serialized_end=414,
+  serialized_start=378,
+  serialized_end=413,
 )
 
 
@@ -331,8 +331,8 @@ _VECTOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=416,
-  serialized_end=478,
+  serialized_start=415,
+  serialized_end=477,
 )
 
 
@@ -376,8 +376,8 @@ _MEASURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=480,
-  serialized_end=546,
+  serialized_start=479,
+  serialized_end=545,
 )
 
 
@@ -407,8 +407,8 @@ _MEASURES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=548,
-  serialized_end=592,
+  serialized_start=547,
+  serialized_end=591,
 )
 
 
@@ -438,8 +438,8 @@ _VECTORSCSV = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=594,
-  serialized_end=619,
+  serialized_start=593,
+  serialized_end=618,
 )
 
 
@@ -476,8 +476,8 @@ _OCCURRENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=621,
-  serialized_end=661,
+  serialized_start=620,
+  serialized_end=660,
 )
 
 
@@ -507,13 +507,13 @@ _OCCURRENCES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=663,
-  serialized_end=716,
+  serialized_start=662,
+  serialized_end=715,
 )
 
 _INDEXREQUEST.fields_by_name['encoding'].enum_type = _INDEXREQUEST_ENCODING
 _INDEXREQUEST_ENCODING.containing_type = _INDEXREQUEST
-_ADDPIECEREQUEST.fields_by_name['notes'].message_type = _NOTES
+_ADDPIECEREQUEST.fields_by_name['notes'].message_type = _NOTE
 _NOTES.fields_by_name['notes'].message_type = _NOTE
 _VECTOR.fields_by_name['start'].message_type = _NOTE
 _VECTOR.fields_by_name['end'].message_type = _NOTE
@@ -633,8 +633,8 @@ _INDEX = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=719,
-  serialized_end=889,
+  serialized_start=718,
+  serialized_end=888,
   methods=[
   _descriptor.MethodDescriptor(
     name='IndexNotes',
@@ -675,8 +675,8 @@ _SMR = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=1,
   serialized_options=None,
-  serialized_start=892,
-  serialized_end=1066,
+  serialized_start=891,
+  serialized_end=1065,
   methods=[
   _descriptor.MethodDescriptor(
     name='Search',

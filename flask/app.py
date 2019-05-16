@@ -73,7 +73,7 @@ def index_id(piece_id):
 
         with grpc.insecure_channel(application.config['SMR_URI']) as channel:
             stub = smr_pb2_grpc.SmrStub(channel)
-            response = stub.AddPiece(smr_pb2.AddPieceRequest(id = piece_id, notes = pb_notes))
+            response = stub.AddPiece(smr_pb2.AddPieceRequest(id = piece_id, notes = pb_notes.notes))
 
     return Response(str(piece_id), mimetype='text/plain')
 

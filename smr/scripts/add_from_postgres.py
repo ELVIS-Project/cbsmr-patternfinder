@@ -22,7 +22,7 @@ def add_piece(i, b64_data):
         symbolic_data = bytes(b64_data, encoding='utf-8'))
     pb_notes = client.index_notes(pb_req)
 
-    resp = smr.AddPiece(smr_pb2.AddPieceRequest(id=i, notes=pb_notes))
+    resp = smr.AddPiece(smr_pb2.AddPieceRequest(id=i, notes=pb_notes.notes))
     print(resp)
 
     smr_channel.__exit__(*sys.exc_info())
