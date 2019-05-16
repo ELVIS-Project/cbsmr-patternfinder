@@ -29,7 +29,7 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
     resp = {
         "excerptFailed": False,
         "excerptSkipped": True,
-        "pid": pb_occ.pid
+        "pid": str(pb_occ.pid)
     }
 
     if get_excerpt:
@@ -47,7 +47,7 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
     resp["url"] = url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes))
     resp["xmlBase64"] = b64_xml
 
-    return json.dumps(resp)
+    return resp
 
 def calculate_page_range(num, cur, total):
     page_nums = range(num)
