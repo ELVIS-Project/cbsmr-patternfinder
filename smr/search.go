@@ -4,8 +4,6 @@ import (
 	"context"
 	pb "../proto"
 	"sort"
-	"github.com/golang/protobuf/proto"
-	"io/ioutil"
 )
 
 func max(i, j int) int {
@@ -56,10 +54,6 @@ func Search(pieceMap map[uint32]CScore, req *pb.Notes) (occs *pb.Occurrences, er
 	occs = &pb.Occurrences{}
 
 	vecs := VecsFromNotes(req)
-
-	// log query
-	data, err := proto.Marshal(req)
-	err = ioutil.WriteFile("query.pb_notes", data, 0600)
 
 	queryScore := InitScoreFromVectors(len(req.Notes), vecs)
 
