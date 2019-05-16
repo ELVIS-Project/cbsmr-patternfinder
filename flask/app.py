@@ -55,6 +55,13 @@ def index():
 def get_dist(path):
     return send_from_directory(os.environ['WEB_DIST'], path)
 
+def m21_score_to_xml_write(m21_score):
+    o = m21_score.write('xml')
+    with open(o, 'rb') as f:
+        xml = f.read()
+    os.remove(o)
+    return xml
+
 @application.route("/index/<piece_id>", methods=["POST"])
 def index_id(piece_id):
     """
@@ -63,9 +70,11 @@ def index_id(piece_id):
     db_conn = application.config['PSQL_CONN']
     piece_id = int(piece_id)
     if request.method == "POST":
-        symbolic_data = base64.b64encode(request.data).decode('utf-8')
+        m21_score = music21.converter.parse(request.data)
+        xml = m21_score_to_xml_write(m21_score) 
+        data = base64.b64encode(xml).decode('utf-8')
         with db_conn, db_conn.cursor() as cur:
-            cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{symbolic_data}') ON CONFLICT ON CONSTRAINT piece_pkey DO NOTHING;")
+            cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO NOTHING;")
 
         with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
             stub = smr_pb2_grpc.IndexStub(channel)
