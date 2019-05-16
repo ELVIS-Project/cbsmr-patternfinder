@@ -68,7 +68,7 @@ function ProcessResponse(searchResponse) {
 
 	// Render Excerpts
 	for (var i = 0; i < searchResponse['rpp']; i++) {
-		var occJson = JSON.parse(searchResponse['pages'][URLPARAMS.get('page')][i])
+		var occJson = searchResponse['pages'][URLPARAMS.get('page')][i]
 		if (occJson['excerptFailed']) {
 			console.log("excerpt failed: " + occJson)
 		} else {
