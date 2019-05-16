@@ -37,9 +37,9 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
 
     with db_conn, db_conn.cursor() as cur:
         cur.execute(f"SELECT path FROM Piece WHERE pid={pb_occ.pid}")
-        name = cur.fetchone()[0]
+        name = cur.fetchone()
         if name:
-            resp["name"] = " ".join(os.path.basename(name).split("_")[1:])
+            resp["name"] = " ".join(os.path.basename(name[0]).split("_")[1:])
         else:
             resp["name"] = "no name info"
 
