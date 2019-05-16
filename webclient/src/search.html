@@ -37,7 +37,7 @@
 				<div class="col-md-3"></div>
 				<div class="col-md-6">
 						<div class="panel panel-default">
-							<div class="panel panel-header">Piece ID #{{searchResponse["pages"][searchResponse["curPage"]][n]["pid"]}} {{searchResponse["pages"][searchResponse["curPage"]][n]["name"]</div>
+							<div class="panel panel-header">Piece ID #{{searchResponse["pages"][searchResponse["curPage"]][n]["pid"]}} {{searchResponse["pages"][searchResponse["curPage"]][n]["name"]}}</div>
 							<div class="panel panel-body" id="occ-{{n}}"></div>
 						</div>
 				</div>
@@ -47,17 +47,25 @@
 		</div>
 
 			
-    <div id="results-section">
+    <div id="results-section" class="row">
 			<div id="results-report"></div>
 			<div id="results-container"></div>
-			<div id="results-paginator-links" class="paginator">
-				{% for i in searchResponse["paginatorRange"] %}
-				{% if i == searchResponse["curPage"] %}
-				<span>{{i}}</a>
-				{% else %}
-				<a href={{searchResponse["paginatorLinks"][i]}}>{{i}}</a>
-				{% endif %}
-				{% endfor %}
+			<div class="col-md-3"></div>
+
+			<div class="col-md-6">
+				<nav id="results-paginator-links" class="paginator">
+					<ul class="pagination">
+						<li class="page-item">
+							<a class="page-link" href="{{searchResponse['nextPageLink']}}">Previous</a>
+						</li>
+						{% for i in searchResponse["paginatorRange"] %}
+						<li class="page-item"><a class="page-link" href="{{searchResponse['paginatorLinks'][i]}}">{{i}}</a></li>
+						{% endfor %}
+						<li class="page-item">
+							<a class="page-link" href="{{searchResponse['previousPageLink']}}">Next</a>
+						</li>
+					</ul>
+				</nav>
 			</div>
 		</div>
 		{% endif %}
