@@ -64,10 +64,6 @@ func Search(pieceMap map[uint32]CScore, req *pb.Notes) (occs *pb.Occurrences, er
 	queryScore := InitScoreFromVectors(len(req.Notes), vecs)
 
 	for pieceID, cscore := range pieceMap {
-		if pieceID == 1472 || pieceID == 1082{
-			continue
-		}
-		println(pieceID)
 		intArrays, err := search(queryScore, cscore)
 		if err != nil {
 			return &pb.Occurrences{}, err
