@@ -32,6 +32,10 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
         "pid": str(pb_occ.pid)
     }
 
+    with db_conn, db_conn.cursor() as cur:
+        cur.execute(f"SELECT path FROM Piece WHERE pid={pb_occ.pid}")
+        resp["name"] = os.path.basename(cur.fetchone())
+
     if get_excerpt:
         try:
             xml = coloured_excerpt(db_conn, pb_occ.notes, pb_occ.pid)
