@@ -16,9 +16,11 @@ def index_notes_oneshot(pb_req):
     s = server.new_server(os.environ['INDEXER_PORT'])
     s.start()
 
-    index_notes(pb_req)
+    resp = index_notes(pb_req)
 
     s.stop(0)
+
+    return resp
 
 def index_notes(pb_req):
 

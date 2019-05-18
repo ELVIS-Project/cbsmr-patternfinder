@@ -3,15 +3,15 @@ syntax = "proto3";
 package proto;
 
 service Index {
-    rpc IndexNotes (IndexRequest) returns (Notes);
+    rpc IndexNotes (IndexRequest) returns (IndexResponse);
     rpc IndexMeasures (IndexRequest) returns (Measures);
     rpc IndexVectorsCsv (IndexRequest) returns (VectorsCsv);
 }
 	
 service Smr {
-    rpc Search (Notes) returns (Occurrences);
+    rpc Search (SearchRequest) returns (SearchResponse);
     rpc AddPiece (AddPieceRequest) returns (AddPieceResponse);
-		rpc AllPieces (AllPiecesRequest) returns (AllPiecesResponse);
+		rpc GetPieceIds (GetPieceIdsRequest) returns (GetPieceIdsResponse);
 }
 
 message IndexRequest {
@@ -23,19 +23,26 @@ message IndexRequest {
 	bytes symbolic_data = 1;
 	Encoding encoding = 2;
 }
+message IndexResponse {
+	repeated Note notes = 1;
+}
 
 message AddPieceRequest {
 	uint32 id = 1;
 	repeated Note notes = 2;
 }
+message AddPieceResponse {}
 
-message AddPieceResponse {
-	uint32 id = 1;
+message GetPieceIdsRequest {}
+message GetPieceIdsResponse {
+	repeated uint32 pids = 1;
 }
 
-message AllPiecesRequest {}
-message AllPiecesResponse {
-	repeated uint32 pids = 1;
+message SearchRequest {
+	repeated Note notes = 1;	
+}
+message SearchResponse {
+	repeated Occurrence occs = 1;
 }
 
 message Note {
@@ -45,8 +52,9 @@ message Note {
 		uint32 piece_idx = 6;
 }
 
-message Notes {
-	repeated Note notes = 1;
+message Occurrence {
+	uint32 pid = 1;
+	repeated Note notes = 2;
 }
 
 message Vector {
@@ -66,13 +74,4 @@ message Measures {
 
 message VectorsCsv {
 	string csv = 1;
-}
-
-message Occurrence {
-	uint32 pid = 1;
-	repeated uint32 notes = 2;
-}
-
-message Occurrences {
-	repeated Occurrence occurrences = 1;
 }
