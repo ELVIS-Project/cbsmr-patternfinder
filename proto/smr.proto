@@ -49,7 +49,7 @@ message Note {
 		float onset = 1;
 		float offset = 2;
 		int32 pitch_b40 = 3;
-		uint32 piece_idx = 6;
+		uint32 piece_idx = 4;
 }
 
 message Occurrence {

@@ -84,11 +84,9 @@ def test_index_palestrina_notes():
                 response = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = f.read()))
 
             with open(os.path.join(palestrina_path, 'pb_notes', n) + '.pb_notes', "rb") as g:
-                expected = smr_pb2.Notes()
+                expected = smr_pb2.IndexResponse()
                 expected.ParseFromString(g.read())
                 assert(response == expected)
-
-
 
 """
 import pkg_resources
