@@ -49,26 +49,6 @@ class Index(smr_pb2_grpc.IndexServicer):
         pb_notes.notes.sort(key=lambda n: (n.piece_idx))
         return pb_notes
 
-    def IndexMeasures(self, request, context):
-        sd = self._handle_symbolic_data(request)
-
-        measures = indexers.index_measures(sd)
-        pb_measures = smr_pb2.Measures(measure = [
-            smr_pb2.Measure(
-                symbolic_data = data,
-                number = num,
-                note_idx = idx)
-                for data, num, idx in measures])
-
-        return pb_measures
-
-    def IndexVectorsCsv(self, request, context):
-        sd = self._handle_symbolic_data(request)
-
-        vectors_csv = indexers.legacy_intra_vectors_to_csv(indexers.legacy_intra_vectors(sd, 10))
-
-        return smr_pb2.VectorsCsv(csv = vectors_csv)
-
 def new_server(port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10), options = OPTIONS)
     smr_pb2_grpc.add_IndexServicer_to_server(Index(), server)

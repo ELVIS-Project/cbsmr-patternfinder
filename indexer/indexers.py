@@ -1,9 +1,6 @@
 import sys
 import os
 import csv
-import io
-import xml.etree.ElementTree as ET
-import base64
 import music21
 import pandas as pd
 import numpy as np
@@ -21,13 +18,6 @@ def _note_indexer(note):
         'pitch-b40': music21.musedata.base40.pitchToBase40(note),
     }
 
-def notes_to_sql(df_notes, piece_id):
-    sub_df = df_notes[['onset', 'offset', 'pitch-b40']]
-    return f"""
-        INSERT INTO Note (piece_id, piece_idx, onset, "offset", "pitch-b40")
-        VALUES {", ".join([f"('{piece_id}', {idx}, '{float(on)}', '{float(off)}', '{p}')" for idx, (_, on, off, p) in enumerate(sub_df.itertuples())])}
-        """
-
 def notes(symbolic_data):
     try:
         m21_score = music21.converter.parse(symbolic_data)
@@ -43,81 +33,6 @@ def notes(symbolic_data):
     indexed_notes = (_note_indexer(n) for n in notes)
 
     return pd.DataFrame(indexed_notes).sort_values(by=["onset", "pitch-b40"])
-
-def intra_vectors_to_sql(df_intra_vectors, piece_id):
-    sub_df = df_intra_vectors[['onset', 'pitch-b40', 'startIndex', 'endIndex']]
-    return f"""
-        INSERT INTO intra_vectors (piece_id, vector, left_id, right_id)
-        VALUES {", ".join([f"('{piece_id}', '({float(x)}, {float(y)})', {start}, {end})" for _, x, y, start, end in sub_df.itertuples()])}
-        """
-
-def intra_vectors(symbolic_data):
-    df = notes(symbolic_data)
-
-    intervals = []
-    for window in range(1, 2):
-        vectors = df.diff(periods = window).dropna()
-
-        vectors['window'] = window
-        vectors['startIndex'] = vectors.index - window
-        vectors['endIndex'] = vectors.index
-
-        intervals.append(vectors)
-
-    return pd.concat(intervals, axis=0) \
-            .sort_values(by=["pitch-b40", "startIndex"]) \
-            .reset_index(drop=True)
-
-def legacy_intra_vectors_to_sql(df_intra_vectors, piece_id):
-    sub_df = df_intra_vectors[['x', 'y', 'startIndex', 'endIndex', 'startPitch', 'endPitch', 'diatonicDiff', 'chromaticDiff']]
-    return f"""
-        INSERT INTO legacy_intra_vectors (piece_id, x, y, startIndex, endIndex, startPitch, endPitch, diatonicDiff, chromaticDiff)
-        VALUES {", ".join([f"('{piece_id}', '{float(x)}', '{float(y)}', '{start}', '{end}', '{float(startPitch)}', '{float(endPitch)}', '{float(chromaticDiff)}', '{float(diatonicDiff)}')"
-        for _, x, y, start, end, startPitch, endPitch, chromaticDiff, diatonicDiff in sub_df.itertuples()])}
-        """
-
-def legacy_intra_vectors(piece, window):
-
-    df = notes(piece)
-
-    intervals = []
-    for window in range(1, min(window + 1, len(df))):
-        vectors = df.diff(periods = window).dropna()
-        vectors['window'] = window
-
-        vectors['x'] = vectors['offset']
-        vectors['y'] = vectors['pitch-chr'].astype('int32')
-        vectors['startIndex'] = vectors.index - window
-        vectors['endIndex'] = vectors.index
-        vectors['startPitch'] = df['pitch-chr'].shift(window)
-        vectors['endPitch'] = df['pitch-chr']
-        vectors['chromaticDiff'] = vectors['pitch-chr'].astype('int32')
-        vectors['diatonicDiff'] = vectors['pitch-dia'].astype('int32')
-
-        intervals.append(vectors)
-
-    df = pd.concat(intervals, axis=0).sort_values(by=["y", "startIndex"])
-
-    return df
-
-def legacy_intra_vectors_to_csv(df):
-
-    file_obj = io.StringIO()
-
-    csv_writer = csv.writer(file_obj, delimiter=',')
-    csv_writer.writerow(['x', 'y', 'startIndex', 'endIndex', 'startPitch', 'endPitch', 'diatonicDiff', 'chromaticDiff'])
-    csv_writer.writerow([len(set(df.index)) + 1]) # the df.diff() takes vectors between notes, so the indices must be incremended
-    csv_writer.writerow([len(df.index)])
-
-    df.to_csv(
-        columns=['x', 'y', 'startIndex', 'endIndex', 'startPitch', 'endPitch', 'diatonicDiff', 'chromaticDiff'],
-        path_or_buf = file_obj,
-        index=False,
-        header=False)
-
-    output = file_obj.getvalue()
-    file_obj.close()
-    return output
 
 def parse_piece_path(piece_path):
     basename, fmt = os.path.splitext(os.path.basename(piece_path))
@@ -215,55 +130,6 @@ class NotePointSet(music21.stream.Stream):
             self.insert(n)
 
 
-def index_measures(symbolic_data):
-    measures = []
-
-    m21_score = music21.converter.parse(symbolic_data)
-
-    nps = list(NotePointSet(music21.converter.parse(symbolic_data)))
-    m21_measures = list(m21_score.measures(1, None).recurse(classFilter=['Measure']))
-    for m21_measure in m21_measures:
-        note_idx = 0
-
-        measure_out = m21_measure.write('xml')
-        with open(measure_out, 'rb') as f:
-            data = base64.b64encode(f.read())
-        os.remove(measure_out)
-
-        while nps[note_idx].offset < m21_measure.offset and note_idx < len(nps) - 1:
-            note_idx += 1
-
-        measures.append((data, m21_measure.number, note_idx))
-
-    return measures
-
-
-def index_and_insert_measures(symbolic_data, piece_id, db_conn):
-    m21_score = music21.converter.parse(symbolic_data)
-
-    #print("Hanging on MakeMeasures", flush=True)
-    #measured_score = m21_score.makeMeasures()
-    #print("enumerating measures", flush=True)
-    #enumerated_measures = enumerate(measured_score)
-
-    nps = NotePointSet(music21.converter.parse(symbolic_data))
-    m21_measures = list(m21_score.measures(1, None).recurse(classFilter=['Measure']))
-    for m21_measure in m21_measures:
-        notes_idx = 0
-        print(m21_measure.number, end=' ', flush=True)
-        measure_out = m21_measure.write('xml')
-        with open(measure_out, 'rb') as f:
-            data = base64.b64encode(f.read()).decode('utf-8')
-
-        while nps[notes_idx].offset < m21_measure.offset:
-            notes_idx += 1
-
-        with db_conn, db_conn.cursor() as cur:
-            cur.execute(f"""
-                INSERT INTO Measure (pid, mid, nid, onset, data)
-                VALUES ('{piece_id}', '{m21_measure.number}', '{notes_idx}', '{float(m21_measure.offset)}', '{data}')
-            """)
-
 if __name__ == "__main__":
 
     if (len(sys.argv) < 3):
@@ -285,31 +151,3 @@ if __name__ == "__main__":
     
     with open(input_filename + '.' + method, 'w') as f:
         df.to_csv(f)
-
-"""
-    if (len(sys.argv) < 1) or (sys.argv[1] in ("-h", "--help")):
-        print("indexers.py input_dir output_dir")
-
-    input_dir = sys.argv[1]
-    output_dir = sys.argv[2]
-
-    failed = []
-
-    for piece in os.listdir(input_dir):
-        full_path = os.path.join(input_dir, piece)
-        piece_name = os.path.splitext(piece)[0]
-
-        print("Indexing " + full_path)
-
-        try:
-            score = music21.converter.parse(full_path)
-            csv_file = legacy_intra_vectors(score, 10)
-        except Exception:
-            failed.append(piece)
-
-        with open(os.path.join(output_dir, piece_name + '.vectors'), 'w') as f:
-            f.write(csv_file)
-
-    if len(failed) > 0:
-        print("Failed some pieces...\n{}".format("\n".join(failed)))
-"""
