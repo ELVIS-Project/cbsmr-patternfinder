@@ -134,7 +134,6 @@ func min(a int, b int) (minimum int) {
 	return b
 }
 
-/*
 func search(pattern CScore, target CScore) (arrays [][]uint32, err error) {
 
 	if pattern.num_notes < 2 {
@@ -181,7 +180,6 @@ func resultToIntArrays(result *C.struct_Result, pattern *C.struct_Score) (arrays
 
 	return
 }
-*/
 
 /*
 func InitScoreFromPbVectors

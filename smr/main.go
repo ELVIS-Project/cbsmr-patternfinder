@@ -1,7 +1,5 @@
 package main
 
-/*
-
 import (
 	pb "../proto"
 	"database/sql"
@@ -119,4 +117,3 @@ func main() {
 	select {}
 
 }
-*/

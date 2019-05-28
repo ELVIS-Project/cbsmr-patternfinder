@@ -9,7 +9,6 @@
 package main
 
 import (
-	pb "../proto"
 	"fmt"
 	//log "github.com/sirupsen/logrus"
 	"math"
@@ -185,10 +184,10 @@ func Query(notes []Note, windowSize int) (results Results) {
 				}
 			}
 
-			println("\nMATCH SET")
-			for basis, notes := range matchSet {
-				println(fmt.Sprintf("%v: %v", basis, notes))
-			}
+			//println("\nMATCH SET")
+			//for basis, notes := range matchSet {
+				//println(fmt.Sprintf("%v: %v", basis, notes))
+			//}
 
 			for basis, notes := range matchSet {
 				if len(notes) > 1 {
@@ -199,7 +198,7 @@ func Query(notes []Note, windowSize int) (results Results) {
 					sort.Sort(sortedNotes)
 
 					possiblyExists := sort.Search(len(results), func (i int) bool { return CmpNotesByOnset(results[i], sortedNotes) != NOTES_LE })
-					fmt.Printf("%v got search idx %v in results list %v", sortedNotes, possiblyExists, results)
+					//fmt.Printf("%v got search idx %v in results list %v", sortedNotes, possiblyExists, results)
 
 					if possiblyExists == len(results) {
 						results = append(results, sortedNotes)

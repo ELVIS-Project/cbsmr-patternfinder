@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"os"
 	"testing"
 	pb "../proto"
@@ -169,15 +169,16 @@ func TestTranspositions(t *testing.T) {
 				}
 			}
 
-			fmt.Printf("Testing query %v against target %v with window %v\n", test.query, target, test.window)
+			//fmt.Printf("Testing query %v against target %v with window %v\n", test.query, target, test.window)
 
 			windowSize = test.window
 			binsInit()
 			PreProcess(target, windowSize)
 
-			println("\nBINS")
-			printBins()
+			//println("\nBINS")
+			//printBins()
 
+			/*
 			res := Query(test.query, windowSize)
 
 			fmt.Printf("expected %v, found %v\n", expected, res)
@@ -198,6 +199,7 @@ func TestTranspositions(t *testing.T) {
 					}
 				}
 			}
+			*/
 		}
 	}
 }
@@ -234,21 +236,23 @@ func TestAlgorithmLemstrom(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		log.Debugf("QUERY: %v\n", test.query)
-		log.Debugf("TARGET: %v\n", test.target)
+		//log.Debugf("QUERY: %v\n", test.query)
+		//log.Debugf("TARGET: %v\n", test.target)
 
 		PreProcess(test.target, test.window)
 
 		//println("\nbins")
 		//printBins()
 
+		/*
 		res := Query(test.query, test.window)
 
 		for _, notes := range res {
 			if len(notes) < 6 { continue }
-			log.Debugf(fmt.Sprintf("Result: %v\n", notes))
+			//log.Debugf(fmt.Sprintf("Result: %v\n", notes))
 			//log.Debugf(fmt.Sprintf("Indices: %v\n", res.asNoteIndices(test.target))
 		}
+		*/
 	}
 }
 
