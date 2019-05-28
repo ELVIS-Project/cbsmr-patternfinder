@@ -8,11 +8,13 @@ import (
 	pb "../proto"
 )
 
+type NoteIndex int32
+
 type Note struct {
 	onset    float64 // absolute quarter length from beginning of piece
 	duration float64 // relative logarithm
 	pitch    int32   // base 40
-	idx int32
+	idx NoteIndex
 }
 
 func (n Note) toPbNote() (pbNote *pb.Note) {

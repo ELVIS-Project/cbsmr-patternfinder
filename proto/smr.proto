@@ -40,7 +40,7 @@ message SearchRequest {
 	repeated Note notes = 1;	
 }
 message SearchResponse {
-	repeated Occurrence occs = 1;
+	repeated Occurrence occurrences = 1;
 }
 
 message Note {

@@ -12,6 +12,21 @@ import (
 	"time"
 )
 
+func max(i, j int) int {
+	if i < j {
+		return j
+	} else {
+		return i
+	}
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 var server *SmrServer
 
 type SmrServer struct{

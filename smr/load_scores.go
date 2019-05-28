@@ -6,27 +6,6 @@ import (
 	vp "github.com/spf13/viper"
 )
 
-func (s *SmrServer) GetScoreIds() (ids []uint32, err error) {
-	err = s.boltDb.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte("scores"))
-		if bucket == nil {
-			return errors.New("Failed to find 'scores' bucket")
-		}
-		bucket.ForEach(func(k, v []byte) error {
-			ids = append(ids, btoi(k))
-			return nil
-		})
-		return nil
-	})
-
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-
 func (s *SmrServer) LoadOneScore(pid uint32, window int) (err error) {
 	var encodedScore []byte
 
@@ -63,7 +42,7 @@ func (s *SmrServer) LoadOneScore(pid uint32, window int) (err error) {
 func (s *SmrServer) LoadScores(window int) error {
 	println("Loading Scores into memory!")
 
-	ids, err := s.GetScoreIds()
+	ids, err := s.GetPieceIds()
 	if err != nil {
 		return err
 	}

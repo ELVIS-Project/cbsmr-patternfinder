@@ -6,6 +6,7 @@ import (
 	"github.com/boltdb/bolt"
 	"encoding/binary"
 	"errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func itob(v uint32) []byte {
@@ -18,13 +19,12 @@ func btoi(v []byte) uint32 {
 	return (uint32)(binary.BigEndian.Uint64(v))
 }
 
-func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp *pb.AddPieceResponse, err error) {
-	var id uint32
+func AddPiece(pid int, notes []*pb.Note) (err error) {
 
-	vecs := VecsFromNotes(&pb.Notes{Notes: req.Notes})
-	score := Score{
+	vecs := VecsFromNotes(notes)
+	score := Piece {
+		Notes: notes
 		Vectors: vecs,
-		NumNotes: len(req.Notes),
 	}
 
 	scoreBytes, err := score.Encode()
@@ -41,22 +41,19 @@ func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp
 		if err != nil {
 			return err
 		}
-		id = req.Id
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// :todo make a LoadScore()
-	s.LoadOneScore(req.Id, WINDOW)
+	s.LoadOneScore(pid, WINDOW)
 
-	println("Put in a score! id: ", req.Id)
-	return &pb.AddPieceResponse{Id: id}, nil
+	log.Infoln("Put in a score! id: ", pid)
+	return &pb.AddPieceResponse{}, nil
 }
 
-func (s *SmrServer) AllPieces(ctx context.Context, req *pb.AllPiecesRequest) (resp *pb.AllPiecesResponse, err error) {
-	var pids []uint32
+func GetPieceIds(bolt bolt.DB) (pids []uint32, err error) {
 	err = s.boltDb.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("scores"))
 		if bucket == nil {
@@ -68,8 +65,5 @@ func (s *SmrServer) AllPieces(ctx context.Context, req *pb.AllPiecesRequest) (re
 		})
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	return &pb.AllPiecesResponse{Pids: pids}, nil
+	return
 }

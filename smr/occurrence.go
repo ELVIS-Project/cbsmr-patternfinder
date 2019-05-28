@@ -9,12 +9,12 @@ import (
 )
 
 struct Occurrence {
-	notes []NoteIndex
+	notes []Note
 	pid PieceId
 }
 
-func (occ Occurrence) toPbOcc() {
-	return &pb.Occurrence{}
+func (occ Occurrence) toPbOcc() *pb.Occurrence {
+	return &pb.Occurrence{Notes: PbNotesFromNotes(occ.notes), Pid: occ.pid}
 }
 
 type rankOccurrencesTrivial []Occurrence

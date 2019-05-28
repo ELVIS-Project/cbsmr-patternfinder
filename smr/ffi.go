@@ -1,13 +1,10 @@
 package main
-/*
 
 import (
 	pb "../proto"
 	"fmt"
 	"sort"
 	"unsafe"
-	"encoding/gob"
-	"bytes"
 	"errors"
 )
 
@@ -33,26 +30,6 @@ func PrintScore(s *C.struct_Score) {
 type Score struct {
 	Vectors []vector
 	NumNotes int
-}
-
-func (s Score) Encode() ([]byte, error) {
-	buf := bytes.NewBuffer([]byte{})
-	encoder := gob.NewEncoder(buf)
-	err := encoder.Encode(s)
-	if err != nil {
-		return []byte{}, err
-	}
-	return buf.Bytes(), nil
-}
-
-func DecodeScore(input []byte) (s Score, err error) {
-	buf := bytes.NewBuffer(input)
-	decoder := gob.NewDecoder(buf)
-	err = decoder.Decode(&s)
-	if err != nil {
-		return Score{}, err
-	}
-	return
 }
 
 type vector struct {
@@ -124,14 +101,6 @@ func InitScoreFromVectors(numNotes int, vecs []vector) (s CScore) {
 		CVectors,
 	)
 	return
-}
-*/
-
-func min(a int, b int) (minimum int) {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 func search(pattern CScore, target CScore) (arrays [][]uint32, err error) {
