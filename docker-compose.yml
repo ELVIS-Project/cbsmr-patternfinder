@@ -15,8 +15,6 @@ services:
       - '${SMR_PORT}:${SMR_PORT}'
     volumes:
       - ./smr/bolt:/cbsmr/smr/bolt
-    depends_on:
-      - "indexer"
   flask:
     build: ./flask
     env_file:

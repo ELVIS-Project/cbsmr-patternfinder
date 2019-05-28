@@ -16,13 +16,9 @@ var server *SmrServer
 
 type SmrServer struct{
 	grpc *grpc.Server
-	psqlDb *sql.DB
 	boltDb *bolt.DB
 	pieceMap map[uint32]CScore
 }
-
-// Global handle on a running index client
-var indexerClient pb.IndexClient
 
 func openBolt() (db *bolt.DB) {
 	var err error
@@ -43,36 +39,7 @@ func openBolt() (db *bolt.DB) {
 	return
 }
 
-func dialIndex() (client pb.IndexClient) {
-	conn, err := grpc.Dial(vp.GetString("INDEXER_URI"), grpc.WithInsecure())
-
-	if err != nil {
-		log.Panicf("Failed to connect to indexer service, %v", err)
-	} else {
-		log.Infof("connected to indexer %v", vp.GetString("INDEXDR_URI"))
-	}
-	client = pb.NewIndexClient(conn)
-	return
-}
-
-func dialPostgres() (db *sql.DB) {
-	var err error
-	db, err = sql.Open("postgres", vp.GetString("PSQL_STRING"))
-	if err != nil {
-		panic(err)
-	} else {
-		log.Infof("connected to postgres %v", vp.GetString("PSQL_STRING"))
-	}
-
-	return
-}
-
 func StartServer() *SmrServer {
-	// This is a global handle
-	indexerClient = dialIndex()
-
-	// These are wrapped in a SearchServer struct
-	psqlDb := dialPostgres()
 
 	boltDb := openBolt()
 
@@ -80,7 +47,6 @@ func StartServer() *SmrServer {
 	s := grpc.NewServer()
 	smr := SmrServer{
 		grpc: s,
-		psqlDb: psqlDb,
 		boltDb: boltDb,
 		pieceMap: make(map[uint32]CScore),
 	}
@@ -111,7 +77,6 @@ func main() {
 	// This is a global handle
 	server = StartServer()
 	defer server.boltDb.Close()
-	defer server.psqlDb.Close()
 	defer server.grpc.GracefulStop()
 
 	select {}
