@@ -1,4 +1,5 @@
 package main
+/*
 
 import (
 	"github.com/boltdb/bolt"
@@ -78,3 +79,4 @@ func (s *SmrServer) LoadScores(window int) error {
 	return nil
 }
 
+*/

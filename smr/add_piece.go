@@ -1,4 +1,5 @@
 package main
+/*
 
 import (
 	pb "../proto"
@@ -73,3 +74,4 @@ func (s *SmrServer) AllPieces(ctx context.Context, req *pb.AllPiecesRequest) (re
 	}
 	return &pb.AllPiecesResponse{Pids: pids}, nil
 }
+*/

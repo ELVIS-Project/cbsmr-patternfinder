@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"testing"
 	"io/ioutil"
@@ -26,11 +27,12 @@ func TestSearchPalestrina(t *testing.T) {
 	if len(occs.Occurrences) < 23 {
 		t.Errorf("not enough occurrences")
 	}
+}
+
+
+*/
 	/*
 	for i := range occs.Occurrences[:23] {
 		fmt.Printf("%v: %v\n", files[occs.Occurrences[i].Pid], occs.Occurrences[i])
 	}
 	*/
-}
-
-

@@ -1,16 +1,258 @@
 package main
-/*
 
 import (
 	"fmt"
+	"os"
 	"testing"
+	pb "../proto"
+	"io/ioutil"
+	"github.com/golang/protobuf/proto"
+	log "github.com/sirupsen/logrus"
 )
 
-func NotesFromFile(path string) []Note {
-	pb_notes := UnmarshalNotesFromFile(path)
-	return NotesFromPbNotes(pb_notes.Notes)
+var (
+	QuarterNotesCD = []Note {
+		{onset: 0, duration: 0, pitch: 162},
+		{onset: 1, duration: 0, pitch: 168},
+	}
+	QuarterNotesDE = []Note {
+		{onset: 0, duration: 0, pitch: 168},
+		{onset: 1, duration: 0, pitch: 174},
+	}
+	QuarterNotesGAB = []Note {
+		{onset: 0, duration: 0, pitch: 185},
+		{onset: 1, duration: 0, pitch: 191},
+		{onset: 2, duration: 0, pitch: 197},
+	}
+)
+
+func TestMain(t *testing.T){
+	log.SetLevel(log.DebugLevel)
+	log.SetOutput(os.Stdout)
 }
 
+func UnmarshalIdxRespFromFile(path string) *pb.IndexResponse {
+	fileBytes, err := ioutil.ReadFile(path)
+	xk(err)
+	idxResp := &pb.IndexResponse{}
+	xk(proto.Unmarshal(fileBytes, idxResp))
+	return idxResp
+}
+
+func NotesFromFile(path string) []Note {
+	idxResp := UnmarshalIdxRespFromFile(path)
+	return NotesFromPbNotes(idxResp.Notes)
+}
+
+func TestTranspositions(t *testing.T) {
+	var windowSize = 2
+
+	testCases := []struct {
+		window int
+		query []Note
+		target []Note
+		expected Results
+	}{
+		{
+			2,
+			QuarterNotesCD,
+			QuarterNotesDE,
+			Results{QuarterNotesDE},
+		},
+		{
+			2,
+			QuarterNotesCD,
+			[]Note{
+				{onset: 0, duration: 0, pitch: 185},
+				{onset: 1, duration: 0, pitch: 191},
+				{onset: 2, duration: 0, pitch: 197},
+			},
+			Results{
+				[]Note{
+					{onset: 0, duration: 0, pitch: 185},
+					{onset: 1, duration: 0, pitch: 191},
+				},
+				[]Note {
+					{onset: 1, duration: 0, pitch: 191},
+					{onset: 2, duration: 0, pitch: 197},
+				},
+			},
+		},
+		{
+			3,
+			QuarterNotesCD,
+			[]Note{
+				{onset: 0, duration: 0, pitch: 185},
+				{onset: 1, duration: 0, pitch: 191},
+				{onset: 2, duration: 0, pitch: 197},
+			},
+			Results{
+				[]Note{
+					{onset: 0, duration: 0, pitch: 185},
+					{onset: 1, duration: 0, pitch: 191},
+				},
+				[]Note {
+					{onset: 1, duration: 0, pitch: 191},
+					{onset: 2, duration: 0, pitch: 197},
+				},
+			},
+		},
+		{
+			6,
+			QuarterNotesCD,
+			[]Note{
+				{onset: 0, duration: 0, pitch: 185},
+				{onset: 0.5, duration: 0, pitch: 300},
+				{onset: 1, duration: 0, pitch: 191},
+				{onset: 1.5, duration: 0, pitch: 300},
+				{onset: 1.7, duration: 0, pitch: 300},
+				{onset: 2, duration: 0, pitch: 197},
+			},
+			Results{
+				[]Note{
+					{onset: 0, duration: 0, pitch: 185},
+					{onset: 1, duration: 0, pitch: 191},
+				},
+				[]Note {
+					{onset: 1, duration: 0, pitch: 191},
+					{onset: 2, duration: 0, pitch: 197},
+				},
+			},
+		},
+		{
+			4,
+			// :todo
+			// Tests duplicates
+			// Tests partial matches...
+			QuarterNotesGAB,
+			[]Note{
+				{onset: 0, duration: 0, pitch: 300},
+				{onset: 0.5, duration: 0, pitch: 300},
+				{onset: 3.5, duration: 0, pitch: 300},
+				{onset: 4, duration: 0, pitch: 185},
+				{onset: 5, duration: 0, pitch: 191},
+				{onset: 6, duration: 0, pitch: 197},
+				{onset: 6.5, duration: 0, pitch: 300},
+				{onset: 7, duration: 0, pitch: 225},
+				{onset: 8, duration: 0, pitch: 231},
+				{onset: 9, duration: 0, pitch: 237},
+				{onset: 9.5, duration: 0, pitch: 300},
+			},
+			Results{
+				[]Note{
+					{onset: 4, duration: 0, pitch: 185},
+					{onset: 5, duration: 0, pitch: 191},
+					{onset: 6, duration: 0, pitch: 197},
+				},
+				[]Note {
+					{onset: 7, duration: 0, pitch: 225},
+					{onset: 8, duration: 0, pitch: 231},
+					{onset: 9, duration: 0, pitch: 203},
+				},
+			},
+		},
+	}
+
+	for _, test := range testCases {
+		for _, transpose := range []int{0, 5, 7} {
+			target := make([]Note, len(test.target))
+			for i := range test.target {
+				target[i] = test.target[i]
+				target[i].pitch = target[i].pitch + (int32)(transpose)
+			}
+			expected := make(Results, len(test.expected))
+			for i := range test.expected {
+				expected[i] = make([]Note, len(test.expected[i]))
+				for j := range test.expected[i] {
+					expected[i][j] = test.expected[i][j]
+					expected[i][j].pitch = expected[i][j].pitch + (int32)(transpose)
+				}
+			}
+
+			fmt.Printf("Testing query %v against target %v with window %v\n", test.query, target, test.window)
+
+			windowSize = test.window
+			binsInit()
+			PreProcess(target, windowSize)
+
+			println("\nBINS")
+			printBins()
+
+			res := Query(test.query, windowSize)
+
+			fmt.Printf("expected %v, found %v\n", expected, res)
+
+			if len(expected) != len(res) {
+				t.Errorf("missing results, expected %v, got %v", expected, res)
+			}
+			for i := range expected {
+				// skip partial matches
+				if len(res[i]) != len(test.query) { continue }
+
+				if len(expected[i]) != len(res[i]) {
+					t.Errorf("length differs, expected %v, got %v", expected[i], res[i])
+				}
+				for j := range expected[i] {
+					if expected[i][j] != res[i][j] {
+						t.Errorf("notes differ, expected %v, got %v", expected[i], res[i])
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestAlgorithmLemstrom(t *testing.T) {
+	testCases := []struct {
+		window int
+		query []Note
+		target []Note
+		expected Results
+	}{
+		{
+			11,
+			NotesFromFile(LEIERMANN_QUERY[0] + ".idxresp_notes"),
+			NotesFromFile(LEIERMANN + ".idxresp_notes"),
+			Results{},
+		},
+		/*
+		{
+			9,
+			NotesFromFile(LEIERMANN_QUERY[1] + ".idxresp_notes"),
+			NotesFromFile(LEIERMANN + ".idxresp_notes"),
+			Results{},
+		},
+		*/
+		/* Scaled occurrence
+		{
+			9,
+			NotesFromFile(LEIERMANN_QUERY[2] + ".pb_notes"),
+			NotesFromFile(LEIERMANN + ".pb_notes"),
+			Results{},
+		},
+		*/
+	}
+
+	for _, test := range testCases {
+		log.Debugf("QUERY: %v\n", test.query)
+		log.Debugf("TARGET: %v\n", test.target)
+
+		PreProcess(test.target, test.window)
+
+		//println("\nbins")
+		//printBins()
+
+		res := Query(test.query, test.window)
+
+		for _, notes := range res {
+			if len(notes) < 6 { continue }
+			log.Debugf(fmt.Sprintf("Result: %v\n", notes))
+			//log.Debugf(fmt.Sprintf("Indices: %v\n", res.asNoteIndices(test.target))
+		}
+	}
+}
+
+/*
 func TestAlgorithmSimpleCases(t *testing.T) {
 	windowSize = 2
 

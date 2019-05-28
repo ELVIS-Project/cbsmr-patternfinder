@@ -1,4 +1,5 @@
 package main
+/*
 
 import (
 	"context"
@@ -86,3 +87,4 @@ func (s SmrServer) Search(ctx context.Context, req *pb.Notes) (occs *pb.Occurren
 	}
 	return occs, nil
 }
+*/

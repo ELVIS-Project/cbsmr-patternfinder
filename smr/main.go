@@ -1,5 +1,7 @@
 package main
 
+/*
+
 import (
 	pb "../proto"
 	"database/sql"
@@ -116,22 +118,5 @@ func main() {
 
 	select {}
 
-	/*
-
-		/*
-			vecs := VecsFromNotes(leiermannIndexed.Notes)
-			println(vecs)
-			for _, vec := range vecs {
-				println(vec.a.PieceIdx, vec.b.PieceIdx)
-			}
-			var vectors string
-			println("querying")
-			rows := db.QueryRowContext(context.Background(), "SELECT vectors FROM Piece;")
-			rows.Scan(&vectors)
-			println("vectors: %v", vectors[0:200])
-			score := InitScoreFromCsv(vectors)
-			print(score.num_notes)
-			print(score.num_vectors)
-			print(score.vectors)
-	*/
 }
+*/

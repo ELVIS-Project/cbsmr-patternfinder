@@ -4,8 +4,6 @@ package proto;
 
 service Index {
     rpc IndexNotes (IndexRequest) returns (IndexResponse);
-    rpc IndexMeasures (IndexRequest) returns (Measures);
-    rpc IndexVectorsCsv (IndexRequest) returns (VectorsCsv);
 }
 	
 service Smr {
@@ -55,23 +53,4 @@ message Note {
 message Occurrence {
 	uint32 pid = 1;
 	repeated Note notes = 2;
-}
-
-message Vector {
-	Note start = 1;
-	Note end = 2;
-}
-
-message Measure {
-		bytes symbolic_data = 1;
-		uint32 number = 2;
-		uint32 note_idx = 3;
-}
-
-message Measures {
-	repeated Measure measures = 1;
-}
-
-message VectorsCsv {
-	string csv = 1;
 }

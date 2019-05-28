@@ -2,8 +2,8 @@ package main
 
 import (
 	"io/ioutil"
-	"github.com/golang/protobuf/proto"
-	pb "../proto"
+//	"github.com/golang/protobuf/proto"
+//	pb "../proto"
 )
 
 var (
@@ -25,20 +25,6 @@ var (
 	}
 )
 
-func InitScoreFromFile(path string) (CScore) {
-	notes := UnmarshalNotesFromFile(path)
-	vecs := VecsFromNotes(notes)
-	return InitScoreFromVectors(len(notes.Notes), vecs)
-}
-
-func UnmarshalNotesFromFile(path string) (*pb.Notes){
-	fileBytes, err := ioutil.ReadFile(path)
-	xk(err)
-	pbNotes := &pb.Notes{}
-	xk(proto.Unmarshal(fileBytes, pbNotes))
-	return pbNotes
-}
-
 func rpanic(path string) []byte {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -52,7 +38,21 @@ func xk(err error) {
 		panic(err)
 	}
 }
+
 /*
+func InitScoreFromFile(path string) (CScore) {
+	notes := UnmarshalNotesFromFile(path)
+	vecs := VecsFromNotes(notes)
+	return InitScoreFromVectors(len(notes.Notes), vecs)
+}
+
+func UnmarshalNotesFromFile(path string) (*pb.Notes){
+	fileBytes, err := ioutil.ReadFile(path)
+	xk(err)
+	pbNotes := &pb.Notes{}
+	xk(proto.Unmarshal(fileBytes, pbNotes))
+	return pbNotes
+}
 
 func TestPalestrina(t *testing.T) {
 	server := StartServer()

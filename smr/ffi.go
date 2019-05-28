@@ -1,4 +1,5 @@
 package main
+/*
 
 import (
 	pb "../proto"
@@ -79,44 +80,6 @@ func (vs byHeightThenIndex) Less(i, j int) bool {
 	}
 }
 
-/*
-type pbVecHeightIndex []*pb.Vector
-
-func (vs pbVecHeightIndex) Len() int {
-	return len(vs)
-}
-func (vs pbVecHeightIndex) Swap(i, j int) {
-	vs[i], vs[j] = vs[j], vs[i]
-}
-func (vs pbVecHeightIndex) Less(i, j int) bool {
-	yi := vs[i].End.PitchB40 - vs[i].Start.PitchB40
-	yj := vs[j].End.PitchB40 - vs[j].Start.PitchB40
-
-	if yi < yj {
-		return true
-	} else if yi == yj {
-		return vs[i].Start.PieceIdx <= vs[j].Start.PieceIdx
-	} else {
-		return false
-	}
-}
-
-func PbVecsFromPbNotes(Notes *pb.Notes) (vecs []*pb.Vector) {
-	notes := Notes.Notes
-
-	for i, _ := range notes {
-		for j := i + 1; j < min(i+WINDOW, len(notes)); j++ {
-			pbVec := &pb.Vector{
-				Start: notes[i],
-				End: Note[j],
-			}
-			vecs = append(vecs, pbVec)
-		}
-	}
-	sort.Sort(pbVecHeightIndex(vecs))
-	return
-}
-*/
 
 func VecsFromNotes(Notes *pb.Notes) (vecs []vector) {
 	notes := Notes.Notes
@@ -142,16 +105,6 @@ func InitScoreFromIndexerResp(resp *pb.Notes) (s CScore) {
 	return
 }
 
-/*
-func InitScoreFromPbVectors
-			cvec := vector{
-				(float64)(notes[j].Onset - notes[i].Onset),
-				notes[j].PitchB40 - notes[i].PitchB40,
-				notes[i].PieceIdx,
-				notes[j].PieceIdx,
-			}
-*/
-
 func InitScoreFromVectors(numNotes int, vecs []vector) (s CScore) {
 	CVectors := (*C.struct_IntraVector)(C.malloc(C.sizeof_struct_IntraVector * (C.ulong)(len(vecs))))
 	GoCVectors := (*[1 << 30]C.struct_IntraVector)(unsafe.Pointer(CVectors))
@@ -172,6 +125,7 @@ func InitScoreFromVectors(numNotes int, vecs []vector) (s CScore) {
 	)
 	return
 }
+*/
 
 func min(a int, b int) (minimum int) {
 	if a < b {
@@ -180,6 +134,7 @@ func min(a int, b int) (minimum int) {
 	return b
 }
 
+/*
 func search(pattern CScore, target CScore) (arrays [][]uint32, err error) {
 
 	if pattern.num_notes < 2 {
@@ -226,8 +181,56 @@ func resultToIntArrays(result *C.struct_Result, pattern *C.struct_Score) (arrays
 
 	return
 }
+*/
 
 /*
+func InitScoreFromPbVectors
+			cvec := vector{
+				(float64)(notes[j].Onset - notes[i].Onset),
+				notes[j].PitchB40 - notes[i].PitchB40,
+				notes[i].PieceIdx,
+				notes[j].PieceIdx,
+			}
+
+type pbVecHeightIndex []*pb.Vector
+
+func (vs pbVecHeightIndex) Len() int {
+	return len(vs)
+}
+func (vs pbVecHeightIndex) Swap(i, j int) {
+	vs[i], vs[j] = vs[j], vs[i]
+}
+func (vs pbVecHeightIndex) Less(i, j int) bool {
+	yi := vs[i].End.PitchB40 - vs[i].Start.PitchB40
+	yj := vs[j].End.PitchB40 - vs[j].Start.PitchB40
+
+	if yi < yj {
+		return true
+	} else if yi == yj {
+		return vs[i].Start.PieceIdx <= vs[j].Start.PieceIdx
+	} else {
+		return false
+	}
+}
+
+func PbVecsFromPbNotes(Notes *pb.Notes) (vecs []*pb.Vector) {
+	notes := Notes.Notes
+
+	for i, _ := range notes {
+		for j := i + 1; j < min(i+WINDOW, len(notes)); j++ {
+			pbVec := &pb.Vector{
+				Start: notes[i],
+				End: Note[j],
+			}
+			vecs = append(vecs, pbVec)
+		}
+	}
+	sort.Sort(pbVecHeightIndex(vecs))
+	return
+}
+
+
+
 func recurseChain(kEntry *C.struct_KEntry) []*C.struct_IntraVector {
 	if kEntry.y == nil {
 		return [2]*C.struct_IntraVector{kEntry.targetVec.startIndex, kEntry.targetVec.endIndex}

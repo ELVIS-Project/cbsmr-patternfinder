@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"fmt"
 	"testing"
@@ -68,6 +69,8 @@ func TestPalestrina(t *testing.T) {
 	}
 }
 
+*/
+/*
 func Test457(t *testing.T) {
 	target := InitScoreFromFile("testdata/000000000000457_Castigans-castigavit_Josquin-Des-Prez_file3.xml")
 	queryNotes := UnmarshalNotesFromFile("testdata/queries/" + "DA_F.pb_notes")
@@ -79,3 +82,4 @@ func Test457(t *testing.T) {
 		t.Errorf("%v", err)
 	}
 }
+*/
