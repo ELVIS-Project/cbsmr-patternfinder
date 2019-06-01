@@ -4,6 +4,7 @@ import (
 	"github.com/boltdb/bolt"
 	"fmt"
 	"errors"
+	"sort"
 )
 
 const (
@@ -12,27 +13,37 @@ const (
 
 type PieceStore interface {
 	Get(PieceId) Piece
-	Set(PieceId)
+	Set(PieceId, Piece)
 	ListIds() []PieceId
 	Search([]Note) []Occurrence
 }
 
-type BoltPieceStore bolt.DB
+type BoltPieceStore struct {
+	*bolt.DB
+}
 
-func NewBoltPieceStore(db *bolt.DB) (*BoltPieceStore, err error) {
-	db.Update(func(tx *bolt.Tx) error {
+func NewBoltPieceStore(db *bolt.DB) (bps *BoltPieceStore, err error) {
+	err = db.Update(func(tx *bolt.Tx) error {
 		_, err = tx.CreateBucketIfNotExists([]byte(BOLT_PIECE_BUCKET))
 		if err != nil {
 			return err
 		}
-		return
+		return nil
 	})
+	if err != nil {
+		return
+	}
 
-	return BoltPieceStore(db), err
+	bps = &BoltPieceStore {
+		DB: db,
+	}
+	return
 }
 
 func (bps *BoltPieceStore) Get(pid PieceId) (piece Piece, err error) {
-	err = s.boltDb.View(func(tx *bolt.Tx) error {
+	var encodedPiece []byte
+
+	err = bps.View(func(tx *bolt.Tx) error {
 		pieceBucket := tx.Bucket([]byte(BOLT_PIECE_BUCKET))
 		if pieceBucket == nil {
 			return errors.New(fmt.Sprintf("Failed to find %v bucket", BOLT_PIECE_BUCKET))
@@ -43,60 +54,49 @@ func (bps *BoltPieceStore) Get(pid PieceId) (piece Piece, err error) {
 		return nil
 	})
 	if err != nil {
-		return err
+		return
 	}
 
-	piece, err := DecodePiece(encodedPiece)
-	if err != nil {
-		return err
-	}
-
+	piece, err = DecodePiece(encodedPiece)
 	return
 }
 
 func (bps *BoltPieceStore) Set(pid PieceId, piece Piece) (err error) {
-	pieceBytes, err := Piece.Encode()
+	pieceBytes, err := Piece.Encode(piece)
 	if err != nil {
-		return err
+		return
 	}
 
-	err = s.boltDb.Update(func(tx *bolt.Tx) error {
+	err = bps.Update(func(tx *bolt.Tx) error {
 		pieceBucket := tx.Bucket([]byte(BOLT_PIECE_BUCKET))
 		if pieceBucket == nil {
 			return errors.New(fmt.Sprintf("Failed to find %v bucket", BOLT_PIECE_BUCKET))
 		}
-		err := pieceBucket.Put(piece.pid.toBytes(), pieceBytes)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
+		err := pieceBucket.Put(piece.Pid.toBytes(), pieceBytes)
 		return err
-	}
-
+	})
 	return
 }
 
-func (bps *BoltPieceStore) ListIds() ([]PieceId, err error) {
-	err = s.boltDb.View(func(tx *bolt.Tx) error {
+func (bps *BoltPieceStore) ListIds() (pids []PieceId, err error) {
+	err = bps.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BOLT_PIECE_BUCKET))
 		if bucket == nil {
 			return errors.New(fmt.Sprintf("Failed to find %v bucket", BOLT_PIECE_BUCKET))
 		}
 		err = bucket.ForEach(func(k, v []byte) error {
-			pids = append(pids, pieceIdxFromBytes(k))
+			pids = append(pids, pieceIdFromBytes(k))
 			return nil
 		})
 		return err
 	})
-	return err
+	return
 }
 
 func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
-	queryScore := InitScoreFromVectors(len(notes), VecsFromNotes(query)
+	queryScore := InitScoreFromVectors(len(query), VecsFromNotes(query))
 
-	err = s.boltDb.View(func(tx *bolt.Tx) error {
+	err = bps.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BOLT_PIECE_BUCKET))
 		if bucket == nil {
 			return errors.New(fmt.Sprintf("Failed to find %v bucket", BOLT_PIECE_BUCKET))
@@ -108,27 +108,33 @@ func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
 				return err
 			}
 
-			targetScore := InitScoreFromVectors(len(notes), VecsFromNotes(query))
-			intArrays, err := search(queryScore, cscore)
+			// Search
+			targetScore := InitScoreFromVectors(len(piece.Notes), VecsFromNotes(query))
+			intArrays, err := search(queryScore, targetScore)
 			if err != nil {
-				return nil, err
+				return err
 			}
+
+			// Prepare occurrences
 			for _, arr := range intArrays {
-				occs = append(occs, Occurrence{notes: arr, pid: pieceId})
-			}
+				notes := make([]Note, len(arr))
+				for i := range arr {
+					notes = append(notes, piece.Notes[i])
+				}
+				occs = append(occs, Occurrence{notes: notes, pid: piece.Pid}) }
 			return nil
 		})
 		return err
 	})
 	if err != nil {
-		return err
+		return
 	}
 
 	if len(occs) == 0 {
 		return []Occurrence{}, nil
 	}
 
-	sortedOccs := rankTrivial(occs.Occurrences)
+	sortedOccs := rankOccurrencesTrivial(occs)
 	sort.Sort(sortedOccs)
 
 	return sortedOccs, nil

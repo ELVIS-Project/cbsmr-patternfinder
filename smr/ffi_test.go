@@ -9,8 +9,8 @@ import (
 
 func TestLemstrom(t *testing.T) {
 
-	query := InitScoreFromFile(LEIERMANN_QUERY[0] + ".pb_notes")
-	leiermann := InitScoreFromFile(LEIERMANN + ".pb_notes")
+	query := InitScoreFromFile(LEIERMANN_QUERY[0] + ".idxresp_notes")
+	leiermann := InitScoreFromFile(LEIERMANN + ".idxresp_notes")
 
 	arrays, err := search(query, leiermann)
 	if err != nil {
@@ -32,11 +32,11 @@ func TestPalestrina(t *testing.T) {
 		t.Run(file.Name(), func(t *testing.T) {
 			targetNotes := UnmarshalNotesFromFile(path.Join(PALESTRINA, "pb_notes", file.Name()))
 			targetVecs := VecsFromNotes(targetNotes)
-			target := InitScoreFromVectors(len(targetNotes.Notes), targetVecs)
+			target := InitScoreFromVectors(len(targetNotes), targetVecs)
 
-			queryNotes := UnmarshalNotesFromFile(path.Join(PALESTRINA, "double_leading_tone_query.pb_notes"))
+			queryNotes := UnmarshalNotesFromFile(path.Join(QUERIES, "double_leading_tone.idxresp_notes"))
 			queryVecs := VecsFromNotes(queryNotes)
-			query := InitScoreFromVectors(len(queryNotes.Notes), queryVecs)
+			query := InitScoreFromVectors(len(queryNotes), queryVecs)
 
 			arr, err := search(query, target)
 			if err != nil {
@@ -69,10 +69,10 @@ func TestPalestrina(t *testing.T) {
 }
 
 func Test457(t *testing.T) {
-	target := InitScoreFromFile("testdata/000000000000457_Castigans-castigavit_Josquin-Des-Prez_file3.xml")
-	queryNotes := UnmarshalNotesFromFile("testdata/queries/" + "DA_F.pb_notes")
+	target := InitScoreFromFile("testdata/000000000000457_Castigans-castigavit_Josquin-Des-Prez_file3.idxresp_notes")
+	queryNotes := UnmarshalNotesFromFile("testdata/queries/" + "CG_E.idxresp_notes")
 	queryVecs := VecsFromNotes(queryNotes)
-	query := InitScoreFromVectors(len(queryNotes.Notes), queryVecs)
+	query := InitScoreFromVectors(len(queryNotes), queryVecs)
 
 	_, err := search(query, target)
 	if err != nil {

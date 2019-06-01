@@ -38,7 +38,7 @@ class Index(smr_pb2_grpc.IndexServicer):
         sd = self._handle_symbolic_data(request)
 
         notes = indexers.notes(sd)[['onset', 'offset', 'pitch-b40']]
-        pb_notes = smr_pb2.Notes(notes = [
+        pb_notes = smr_pb2.IndexResponse(notes = [
             smr_pb2.Note(
                 onset=on,
                 offset=off,

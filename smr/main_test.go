@@ -2,26 +2,31 @@ package main
 
 import (
 	"io/ioutil"
-//	"github.com/golang/protobuf/proto"
-//	pb "../proto"
+	"github.com/boltdb/bolt"
+	"time"
+	"os"
+	"testing"
+	"path"
+	log "github.com/sirupsen/logrus"
+	"github.com/golang/protobuf/proto"
+	pb "../proto"
 )
 
+var BOLT *bolt.DB
+
 var (
-	LEIERMANN = "./testdata/lemstrom2011/leiermann"
+	TESTDATA = "./testdata"
+	PALESTRINA = path.Join(TESTDATA, "palestrina_masses")
+	LEMSTROM = path.Join(TESTDATA, "lemstrom2011")
+	LEIERMANN = path.Join(LEMSTROM, "leiermann")
+	QUERIES = path.Join(TESTDATA, "queries")
 	LEIERMANN_QUERY = []string{
-		"./testdata/lemstrom2011/query_a",
-		"./testdata/lemstrom2011/query_b",
-		"./testdata/lemstrom2011/query_c",
-		"./testdata/lemstrom2011/query_d",
-		"./testdata/lemstrom2011/query_e",
-		"./testdata/lemstrom2011/query_f",
-	}
-	PALESTRINA = "./testdata/palestrina_masses/"
-	TESTPIECES = []string{
-		"./testdata/000000000002557_Regina-caeli-letare_Josquin-Des-Prez_file5.mei",
-		"./testdata/000000000002678_Sancta-mater-istud-agas_Penalosa-Francisco_file5.mei",
-		"./testdata/000000000010113_Sonata-in-G-minor-Op.-4-No.-2_Grave_Corelli-Arcangelo_file1.xml",
-		"./testdata/000000000010138_Je-me-recommande_Binchois-Gilles-de-Bins-dit_file1.xml",
+		path.Join(LEMSTROM, "query_a"),
+		path.Join(LEMSTROM, "query_b"),
+		path.Join(LEMSTROM, "query_c"),
+		path.Join(LEMSTROM, "query_d"),
+		path.Join(LEMSTROM, "query_e"),
+		path.Join(LEMSTROM, "query_f"),
 	}
 )
 
@@ -39,21 +44,38 @@ func xk(err error) {
 	}
 }
 
-/*
+func testOpenBolt() (db *bolt.DB) {
+	var err error
+	db, err = bolt.Open("smr_test.db", 0666, &bolt.Options{Timeout: 1 * time.Second})
+	if err != nil {
+		panic(err)
+	}
+
+	return
+}
+
+func TestMain(t *testing.T) {
+	BOLT = testOpenBolt()
+	log.SetLevel(log.DebugLevel)
+	log.SetOutput(os.Stdout)
+}
+
 func InitScoreFromFile(path string) (CScore) {
 	notes := UnmarshalNotesFromFile(path)
 	vecs := VecsFromNotes(notes)
-	return InitScoreFromVectors(len(notes.Notes), vecs)
+	return InitScoreFromVectors(len(notes), vecs)
 }
 
-func UnmarshalNotesFromFile(path string) (*pb.Notes){
+func UnmarshalNotesFromFile(path string) ([]Note){
 	fileBytes, err := ioutil.ReadFile(path)
 	xk(err)
-	pbNotes := &pb.Notes{}
-	xk(proto.Unmarshal(fileBytes, pbNotes))
-	return pbNotes
+	idxResp := &pb.IndexResponse{}
+	xk(proto.Unmarshal(fileBytes, idxResp))
+	notes := NotesFromPbNotes(idxResp.Notes)
+	return notes
 }
 
+/*
 func TestPalestrina(t *testing.T) {
 	server := StartServer()
 

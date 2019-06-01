@@ -2,7 +2,6 @@ package main
 
 import (
 	pb "../proto"
-	"database/sql"
 	"github.com/boltdb/bolt"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
@@ -31,8 +30,8 @@ var server *SmrServer
 
 type SmrServer struct{
 	grpc *grpc.Server
-	boltDb *bolt.DB
-	pieceMap map[uint32]CScore
+	pieceStore *BoltPieceStore
+	pieceMap map[PieceId]CScore
 }
 
 func openBolt() (db *bolt.DB) {
@@ -44,33 +43,32 @@ func openBolt() (db *bolt.DB) {
 		log.Infof("connected to bolt %v", vp.GetString("SMR_DB"))
 	}
 
-
-	db.Update(func(tx *bolt.Tx) error {
-		_, err = tx.CreateBucketIfNotExists([]byte("scores"))
-		if err != nil { panic(err) }
-		return nil
-	})
-
 	return
 }
 
 func StartServer() *SmrServer {
 
 	boltDb := openBolt()
+	pieceStore, err := NewBoltPieceStore(boltDb)
+	if err != nil {
+		panic(err)
+	}
 
 	println("Starting server")
 	s := grpc.NewServer()
 	smr := SmrServer{
 		grpc: s,
-		boltDb: boltDb,
-		pieceMap: make(map[uint32]CScore),
+		pieceStore: pieceStore,
+		pieceMap: make(map[PieceId]CScore),
 	}
 	pb.RegisterSmrServer(s, &smr)
 
+	/*
 	err := smr.LoadScores(WINDOW)
 	if err != nil {
 		panic(err)
 	}
+	*/
 
 	ln, err := net.Listen("tcp", ":" + vp.GetString("SMR_PORT"))
 	if err != nil {
@@ -91,7 +89,7 @@ func main() {
 
 	// This is a global handle
 	server = StartServer()
-	defer server.boltDb.Close()
+	defer server.pieceStore.Close()
 	defer server.grpc.GracefulStop()
 
 	select {}

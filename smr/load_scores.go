@@ -1,58 +1,43 @@
 package main
 
+/*
 import (
 	"github.com/boltdb/bolt"
 	"errors"
 	vp "github.com/spf13/viper"
 )
 
-func (s *SmrServer) LoadOneScore(pid uint32, window int) (err error) {
-	var encodedScore []byte
+func (s *SmrServer) LoadOneScore(pid PieceId, window int) (err error) {
+	piece := s.pieceStore.Get(pid)
 
-	err = s.boltDb.View(func(tx *bolt.Tx) error {
-		scoreBucket := tx.Bucket([]byte("scores"))
-		if scoreBucket == nil {
-			return errors.New("Failed to find 'scores' bucket")
-		}
-
-		encodedScore = scoreBucket.Get(itob(pid))
-
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
-
-	score, err := DecodeScore(encodedScore)
-	if err != nil {
-		return err
-	}
-
-	for i := range score.Vectors {
-		if (int)(score.Vectors[i].EndIndex - score.Vectors[i].StartIndex) > window {
-			score.Vectors = append(score.Vectors[:i], score.Vectors[i+1:]...)
+	for i := range piece.Vectors {
+		if (int)(piece.Vectors[i].EndIndex - piece.Vectors[i].StartIndex) > window {
+			piece.Vectors = append(piece.Vectors[:i], piece.Vectors[i+1:]...)
 		}
 	}
 
-	s.pieceMap[pid] = InitScoreFromVectors(score.NumNotes, score.Vectors)
+	s.pieceMap[pid] = InitScoreFromVectors(piece.NumNotes, piece.Vectors)
 	return nil
 }
 
-func (s *SmrServer) LoadScores(window int) error {
+func (s *SmrServer) LoadScores(window int) (err error) {
 	println("Loading Scores into memory!")
 
-	ids, err := s.GetPieceIds()
+	ids, err := s.pieceStore.ListIds()
 	if err != nil {
 		return err
 	}
 
+	loaded := 0
 	for i, id := range ids {
 		if (i < vp.GetInt("SMR_MAX_SCORES")) {
-			s.LoadOneScore(id, window)
+			err = s.LoadOneScore(id, window)
+		}
+		if err != nil {
+			loaded = loaded + 1
 		}
 	}
-	println("Loaded ", min(len(ids), vp.GetInt("SMR_MAX_SCORES")), " scores")
+	println("Loaded ", loaded, " scores")
 
-	return nil
-}
+	return err
+*/

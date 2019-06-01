@@ -1,7 +1,6 @@
 package main
 
 import (
-	pb "../proto"
 	"fmt"
 	"sort"
 	"unsafe"
@@ -34,9 +33,9 @@ type Score struct {
 
 type vector struct {
 	X          float64
-	Y          int32
-	StartIndex uint32
-	EndIndex   uint32
+	Y          Base40Type
+	StartIndex NoteIndex
+	EndIndex   NoteIndex
 }
 
 type byHeightThenIndex []vector
@@ -57,7 +56,25 @@ func (vs byHeightThenIndex) Less(i, j int) bool {
 	}
 }
 
+func VecsFromNotes(notes []Note) (vecs []vector) {
 
+	for i, _ := range notes {
+		for j := i + 1; j < min(i+WINDOW, len(notes)); j++ {
+			cvec := vector{
+				(float64)(notes[j].Onset - notes[i].Onset),
+				Base40Type(notes[j].Pitch - notes[i].Pitch),
+				notes[i].Idx,
+				notes[j].Idx,
+			}
+			vecs = append(vecs, cvec)
+		}
+	}
+	sortedVecs := byHeightThenIndex(vecs)
+	sort.Sort(sortedVecs)
+	return
+}
+
+/*
 func VecsFromNotes(Notes *pb.Notes) (vecs []vector) {
 	notes := Notes.Notes
 
@@ -81,6 +98,7 @@ func InitScoreFromIndexerResp(resp *pb.Notes) (s CScore) {
 	s = InitScoreFromVectors(len(resp.Notes), vecs)
 	return
 }
+*/
 
 func InitScoreFromVectors(numNotes int, vecs []vector) (s CScore) {
 	CVectors := (*C.struct_IntraVector)(C.malloc(C.sizeof_struct_IntraVector * (C.ulong)(len(vecs))))

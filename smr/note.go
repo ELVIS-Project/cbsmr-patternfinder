@@ -10,19 +10,21 @@ import (
 
 type NoteIndex int32
 
+type Base40Type int32
+
 type Note struct {
-	onset    float64 // absolute quarter length from beginning of piece
-	duration float64 // relative logarithm
-	pitch    int32   // base 40
-	idx NoteIndex
+	Onset    float64 // absolute quarter length from beginning of piece
+	Duration float64 // relative logarithm
+	Pitch    Base40Type   // base 40
+	Idx NoteIndex
 }
 
 func (n Note) toPbNote() (pbNote *pb.Note) {
 	return &pb.Note{
-		Onset: float32(n.onset),
+		Onset: float32(n.Onset),
 		//Duration:
-		PitchB40: n.pitch,
-		PieceIdx: (uint32)(n.idx),
+		PitchB40: (int32)(n.Pitch),
+		PieceIdx: (uint32)(n.Idx),
 	}
 }
 
@@ -42,9 +44,9 @@ func CmpNotesByOnset(left []Note, right []Note) NotesCmp {
 	}
 
 	for k := 0; k < len(left); k++ {
-		if left[k].onset < right[k].onset {
+		if left[k].Onset < right[k].Onset {
 			return NOTES_LE
-		} else if left[k].onset > right[k].onset {
+		} else if left[k].Onset > right[k].Onset {
 			return NOTES_GE
 		}
 	}
@@ -53,17 +55,17 @@ func CmpNotesByOnset(left []Note, right []Note) NotesCmp {
 
 func (n Note) HashKey() (key Note) {
 	return Note{
-		onset: n.onset,
-		duration: n.duration,
-		pitch: n.pitch,
+		Onset: n.Onset,
+		Duration: n.Duration,
+		Pitch: n.Pitch,
 	}
 }
 
 func NewNote(protoNote *pb.Note, idx int) (n Note) {
-	n.onset = float64(protoNote.Onset)
-	//n.duration = math.Log2(float64(protoNote.Offset - protoNote.Onset))
-	n.pitch = int32(protoNote.PitchB40)
-	n.idx = int32(idx)
+	n.Onset = float64(protoNote.Onset)
+	//n.Duration = math.Log2(float64(protoNote.Offset - protoNote.Onset))
+	n.Pitch = Base40Type(protoNote.PitchB40)
+	n.Idx = NoteIndex(int32(idx))
 	return
 }
 
@@ -92,12 +94,11 @@ func (ns byOnsetPitch) Swap(i, j int) {
 	ns[i], ns[j] = ns[j], ns[i]
 }
 func (ns byOnsetPitch) Less(i, j int) bool {
-	if ns[i].onset < ns[j].onset {
+	if ns[i].Onset < ns[j].Onset {
 		return true
-	} else if ns[i].onset == ns[j].onset {
-		return ns[i].pitch < ns[j].pitch
+	} else if ns[i].Onset == ns[j].Onset {
+		return ns[i].Pitch < ns[j].Pitch
 	} else {
 		return false
 	}
 }
-

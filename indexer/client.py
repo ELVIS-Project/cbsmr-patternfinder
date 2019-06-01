@@ -42,7 +42,7 @@ def index_notes_from_file(path):
         return index_notes_oneshot(req)
 
 def index_notes_write_response(symbolic_data_path, output_dir):
-    """test.xml => ${output_dir}/text.idxresp_notes"""
+    """test.xml => ${output_dir}/test.idxresp_notes"""
     file_name_without_extension = os.path.splitext(os.path.basename(symbolic_data_path))[0]
     output_path = os.path.join(output_dir, file_name_without_extension) + ".idxresp_notes"
 

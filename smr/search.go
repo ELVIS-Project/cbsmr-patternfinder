@@ -1,12 +1,13 @@
 package main
 
+/*
 import (
 	pb "../proto"
 	"sort"
 )
 
-func Search(pieceMap map[NoteIndex]CScore, notes []Note) (occs []Occurrence, err error) {
-	vecs := VecsFromNotes(req)
+func Search(pieceMap map[PieceId]CScore, notes []Note) (occs []Occurrence, err error) {
+	vecs := VecsFromNotes(notes)
 
 	queryScore := InitScoreFromVectors(len(notes), vecs)
 
@@ -29,3 +30,4 @@ func Search(pieceMap map[NoteIndex]CScore, notes []Note) (occs []Occurrence, err
 
 	return sortedOccs, nil
 }
+*/

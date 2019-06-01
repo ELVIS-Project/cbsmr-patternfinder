@@ -8,13 +8,13 @@ import (
 	pb "../proto"
 )
 
-struct Occurrence {
+type Occurrence struct {
 	notes []Note
 	pid PieceId
 }
 
 func (occ Occurrence) toPbOcc() *pb.Occurrence {
-	return &pb.Occurrence{Notes: PbNotesFromNotes(occ.notes), Pid: occ.pid}
+	return &pb.Occurrence{Notes: PbNotesFromNotes(occ.notes), Pid: occ.pid.toPbPieceId()}
 }
 
 type rankOccurrencesTrivial []Occurrence
@@ -34,11 +34,11 @@ func (occs rankOccurrencesTrivial) Less(i, j int) bool {
 	}
 
 	// now len(occs[i].Notes) == len(occs[j].Notes)
-	var sum_i uint32
-	var sum_j uint32
+	var sum_i NoteIndex
+	var sum_j NoteIndex
 	for k := 1; k < len(occs[i].notes); k++ {
-		sum_i += occs[i].notes[k] - occs[i].notes[k-1]
-		sum_j += occs[j].notes[k] - occs[j].notes[k-1]
+		sum_i += occs[i].notes[k].Idx - occs[i].notes[k-1].Idx
+		sum_j += occs[j].notes[k].Idx - occs[j].notes[k-1].Idx
 	}
 
 	// Prefer more compact occurrences

@@ -2,34 +2,27 @@ package main
 
 import (
 	//"fmt"
-	"os"
 	"testing"
 	pb "../proto"
 	"io/ioutil"
 	"github.com/golang/protobuf/proto"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
 	QuarterNotesCD = []Note {
-		{onset: 0, duration: 0, pitch: 162},
-		{onset: 1, duration: 0, pitch: 168},
+		{Onset: 0, Duration: 0, Pitch: 162},
+		{Onset: 1, Duration: 0, Pitch: 168},
 	}
 	QuarterNotesDE = []Note {
-		{onset: 0, duration: 0, pitch: 168},
-		{onset: 1, duration: 0, pitch: 174},
+		{Onset: 0, Duration: 0, Pitch: 168},
+		{Onset: 1, Duration: 0, Pitch: 174},
 	}
 	QuarterNotesGAB = []Note {
-		{onset: 0, duration: 0, pitch: 185},
-		{onset: 1, duration: 0, pitch: 191},
-		{onset: 2, duration: 0, pitch: 197},
+		{Onset: 0, Duration: 0, Pitch: 185},
+		{Onset: 1, Duration: 0, Pitch: 191},
+		{Onset: 2, Duration: 0, Pitch: 197},
 	}
 )
-
-func TestMain(t *testing.T){
-	log.SetLevel(log.DebugLevel)
-	log.SetOutput(os.Stdout)
-}
 
 func UnmarshalIdxRespFromFile(path string) *pb.IndexResponse {
 	fileBytes, err := ioutil.ReadFile(path)
@@ -63,18 +56,18 @@ func TestTranspositions(t *testing.T) {
 			2,
 			QuarterNotesCD,
 			[]Note{
-				{onset: 0, duration: 0, pitch: 185},
-				{onset: 1, duration: 0, pitch: 191},
-				{onset: 2, duration: 0, pitch: 197},
+				{Onset: 0, Duration: 0, Pitch: 185},
+				{Onset: 1, Duration: 0, Pitch: 191},
+				{Onset: 2, Duration: 0, Pitch: 197},
 			},
 			Results{
 				[]Note{
-					{onset: 0, duration: 0, pitch: 185},
-					{onset: 1, duration: 0, pitch: 191},
+					{Onset: 0, Duration: 0, Pitch: 185},
+					{Onset: 1, Duration: 0, Pitch: 191},
 				},
 				[]Note {
-					{onset: 1, duration: 0, pitch: 191},
-					{onset: 2, duration: 0, pitch: 197},
+					{Onset: 1, Duration: 0, Pitch: 191},
+					{Onset: 2, Duration: 0, Pitch: 197},
 				},
 			},
 		},
@@ -82,18 +75,18 @@ func TestTranspositions(t *testing.T) {
 			3,
 			QuarterNotesCD,
 			[]Note{
-				{onset: 0, duration: 0, pitch: 185},
-				{onset: 1, duration: 0, pitch: 191},
-				{onset: 2, duration: 0, pitch: 197},
+				{Onset: 0, Duration: 0, Pitch: 185},
+				{Onset: 1, Duration: 0, Pitch: 191},
+				{Onset: 2, Duration: 0, Pitch: 197},
 			},
 			Results{
 				[]Note{
-					{onset: 0, duration: 0, pitch: 185},
-					{onset: 1, duration: 0, pitch: 191},
+					{Onset: 0, Duration: 0, Pitch: 185},
+					{Onset: 1, Duration: 0, Pitch: 191},
 				},
 				[]Note {
-					{onset: 1, duration: 0, pitch: 191},
-					{onset: 2, duration: 0, pitch: 197},
+					{Onset: 1, Duration: 0, Pitch: 191},
+					{Onset: 2, Duration: 0, Pitch: 197},
 				},
 			},
 		},
@@ -101,21 +94,21 @@ func TestTranspositions(t *testing.T) {
 			6,
 			QuarterNotesCD,
 			[]Note{
-				{onset: 0, duration: 0, pitch: 185},
-				{onset: 0.5, duration: 0, pitch: 300},
-				{onset: 1, duration: 0, pitch: 191},
-				{onset: 1.5, duration: 0, pitch: 300},
-				{onset: 1.7, duration: 0, pitch: 300},
-				{onset: 2, duration: 0, pitch: 197},
+				{Onset: 0, Duration: 0, Pitch: 185},
+				{Onset: 0.5, Duration: 0, Pitch: 300},
+				{Onset: 1, Duration: 0, Pitch: 191},
+				{Onset: 1.5, Duration: 0, Pitch: 300},
+				{Onset: 1.7, Duration: 0, Pitch: 300},
+				{Onset: 2, Duration: 0, Pitch: 197},
 			},
 			Results{
 				[]Note{
-					{onset: 0, duration: 0, pitch: 185},
-					{onset: 1, duration: 0, pitch: 191},
+					{Onset: 0, Duration: 0, Pitch: 185},
+					{Onset: 1, Duration: 0, Pitch: 191},
 				},
 				[]Note {
-					{onset: 1, duration: 0, pitch: 191},
-					{onset: 2, duration: 0, pitch: 197},
+					{Onset: 1, Duration: 0, Pitch: 191},
+					{Onset: 2, Duration: 0, Pitch: 197},
 				},
 			},
 		},
@@ -126,28 +119,28 @@ func TestTranspositions(t *testing.T) {
 			// Tests partial matches...
 			QuarterNotesGAB,
 			[]Note{
-				{onset: 0, duration: 0, pitch: 300},
-				{onset: 0.5, duration: 0, pitch: 300},
-				{onset: 3.5, duration: 0, pitch: 300},
-				{onset: 4, duration: 0, pitch: 185},
-				{onset: 5, duration: 0, pitch: 191},
-				{onset: 6, duration: 0, pitch: 197},
-				{onset: 6.5, duration: 0, pitch: 300},
-				{onset: 7, duration: 0, pitch: 225},
-				{onset: 8, duration: 0, pitch: 231},
-				{onset: 9, duration: 0, pitch: 237},
-				{onset: 9.5, duration: 0, pitch: 300},
+				{Onset: 0, Duration: 0, Pitch: 300},
+				{Onset: 0.5, Duration: 0, Pitch: 300},
+				{Onset: 3.5, Duration: 0, Pitch: 300},
+				{Onset: 4, Duration: 0, Pitch: 185},
+				{Onset: 5, Duration: 0, Pitch: 191},
+				{Onset: 6, Duration: 0, Pitch: 197},
+				{Onset: 6.5, Duration: 0, Pitch: 300},
+				{Onset: 7, Duration: 0, Pitch: 225},
+				{Onset: 8, Duration: 0, Pitch: 231},
+				{Onset: 9, Duration: 0, Pitch: 237},
+				{Onset: 9.5, Duration: 0, Pitch: 300},
 			},
 			Results{
 				[]Note{
-					{onset: 4, duration: 0, pitch: 185},
-					{onset: 5, duration: 0, pitch: 191},
-					{onset: 6, duration: 0, pitch: 197},
+					{Onset: 4, Duration: 0, Pitch: 185},
+					{Onset: 5, Duration: 0, Pitch: 191},
+					{Onset: 6, Duration: 0, Pitch: 197},
 				},
 				[]Note {
-					{onset: 7, duration: 0, pitch: 225},
-					{onset: 8, duration: 0, pitch: 231},
-					{onset: 9, duration: 0, pitch: 203},
+					{Onset: 7, Duration: 0, Pitch: 225},
+					{Onset: 8, Duration: 0, Pitch: 231},
+					{Onset: 9, Duration: 0, Pitch: 203},
 				},
 			},
 		},
@@ -158,14 +151,14 @@ func TestTranspositions(t *testing.T) {
 			target := make([]Note, len(test.target))
 			for i := range test.target {
 				target[i] = test.target[i]
-				target[i].pitch = target[i].pitch + (int32)(transpose)
+				target[i].Pitch = target[i].Pitch + (Base40Type)(transpose)
 			}
 			expected := make(Results, len(test.expected))
 			for i := range test.expected {
 				expected[i] = make([]Note, len(test.expected[i]))
 				for j := range test.expected[i] {
 					expected[i][j] = test.expected[i][j]
-					expected[i][j].pitch = expected[i][j].pitch + (int32)(transpose)
+					expected[i][j].Pitch = expected[i][j].Pitch + (Base40Type)(transpose)
 				}
 			}
 
@@ -270,13 +263,13 @@ func TestAlgorithmSimpleCases(t *testing.T) {
 			// Two occurrences, unscaled
 			2,
 			[]Note {
-				{onset: 0, duration: 1, pitch: 10},
-				{onset: 2, duration: 1, pitch: 20},
+				{Onset: 0, Duration: 1, Pitch: 10},
+				{Onset: 2, Duration: 1, Pitch: 20},
 			},
 			[]Note {
-				{onset: 0, duration: 1, pitch: 10},
-				{onset: 2, duration: 1, pitch: 20},
-				{onset: 4, duration: 1, pitch: 30},
+				{Onset: 0, Duration: 1, Pitch: 10},
+				{Onset: 2, Duration: 1, Pitch: 20},
+				{Onset: 4, Duration: 1, Pitch: 30},
 			},
 			"[[{0 1 10} {2 1 20}] [{2 1 20} {4 1 30}]]",
 		},
@@ -284,12 +277,12 @@ func TestAlgorithmSimpleCases(t *testing.T) {
 			// One occurrence, scaled
 			2,
 			[]Note {
-				{onset: 0, duration: 1, pitch: 10},
-				{onset: 2, duration: 1, pitch: 20},
+				{Onset: 0, Duration: 1, Pitch: 10},
+				{Onset: 2, Duration: 1, Pitch: 20},
 			},
 			[]Note {
-				{onset: 0, duration: 2, pitch: 10},
-				{onset: 4, duration: 2, pitch: 20},
+				{Onset: 0, Duration: 2, Pitch: 10},
+				{Onset: 4, Duration: 2, Pitch: 20},
 			},
 			"[[{0 2 10} {4 2 20}]]",
 		},
@@ -297,14 +290,14 @@ func TestAlgorithmSimpleCases(t *testing.T) {
 			// Two occurrences, one is scaled
 			2,
 			[]Note {
-				{onset: 0, duration: 1, pitch: 10},
-				{onset: 2, duration: 1, pitch: 20},
+				{Onset: 0, Duration: 1, Pitch: 10},
+				{Onset: 2, Duration: 1, Pitch: 20},
 			},
 			[]Note {
-				{onset: 0, duration: 2, pitch: 10},
-				{onset: 4, duration: 2, pitch: 20},
-				{onset: 8, duration: 1, pitch: 10},
-				{onset: 10, duration: 1, pitch: 20},
+				{Onset: 0, Duration: 2, Pitch: 10},
+				{Onset: 4, Duration: 2, Pitch: 20},
+				{Onset: 8, Duration: 1, Pitch: 10},
+				{Onset: 10, Duration: 1, Pitch: 20},
 			},
 			"[[{0 2 10} {4 2 20}] [{8 1 10} {10 1 20}]]",
 		},
@@ -312,23 +305,23 @@ func TestAlgorithmSimpleCases(t *testing.T) {
 			// Two occurrences, one is scaled, embedded within larger score
 			3,
 			[]Note {
-				{onset: 0, duration: 1, pitch: 10},
-				{onset: 2, duration: 1, pitch: 20},
-				{onset: 4, duration: 1, pitch: 50},
+				{Onset: 0, Duration: 1, Pitch: 10},
+				{Onset: 2, Duration: 1, Pitch: 20},
+				{Onset: 4, Duration: 1, Pitch: 50},
 			},
 			[]Note {
-				{onset: 0, duration: 0, pitch: 20},
-				{onset: 1, duration: 0, pitch: 20},
-				{onset: 2, duration: 0, pitch: 20},
-				{onset: 3, duration: 0, pitch: 20},
-				{onset: 4, duration: 1, pitch: 20},
-				{onset: 6, duration: 1, pitch: 30},
-				{onset: 8, duration: 1, pitch: 60},
-				{onset: 10, duration: 0, pitch: 40},
-				{onset: 11, duration: 0, pitch: 40},
-				{onset: 12, duration: 2, pitch: 20},
-				{onset: 16, duration: 2, pitch: 30},
-				{onset: 20, duration: 2, pitch: 60},
+				{Onset: 0, Duration: 0, Pitch: 20},
+				{Onset: 1, Duration: 0, Pitch: 20},
+				{Onset: 2, Duration: 0, Pitch: 20},
+				{Onset: 3, Duration: 0, Pitch: 20},
+				{Onset: 4, Duration: 1, Pitch: 20},
+				{Onset: 6, Duration: 1, Pitch: 30},
+				{Onset: 8, Duration: 1, Pitch: 60},
+				{Onset: 10, Duration: 0, Pitch: 40},
+				{Onset: 11, Duration: 0, Pitch: 40},
+				{Onset: 12, Duration: 2, Pitch: 20},
+				{Onset: 16, Duration: 2, Pitch: 30},
+				{Onset: 20, Duration: 2, Pitch: 60},
 			},
 			"[[{4 1 20} {6 1 30} {8 6 40}] [{12 2 20} {16 2 30} {20 2 40}]]",
 		},
@@ -383,9 +376,9 @@ func TestAlgorithmLemstrom(t *testing.T) {
 
 func TestNormalize(t *testing.T) {
 	target := []Note{
-		{onset: 0, duration: 1, pitch: 10},
-		{onset: 2, duration: 1, pitch: 20},
-		{onset: 4, duration: 1, pitch: 30},
+		{Onset: 0, Duration: 1, Pitch: 10},
+		{Onset: 2, Duration: 1, Pitch: 20},
+		{Onset: 4, Duration: 1, Pitch: 30},
 	}
 	window := Window(target)
 	nw := window.Normalize(Basis{target[0], target[1]})
@@ -396,9 +389,9 @@ func TestNormalize(t *testing.T) {
 
 func TestDenormalize(t *testing.T) {
 	target := []Note{
-		{onset: 0, duration: 1, pitch: 10},
-		{onset: 2, duration: 1, pitch: 20},
-		{onset: 4, duration: 1, pitch: 30},
+		{Onset: 0, Duration: 1, Pitch: 10},
+		{Onset: 2, Duration: 1, Pitch: 20},
+		{Onset: 4, Duration: 1, Pitch: 30},
 	}
 	basis := Basis{target[0], target[1]}
 	window := Window(target)

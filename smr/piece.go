@@ -1,35 +1,47 @@
+/** piece.go
+***
+**/
+
 package main
 
 import (
 	"bytes"
 	"encoding/gob"
+	"encoding/binary"
 )
 
 type PieceId uint32
 
-struct Piece {
-	Notes []note
-	Vectors []vector
-	Pid PieceIdx
+func (pid PieceId) toBytes() []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(pid))
+	return b
 }
 
-func (s Score) Encode() ([]byte, error) {
+func (pid PieceId) toPbPieceId() uint32 {
+	return uint32(pid)
+}
+
+func pieceIdFromBytes(v []byte) PieceId {
+	return (PieceId)(binary.BigEndian.Uint64(v))
+}
+
+type Piece struct {
+	Notes []Note
+	Vectors []vector
+	Pid PieceId
+}
+
+func (s Piece) Encode() ([]byte, error) {
 	buf := bytes.NewBuffer([]byte{})
 	encoder := gob.NewEncoder(buf)
 	err := encoder.Encode(s)
-	if err != nil {
-		return []byte{}, err
-	}
-	return buf.Bytes(), nil
+	return buf.Bytes(), err
 }
 
-func DecodeScore(input []byte) (s Score, err error) {
+func DecodePiece(input []byte) (p Piece, err error) {
 	buf := bytes.NewBuffer(input)
 	decoder := gob.NewDecoder(buf)
-	err = decoder.Decode(&s)
-	if err != nil {
-		return Score{}, err
-	}
-	return
+	err = decoder.Decode(&p)
+	return p, err
 }
-

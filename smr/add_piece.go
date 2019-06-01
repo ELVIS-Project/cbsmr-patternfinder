@@ -1,69 +1,51 @@
 package main
+/*
 
 import (
 	pb "../proto"
 	"context"
 	"github.com/boltdb/bolt"
-	"encoding/binary"
 	"errors"
 	log "github.com/sirupsen/logrus"
 )
 
-func itob(v uint32) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(v))
-	return b
-}
+func AddPiece(piece Piece) (err error) {
 
-func btoi(v []byte) uint32 {
-	return (uint32)(binary.BigEndian.Uint64(v))
-}
-
-func AddPiece(pid int, notes []*pb.Note) (err error) {
-
-	vecs := VecsFromNotes(notes)
-	score := Piece {
-		Notes: notes
-		Vectors: vecs,
-	}
-
-	scoreBytes, err := score.Encode()
+	pieceBytes, err := Piece.Encode()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = s.boltDb.Update(func(tx *bolt.Tx) error {
-		scoreBucket := tx.Bucket([]byte("scores"))
-		if scoreBucket == nil {
-			return errors.New("Can't retrieve 'scores' bucket")
+		pieceBucket := tx.Bucket([]byte("pieces"))
+		if pieceBucket == nil {
+			return errors.New("Can't retrieve 'pieces' bucket")
 		}
-		err := scoreBucket.Put(itob(req.Id), scoreBytes)
+		err := pieceBucket.Put(piece.pid.toBytes(), pieceBytes)
 		if err != nil {
 			return err
 		}
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	s.LoadOneScore(pid, WINDOW)
-
-	log.Infoln("Put in a score! id: ", pid)
-	return &pb.AddPieceResponse{}, nil
+	return nil
 }
 
-func GetPieceIds(bolt bolt.DB) (pids []uint32, err error) {
+func GetPieceIds(bolt bolt.DB) (pids []PieceId, err error) {
 	err = s.boltDb.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte("scores"))
+		bucket := tx.Bucket([]byte("pieces"))
 		if bucket == nil {
-			return errors.New("Can't retrieve 'scores' bucket")
+			return errors.New("Can't retrieve 'pieces' bucket")
 		}
 		bucket.ForEach(func(k, v []byte) error {
-			pids = append(pids, btoi(k))
+			pids = append(pids, pieceIdxFromBytes(k))
 			return nil
 		})
 		return nil
 	})
 	return
 }
+*/

@@ -36,23 +36,23 @@ func printBins() {
 }
 
 func (n Note) Normalize(b Basis) (normedNote Note) {
-	normedVOnset := b.v.onset - b.u.onset
+	normedVOnset := b.v.Onset - b.u.Onset
 
-	normedNote.pitch = n.pitch - b.u.pitch
-	normedNote.onset = n.onset - b.u.onset
-	//normedNote.duration = n.duration - b.u.duration
+	normedNote.Pitch = n.Pitch - b.u.Pitch
+	normedNote.Onset = n.Onset - b.u.Onset
+	//normedNote.Duration = n.Duration - b.u.Duration
 
-	normedNote.onset /= math.Abs(normedVOnset)
+	normedNote.Onset /= math.Abs(normedVOnset)
 
 	return
 }
 func (n Note) Denormalize(b Basis) (denormedNote Note) {
-	normedVOnset := b.v.onset - b.u.onset
-	denormedNote.onset = n.onset * math.Abs(normedVOnset)
+	normedVOnset := b.v.Onset - b.u.Onset
+	denormedNote.Onset = n.Onset * math.Abs(normedVOnset)
 
-	denormedNote.pitch = n.pitch + b.u.pitch
-	denormedNote.onset += b.u.onset
-	//denormedNote.duration = n.duration + b.u.duration
+	denormedNote.Pitch = n.Pitch + b.u.Pitch
+	denormedNote.Onset += b.u.Onset
+	//denormedNote.Duration = n.Duration + b.u.Duration
 
 	return
 }
@@ -84,12 +84,12 @@ func (rs Results) asNoteIndices(target []*pb.Note) (indices [][]uint32){
 }
 */
 
-func (rs Results) toNoteIndices() (indices [][]int32) {
-	indices = make([][]int32, len(rs))
+func (rs Results) toNoteIndices() (indices [][]NoteIndex) {
+	indices = make([][]NoteIndex, len(rs))
 	for i, result := range rs {
-		indices[i] = make([]int32, len(result))
+		indices[i] = make([]NoteIndex, len(result))
 		for _, note := range result {
-			indices[i] = append(indices[i], note.idx)
+			indices[i] = append(indices[i], note.Idx)
 		}
 	}
 	return
