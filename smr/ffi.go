@@ -7,8 +7,8 @@ import (
 	"errors"
 )
 
-// #cgo LDFLAGS: -L ./helsinki-ttwi/w2 -l w2
-// #include "./helsinki-ttwi/w2/w2.h"
+// #cgo LDFLAGS: -L ./helsinki-ttwi -l w2
+// #include "./helsinki-ttwi/w2.h"
 import "C"
 
 const (
@@ -24,11 +24,6 @@ func PrintScore(s *C.struct_Score) {
 		cv := vecs[i]
 		println(fmt.Sprintf("x: %v, y: %v, si: %v, ei; %v", cv.x, cv.y, cv.startIndex, cv.endIndex))
 	}
-}
-
-type Score struct {
-	Vectors []vector
-	NumNotes int
 }
 
 type vector struct {
