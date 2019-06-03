@@ -29,6 +29,8 @@ def build_response(db_conn, occs, rpp, page, query):
 
 def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
 
+    excerptIndices = [n.piece_idx for n in pb_occ.notes]
+
     resp = {
         "excerptFailed": False,
         "excerptSkipped": True,
@@ -45,7 +47,7 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
 
     if get_excerpt:
         try:
-            xml = coloured_excerpt(db_conn, pb_occ.notes, pb_occ.pid)
+            xml = coloured_excerpt(db_conn, excerptIndices, pb_occ.pid)
         except Exception as e:
             b64_xml = "excerpt failed: " + str(e)
             resp["excerptFailed"] = True
@@ -55,7 +57,7 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
     else:
         b64_xml = ""
 
-    resp["url"] = url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in pb_occ.notes))
+    resp["url"] = url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in excerptIndices))
     resp["xmlBase64"] = b64_xml
 
     return resp

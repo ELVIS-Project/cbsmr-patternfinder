@@ -22,7 +22,7 @@ def add_piece(i, b64_data):
         symbolic_data = bytes(b64_data, encoding='utf-8'))
     pb_notes = client.index_notes(pb_req)
 
-    resp = smr.AddPiece(smr_pb2.AddPieceRequest(id=i, notes=pb_notes.notes))
+    resp = smr.AddPiece(smr_pb2.AddPieceRequest(pid=i, notes=pb_notes.notes))
     print(resp)
 
     smr_channel.__exit__(*sys.exc_info())
@@ -32,7 +32,7 @@ def add_all():
     print("Querying smr")
     with grpc.insecure_channel(smr_uri) as channel:
         stub = smr_pb2_grpc.SmrStub(channel)
-        already_existing = stub.AllPieces(smr_pb2.AllPiecesRequest())
+        already_existing = stub.GetPieceIds(smr_pb2.GetPieceIdsRequest())
     print(str(len(already_existing.pids)) + " scores already in smr")
 
     print("Querying postgres")
@@ -48,8 +48,8 @@ def add_all():
             if i not in already_existing.pids:
                 try: 
                     add_piece(i, data)
-                except Exception:
-                    print(str(i) + " failed")
+                except Exception as e:
+                    print(str(i) + " failed: " + str(e))
             result = cur.fetchone()
 
 if __name__ == '__main__':
