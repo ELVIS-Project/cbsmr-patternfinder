@@ -9,7 +9,7 @@ import (
 func (s *SmrServer) GetPieceIds(ctx context.Context, req *pb.GetPieceIdsRequest) (resp *pb.GetPieceIdsResponse, err error) {
 	pids, err := s.pieceStore.ListIds()
 
-	pbIds := make([]uint32, len(pids))
+	var pbIds []uint32
 	for _, pid := range pids {
 		pbIds = append(pbIds, pid.toPbPieceId())
 	}
@@ -44,7 +44,7 @@ func (s SmrServer) Search(ctx context.Context, req *pb.SearchRequest) (resp *pb.
 		return &pb.SearchResponse{}, err
 	}
 
-	pbOccs := make([]*pb.Occurrence, len(occs))
+	var pbOccs []*pb.Occurrence
 	for _, occ := range occs {
 		pbOccs = append(pbOccs, occ.toPbOcc())
 	}

@@ -112,6 +112,7 @@ func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
 			if err != nil {
 				return err
 			}
+			println(piece.Pid)
 
 			// Search
 			targetScore := InitScoreFromVectors(len(piece.Notes), VecsFromNotes(piece.Notes))
@@ -122,6 +123,7 @@ func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
 
 			// Prepare occurrences
 			for _, arr := range intArrays {
+				println(fmt.Sprintf("%v", arr))
 				var notes []Note
 				for _, idx := range arr {
 					n := piece.Notes[idx]

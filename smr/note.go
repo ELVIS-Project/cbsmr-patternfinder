@@ -69,7 +69,7 @@ func NewNote(protoNote *pb.Note, idx int) (n Note) {
 	return
 }
 
-func NotesFromPbNotes(protoNotes []*pb.Note) ([]Note) {
+func NotesFromPbNotes(protoNotes []*pb.Note) []Note {
 	notes := make([]Note, len(protoNotes))
 	for i, pbNote := range protoNotes {
 		notes[i] = NewNote(pbNote, i)
@@ -78,7 +78,6 @@ func NotesFromPbNotes(protoNotes []*pb.Note) ([]Note) {
 }
 
 func PbNotesFromNotes(notes []Note) (protoNotes []*pb.Note) {
-	protoNotes = make([]*pb.Note, len(notes))
 	for _, note := range notes {
 		protoNotes = append(protoNotes, note.toPbNote())
 	}
