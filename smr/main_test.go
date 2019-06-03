@@ -46,7 +46,7 @@ func xk(err error) {
 
 func testOpenBolt() (db *bolt.DB) {
 	var err error
-	db, err = bolt.Open("smr_test.db", 0666, &bolt.Options{Timeout: 1 * time.Second})
+	db, err = bolt.Open("smr_test.db", 0666, &bolt.Options{Timeout: 3 * time.Second})
 	if err != nil {
 		panic(err)
 	}
@@ -54,8 +54,11 @@ func testOpenBolt() (db *bolt.DB) {
 	return
 }
 
+func closeBolt() {
+	os.Remove("smr_test.db")
+}
+
 func TestMain(t *testing.T) {
-	BOLT = testOpenBolt()
 	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stdout)
 }
@@ -74,6 +77,17 @@ func UnmarshalNotesFromFile(path string) ([]Note){
 	notes := NotesFromPbNotes(idxResp.Notes)
 	return notes
 }
+
+func NewPieceFromFile(path string, id PieceId) Piece {
+	notes := UnmarshalNotesFromFile(path)
+	vecs := VecsFromNotes(notes)
+	return Piece {
+		Notes: notes,
+		Vectors: vecs,
+		Pid: id,
+	}
+}
+
 
 /*
 func TestPalestrina(t *testing.T) {

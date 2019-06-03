@@ -11,11 +11,19 @@ const (
 	BOLT_PIECE_BUCKET = "pieces"
 )
 
+type InspectableStore interface {
+	ListIds() []PieceId
+}
+
+type SearchableStore interface {
+	Search([]Note) []Occurrence
+}
+
 type PieceStore interface {
 	Get(PieceId) Piece
 	Set(PieceId, Piece)
-	ListIds() []PieceId
-	Search([]Note) []Occurrence
+	SearchableStore
+	InspectableStore
 }
 
 type BoltPieceStore struct {
@@ -25,10 +33,7 @@ type BoltPieceStore struct {
 func NewBoltPieceStore(db *bolt.DB) (bps *BoltPieceStore, err error) {
 	err = db.Update(func(tx *bolt.Tx) error {
 		_, err = tx.CreateBucketIfNotExists([]byte(BOLT_PIECE_BUCKET))
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	})
 	if err != nil {
 		return
@@ -109,19 +114,22 @@ func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
 			}
 
 			// Search
-			targetScore := InitScoreFromVectors(len(piece.Notes), VecsFromNotes(query))
-			intArrays, err := search(queryScore, targetScore)
+			targetScore := InitScoreFromVectors(len(piece.Notes), VecsFromNotes(piece.Notes))
+			intArrays, err := CSearch(queryScore, targetScore)
 			if err != nil {
 				return err
 			}
 
 			// Prepare occurrences
 			for _, arr := range intArrays {
-				notes := make([]Note, len(arr))
-				for i := range arr {
-					notes = append(notes, piece.Notes[i])
+				var notes []Note
+				for _, idx := range arr {
+					n := piece.Notes[idx]
+					n.Idx = NoteIndex(idx)
+					notes = append(notes, n)
 				}
-				occs = append(occs, Occurrence{notes: notes, pid: piece.Pid}) }
+				occs = append(occs, Occurrence{notes: notes, pid: piece.Pid})
+			}
 			return nil
 		})
 		return err
@@ -138,4 +146,49 @@ func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
 	sort.Sort(sortedOccs)
 
 	return sortedOccs, nil
+}
+
+type CScoreStore interface {
+	Get(PieceId) CScore
+	Set(PieceId, CScore)
+	SearchableStore
+	InspectableStore
+}
+
+type MapCScoreStore map[PieceId]CScore
+
+func (m MapCScoreStore) Get(pid PieceId) CScore {
+	return m[pid]
+}
+
+func (m MapCScoreStore) Set(pid PieceId, score CScore) {
+	m[pid] = score
+}
+
+func (m MapCScoreStore) ListIds() (pids []PieceId) {
+	pids = make([]PieceId, len(m))
+	for k := range m {
+		pids = append(pids, k)
+	}
+	return pids
+}
+
+func (m MapCScoreStore) Search(query []Note) (occs []Occurrence, err error) {
+	queryScore := InitScoreFromVectors(len(query), VecsFromNotes(query))
+
+	for k, targetScore := range m {
+		intArrays, err := CSearch(queryScore, targetScore)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, arr := range intArrays {
+			notes := make([]Note, len(arr))
+			for _, x := range arr {
+				notes = append(notes, Note{Idx: NoteIndex(x)})
+			}
+			occs = append(occs, Occurrence{notes: notes, pid: k})
+		}
+	}
+	return
 }
