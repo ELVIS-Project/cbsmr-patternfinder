@@ -12,7 +12,7 @@ func Search(pieceMap map[PieceId]CScore, notes []Note) (occs []Occurrence, err e
 	queryScore := InitScoreFromVectors(len(notes), vecs)
 
 	for pieceId, cscore := range pieceMap {
-		intArrays, err := search(queryScore, cscore)
+		intArrays, err := CSearch(queryScore, cscore)
 		if err != nil {
 			return nil, err
 		}
