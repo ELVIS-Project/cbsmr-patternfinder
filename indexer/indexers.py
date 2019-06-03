@@ -1,5 +1,6 @@
 import sys
 import os
+import io
 import csv
 import music21
 import pandas as pd
@@ -33,6 +34,44 @@ def notes(symbolic_data):
     indexed_notes = (_note_indexer(n) for n in notes)
 
     return pd.DataFrame(indexed_notes).sort_values(by=["onset", "pitch-b40"])
+
+
+def intra_vectors(piece, window):
+
+    df = notes(piece)
+
+    intervals = []
+    for window in range(1, min(window + 1, len(df))):
+        vectors = df.diff(periods = window).dropna()
+        vectors['window'] = window
+
+        vectors['x'] = vectors['offset']
+        vectors['y'] = vectors['pitch-b40'].astype('int32')
+        vectors['startIndex'] = vectors.index - window
+        vectors['endIndex'] = vectors.index
+        intervals.append(vectors)
+
+    df = pd.concat(intervals, axis=0).sort_values(by=["y", "startIndex"])
+    return df
+
+def intra_vectors_to_csv(df):
+
+    file_obj = io.StringIO()
+    csv_writer = csv.writer(file_obj, delimiter=',')
+    csv_writer.writerow(['x', 'y', 'startIndex', 'endIndex'])
+    # the df.diff() takes vectors between notes, so the indices must be incremented
+    csv_writer.writerow([len(set(df.index)) + 1])
+    csv_writer.writerow([len(df.index)])
+
+    df.to_csv(
+        columns=['x', 'y', 'startIndex', 'endIndex'],
+        path_or_buf = file_obj,
+        index=False,
+        header=False)
+
+    output = file_obj.getvalue()
+    file_obj.close()
+    return output
 
 def parse_piece_path(piece_path):
     basename, fmt = os.path.splitext(os.path.basename(piece_path))

@@ -1,6 +1,7 @@
 import sys
 import os
-from indexer import client
+import csv
+from indexer import client, indexers
 from proto import smr_pb2, smr_pb2_grpc
 
 CURDIR = os.path.abspath(os.path.dirname(__file__))
@@ -19,9 +20,22 @@ def palestrina():
 def lemstrom():
     client.index_notes_write_response(os.path.join(LEMSTROM, "leiermann.xml"), LEMSTROM)
     for q in ("a", "b", "c", "d", "e", "f"):
-        query = f"query_{q}.mid"
-        midi_file_path = os.path.join(LEMSTROM, query)
-        client.index_notes_write_response(midi_file_path, LEMSTROM)
+        query = f"query_{q}"
+        midi_file_path = os.path.join(LEMSTROM, query + ".mid")
+        response = client.index_notes_write_response(midi_file_path, LEMSTROM)
+
+def lemstrom_csv():
+    # Vectors CSV for c library testing
+    for filename in ("leiermann.xml", "query_a.mid", "query_b.mid", "query_c.mid", "query_d.mid", "query_e.mid", "query_f.mid"):
+        filename_without_extension = os.path.splitext(os.path.basename(filename))[0]
+        with open(os.path.join(LEMSTROM, filename), "rb") as f:
+            data = f.read()
+            notes_df = indexers.notes(data)
+            vectors_df = indexers.intra_vectors(data, len(notes_df))
+            vectors_csv = indexers.intra_vectors_to_csv(vectors_df)
+
+        with open(os.path.join(LEMSTROM, filename_without_extension + ".csv"), "w", newline="") as csvfile:
+            csvfile.write(vectors_csv)
 
 def other():
     client.index_notes_write_response(os.path.join(TESTDATA, "000000000000457_Castigans-castigavit_Josquin-Des-Prez_file3.xml"), TESTDATA)
@@ -50,7 +64,8 @@ def queries():
         f.write(double_leading_tone.SerializeToString())
 
 if __name__ == "__main__":
+    lemstrom_csv()
+    lemstrom()
     queries()
     other()
     palestrina()
-    lemstrom()
