@@ -144,10 +144,9 @@ func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
 		return []Occurrence{}, nil
 	}
 
-	sortedOccs := rankOccurrencesTrivial(occs)
-	sort.Sort(sortedOccs)
+	sort.Sort(sort.Reverse(rankOccurrencesTrivial(occs)))
 
-	return sortedOccs, nil
+	return occs, nil
 }
 
 type CScoreStore interface {
