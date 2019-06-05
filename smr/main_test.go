@@ -63,9 +63,9 @@ func TestMain(t *testing.T) {
 	log.SetOutput(os.Stdout)
 }
 
-func InitScoreFromFile(path string) (CScore) {
+func InitScoreFromFile(path string, window int) (CScore) {
 	notes := UnmarshalNotesFromFile(path)
-	vecs := VecsFromNotes(notes)
+	vecs := VecsFromNotes(notes, window)
 	return InitScoreFromVectors(len(notes), vecs)
 }
 
@@ -78,9 +78,9 @@ func UnmarshalNotesFromFile(path string) ([]Note){
 	return notes
 }
 
-func NewPieceFromFile(path string, id PieceId) Piece {
+func NewPieceFromFile(path string, id PieceId, window int) Piece {
 	notes := UnmarshalNotesFromFile(path)
-	vecs := VecsFromNotes(notes)
+	vecs := VecsFromNotes(notes, window)
 	return Piece {
 		Notes: notes,
 		Vectors: vecs,

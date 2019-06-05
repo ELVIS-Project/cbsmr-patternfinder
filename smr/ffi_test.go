@@ -9,8 +9,8 @@ import (
 
 func TestLemstrom(t *testing.T) {
 
-	query := InitScoreFromFile(LEIERMANN_QUERY[0] + ".idxresp_notes")
-	leiermann := InitScoreFromFile(LEIERMANN + ".idxresp_notes")
+	query := InitScoreFromFile(LEIERMANN_QUERY[0] + ".idxresp_notes", 1)
+	leiermann := InitScoreFromFile(LEIERMANN + ".idxresp_notes", 10)
 
 	arrays, err := CSearch(query, leiermann)
 	if err != nil {
@@ -77,7 +77,7 @@ func TestPalestrina(t *testing.T) {
 }
 
 func Test457(t *testing.T) {
-	target := InitScoreFromFile("testdata/000000000000457_Castigans-castigavit_Josquin-Des-Prez_file3.idxresp_notes")
+	target := InitScoreFromFile("testdata/000000000000457_Castigans-castigavit_Josquin-Des-Prez_file3.idxresp_notes", 10)
 	queryNotes := UnmarshalNotesFromFile("testdata/queries/" + "CG_E.idxresp_notes")
 	queryVecs := VecsFromNotes(queryNotes)
 	query := InitScoreFromVectors(len(queryNotes), queryVecs)

@@ -2,6 +2,7 @@ package main
 
 import (
 	pb "../proto"
+	vp "github.com/spf13/viper"
 	"context"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,8 +18,9 @@ func (s *SmrServer) GetPieceIds(ctx context.Context, req *pb.GetPieceIdsRequest)
 }
 
 func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp *pb.AddPieceResponse, err error) {
+	window := vp.GetInt("SMR_VECTORS_WINDOW")
 	notes := NotesFromPbNotes(req.Notes)
-	vecs := VecsFromNotes(notes)
+	vecs := VecsFromNotes(notes, window)
 	pid := PieceId(req.Pid)
 
 	piece := Piece {

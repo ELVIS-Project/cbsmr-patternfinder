@@ -99,7 +99,8 @@ func (bps *BoltPieceStore) ListIds() (pids []PieceId, err error) {
 }
 
 func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
-	queryScore := InitScoreFromVectors(len(query), VecsFromNotes(query))
+	queryScore := InitScoreFromVectors(len(query), VecsFromNotes(query, 1))
+	println(fmt.Sprintf("pattern vecs %v", VecsFromNotes(query, 1)))
 
 	err = bps.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BOLT_PIECE_BUCKET))
@@ -115,8 +116,9 @@ func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
 			println(piece.Pid)
 
 			// Search
-			targetScore := InitScoreFromVectors(len(piece.Notes), VecsFromNotes(piece.Notes))
+			targetScore := InitScoreFromVectors(len(piece.Notes), piece.Vectors)
 			intArrays, err := CSearch(queryScore, targetScore)
+			println(fmt.Sprintf("%v", intArrays))
 			if err != nil {
 				return err
 			}
@@ -175,7 +177,7 @@ func (m MapCScoreStore) ListIds() (pids []PieceId) {
 }
 
 func (m MapCScoreStore) Search(query []Note) (occs []Occurrence, err error) {
-	queryScore := InitScoreFromVectors(len(query), VecsFromNotes(query))
+	queryScore := InitScoreFromVectors(len(query), VecsFromNotes(query, 1))
 
 	for k, targetScore := range m {
 		intArrays, err := CSearch(queryScore, targetScore)

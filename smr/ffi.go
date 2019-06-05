@@ -16,10 +16,6 @@ import (
 // #include "./helsinki-ttwi/w2.h"
 import "C"
 
-const (
-	WINDOW = 20
-)
-
 type CScore *C.Score
 
 func PrintScore(s *C.Score) {
@@ -56,10 +52,10 @@ func (vs byHeightThenIndex) Less(i, j int) bool {
 	}
 }
 
-func VecsFromNotes(notes []Note) (vecs []vector) {
+func VecsFromNotes(notes []Note, window int) (vecs []vector) {
 
 	for i, _ := range notes {
-		for j := i + 1; j < len(notes); j++ {
+		for j := i + 1; j < min(i + 1 + window, len(notes)); j++ {
 			cvec := vector{
 				(float64)(notes[j].Onset - notes[i].Onset),
 				Base40Type(notes[j].Pitch - notes[i].Pitch),

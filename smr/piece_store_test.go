@@ -14,7 +14,7 @@ func TestBoltPieceStoreStaticDataEntryAndRetrieval(t *testing.T) {
 		Note{1, 1, 168, NoteIndex(1)},
 		Note{1, 1, 174, NoteIndex(2)},
 	}
-	vectors := VecsFromNotes(notes)
+	vectors := VecsFromNotes(notes, len(notes))
 	piece := Piece{
 		Notes: notes,
 		Vectors: vectors,
