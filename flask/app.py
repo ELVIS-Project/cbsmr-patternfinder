@@ -68,21 +68,49 @@ def index_id(piece_id):
     Indexes a piece and stores it at :param id
     """
     db_conn = application.config['PSQL_CONN']
-    piece_id = int(piece_id)
-    if request.method == "POST":
-        m21_score = music21.converter.parse(request.data)
-        xml = m21_score_to_xml_write(m21_score) 
-        data = base64.b64encode(xml).decode('utf-8')
-        with db_conn, db_conn.cursor() as cur:
-            cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO NOTHING;")
 
-        with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
-            stub = smr_pb2_grpc.IndexStub(channel)
-            pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = request.data))
+    if not piece_id:
+        return Response("POST /index/<piece_id> requires an integer argument", status=400)
+    try:
+        piece_id = int(piece_id)
+    except ValueError as e:
+        return Response(f"POST /index/<piece_id> requires an integer argument; tried parsing, failed with {str(e)}", status=400)
 
-        with grpc.insecure_channel(application.config['SMR_URI']) as channel:
-            stub = smr_pb2_grpc.SmrStub(channel)
-            response = stub.AddPiece(smr_pb2.AddPieceRequest(pid = piece_id, notes = pb_notes.notes))
+    # :ref https://werkzeug.palletsprojects.com/en/0.14.x/request_data/#how-does-it-parse
+    if request.content_type == "multipart/form-data":
+        files = list(request.file.items())
+        # `request.file` will be a MultiDict object
+        # :ref https://werkzeug.palletsprojects.com/en/0.15.x/datastructures/#werkzeug.datastructures.MultiDict
+        if len(files) > 1:
+            return Response(
+                    f"POST /index/<piece_id> only accepts one file at a time, \
+                    but received a multipart/form-data POST with {len(files) files", status=415)
+        else:
+            symbolic_data = files[0]
+
+    elif request.content_type == "application/x-www-form-urlencoded":
+        return Response("TODO; Content-Type: application/x-www-form-urlencoded is unsupported", status=415)
+
+    else:
+        symbolic_data = request.data
+
+    try:
+        m21_score = music21.converter.parse(symbolic_data)
+    except Exception as e:
+        return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
+
+    xml = m21_score_to_xml_write(m21_score)
+    data = base64.b64encode(xml).decode('utf-8')
+    with db_conn, db_conn.cursor() as cur:
+        cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO NOTHING;")
+
+    with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
+        stub = smr_pb2_grpc.IndexStub(channel)
+        pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = symbolic)_data))
+
+    with grpc.insecure_channel(application.config['SMR_URI']) as channel:
+        stub = smr_pb2_grpc.SmrStub(channel)
+        response = stub.AddPiece(smr_pb2.AddPieceRequest(pid = piece_id, notes = pb_notes.notes))
 
     return Response(str(piece_id), mimetype='text/plain')
 
