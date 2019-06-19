@@ -84,7 +84,7 @@ def index_id(piece_id):
         if len(files) > 1:
             return Response(
                     f"POST /index/<piece_id> only accepts one file at a time, \
-                    but received a multipart/form-data POST with {len(files) files", status=415)
+                    but received a multipart/form-data POST with {len(files)} files", status=415)
         else:
             symbolic_data = files[0]
 
@@ -106,7 +106,7 @@ def index_id(piece_id):
 
     with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
         stub = smr_pb2_grpc.IndexStub(channel)
-        pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = symbolic)_data))
+        pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = symbolic_data))
 
     with grpc.insecure_channel(application.config['SMR_URI']) as channel:
         stub = smr_pb2_grpc.SmrStub(channel)
@@ -130,31 +130,42 @@ def excerpt():
 @application.route("/search", methods=["GET"])
 def search():
 
-    if not request.args.get("query"):
-        return render_template("search.html", searchResponse = {})
+    for arg in ("page", "rpp", "query"):
+        missing = []
+        if not request.args.get(arg):
+            missing.append(arg)
+        if missing:
+            return Response(f"Missing GET parameter(s): {missing}", status=400)
 
-    page = request.args.get("page")
-    rpp = request.args.get("rpp")
+    try:
+        page = int(request.args.get("page"))
+        rpp = int(request.args.get("rpp"))
+    except ValueError as e:
+        return Response(f"Failed to parse parameter(s) to integer, got exception {str(e)}", status=400)
+
     query_str = request.args.get("query")
-    if not query_str:
-        return "No query parameter included in GET request", 400
-    elif not page or not rpp:
-        return "missing GET parameters", 400
-    else:
-        page = int(page)
-        rpp = int(rpp)
-
     query_bytes = bytes(query_str, encoding='utf-8')
 
-    with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
-        stub = smr_pb2_grpc.IndexStub(channel)
-        pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = query_bytes, encoding = smr_pb2.IndexRequest.UTF8))
+    try:
+        with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
+            stub = smr_pb2_grpc.IndexStub(channel)
+            pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = query_bytes, encoding = smr_pb2.IndexRequest.UTF8))
+    except Exception as e:
+        return Response(f"failed to index query with gRPC service: {str(e)}", status=500)
 
-    with grpc.insecure_channel(application.config['SMR_URI']) as channel:
-        stub = smr_pb2_grpc.SmrStub(channel)
-        response = stub.Search(pb_notes)
+    try:
+        with grpc.insecure_channel(application.config['SMR_URI']) as channel:
+            stub = smr_pb2_grpc.SmrStub(channel)
+            response = stub.Search(pb_notes)
+    except Exception as e:
+        return Response(f"failed to search: {str(e)}", status=500)
 
-    return render_template("search.html", searchResponse = build_response(application.config['PSQL_CONN'], response.occurrences, rpp, page, query_str))
+    search_response = build_response(application.config['PSQL_CONN'], response.occurrences, rpp, page, query_str)
+
+    if request.content_type == "application/json":
+        return jsonify(search_response)
+    else:
+        return render_template("search.html", searchResponse = search_response)
 
 def main():
     application.run(host="0.0.0.0", port=int(os.environ['FLASK_PORT']))
