@@ -1,4 +1,7 @@
-.PHONY: proto venv db rmdb down dsmr dflask dindexer indexer
+VERSION_TAG?=dev-$(shell git rev-parse --short HEAD)
+export VERSION_TAG
+
+.PHONY: proto venv docker
 
 proto:
 	# Regular proto gen for python & golang
