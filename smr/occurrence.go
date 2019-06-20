@@ -42,9 +42,9 @@ func (occs rankOccurrencesTrivial) Less(i, j int) bool {
 	}
 
 	// Prefer more compact occurrences
-	if sum_i < sum_j {
+	if sum_i > sum_j {
 		return true
-	} else if sum_i > sum_j {
+	} else if sum_i < sum_j {
 		return false
 	} else {
 		// If all else equal, sort on piece id for deterministic results
