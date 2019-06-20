@@ -23,7 +23,7 @@ func (n Note) toPbNote() (pbNote *pb.Note) {
 	return &pb.Note{
 		Onset: float32(n.Onset),
 		//Duration:
-		PitchB40: (int32)(n.Pitch),
+		Pitch: (int32)(n.Pitch),
 		PieceIdx: (uint32)(n.Idx),
 	}
 }
@@ -64,7 +64,7 @@ func (n Note) HashKey() (key Note) {
 func NewNote(protoNote *pb.Note, idx int) (n Note) {
 	n.Onset = float64(protoNote.Onset)
 	//n.Duration = math.Log2(float64(protoNote.Offset - protoNote.Onset))
-	n.Pitch = Base40Type(protoNote.PitchB40)
+	n.Pitch = Base40Type(protoNote.Pitch)
 	n.Idx = NoteIndex(int32(idx))
 	return
 }

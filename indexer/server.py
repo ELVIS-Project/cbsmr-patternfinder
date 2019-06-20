@@ -37,12 +37,12 @@ class Index(smr_pb2_grpc.IndexServicer):
     def IndexNotes(self, request, context):
         sd = self._handle_symbolic_data(request)
 
-        notes = indexers.notes(sd)[['onset', 'offset', 'pitch-b40']]
+        notes = indexers.notes(sd)[['onset', 'offset', 'pitch-chr']]
         pb_notes = smr_pb2.IndexResponse(notes = [
             smr_pb2.Note(
                 onset=on,
                 offset=off,
-                pitch_b40=p,
+                pitch=int(p),
                 piece_idx=idx)
                 for idx, (_, on, off, p) in enumerate(notes.itertuples())])
 

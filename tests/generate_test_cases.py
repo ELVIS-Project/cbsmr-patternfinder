@@ -43,22 +43,22 @@ def other():
 
 def queries():
     CG_E = smr_pb2.IndexResponse(notes = (
-        smr_pb2.Note(onset=0, offset=1, pitch_b40=162, piece_idx=0), # C G
-        smr_pb2.Note(onset=0, offset=1, pitch_b40=185, piece_idx=1),
-        smr_pb2.Note(onset=1, offset=2, pitch_b40=174, piece_idx=2)) # E
+        smr_pb2.Note(onset=0, offset=1, pitch=162, piece_idx=0), # C G
+        smr_pb2.Note(onset=0, offset=1, pitch=185, piece_idx=1),
+        smr_pb2.Note(onset=1, offset=2, pitch=174, piece_idx=2)) # E
     )
     with open(os.path.join(QUERIES, "CG_E.idxresp_notes"), "wb") as f:
         f.write(CG_E.SerializeToString())
 
     double_leading_tone = smr_pb2.IndexResponse(notes = (
-        smr_pb2.Note(onset=0, offset=1, pitch_b40=162, piece_idx=0), # C E A C
-        smr_pb2.Note(onset=0, offset=1, pitch_b40=174, piece_idx=1),
-        smr_pb2.Note(onset=0, offset=1, pitch_b40=191, piece_idx=2),
-        smr_pb2.Note(onset=0, offset=1, pitch_b40=202, piece_idx=3),
-        smr_pb2.Note(onset=1, offset=2, pitch_b40=156, piece_idx=4), # Bb D F Bb
-        smr_pb2.Note(onset=1, offset=2, pitch_b40=168, piece_idx=5),
-        smr_pb2.Note(onset=1, offset=2, pitch_b40=179, piece_idx=6),
-        smr_pb2.Note(onset=1, offset=2, pitch_b40=196, piece_idx=7))
+        smr_pb2.Note(onset=0, offset=1, pitch=162, piece_idx=0), # C E A C
+        smr_pb2.Note(onset=0, offset=1, pitch=174, piece_idx=1),
+        smr_pb2.Note(onset=0, offset=1, pitch=191, piece_idx=2),
+        smr_pb2.Note(onset=0, offset=1, pitch=202, piece_idx=3),
+        smr_pb2.Note(onset=1, offset=2, pitch=156, piece_idx=4), # Bb D F Bb
+        smr_pb2.Note(onset=1, offset=2, pitch=168, piece_idx=5),
+        smr_pb2.Note(onset=1, offset=2, pitch=179, piece_idx=6),
+        smr_pb2.Note(onset=1, offset=2, pitch=196, piece_idx=7))
     )
     with open(os.path.join(QUERIES, "double_leading_tone.idxresp_notes"), "wb") as f:
         f.write(double_leading_tone.SerializeToString())
