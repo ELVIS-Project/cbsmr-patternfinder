@@ -102,7 +102,7 @@ def index_id(piece_id):
     xml = m21_score_to_xml_write(m21_score)
     data = base64.b64encode(xml).decode('utf-8')
     with db_conn, db_conn.cursor() as cur:
-        cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO NOTHING;")
+        cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}';")
 
     with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
         stub = smr_pb2_grpc.IndexStub(channel)
