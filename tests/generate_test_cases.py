@@ -26,6 +26,24 @@ def lemstrom():
 
 def lemstrom_csv():
     # Vectors CSV for c library testing
+
+    for path, filenames in (
+        (LEMSTROM, ("leiermann.xml", "query_a.mid", "query_b.mid", "query_c.mid", "query_d.mid", "query_e.mid", "query_f.mid")),
+        (os.path.join(PALESTRINA, "mid"), ("000000000011521_Missa-Ut-re-mi-fa-sol-la_Credo_Palestrina-Giovanni-Pierluigi-da_file2.mid",))):
+
+        for filename in filenames:
+            print(filename)
+            filename_without_extension = os.path.splitext(os.path.basename(filename))[0]
+            with open(os.path.join(path, filename), "rb") as f:
+                data = f.read()
+                notes_df = indexers.notes(data)
+                vectors_df = indexers.intra_vectors(data, len(notes_df))
+                vectors_csv = indexers.intra_vectors_to_csv(vectors_df)
+
+            with open(os.path.join(path, filename_without_extension + ".csv"), "w", newline="") as csvfile:
+                csvfile.write(vectors_csv)
+
+"""
     for filename in ("leiermann.xml", "query_a.mid", "query_b.mid", "query_c.mid", "query_d.mid", "query_e.mid", "query_f.mid"):
         filename_without_extension = os.path.splitext(os.path.basename(filename))[0]
         with open(os.path.join(LEMSTROM, filename), "rb") as f:
@@ -36,6 +54,7 @@ def lemstrom_csv():
 
         with open(os.path.join(LEMSTROM, filename_without_extension + ".csv"), "w", newline="") as csvfile:
             csvfile.write(vectors_csv)
+"""
 
 def other():
     client.index_notes_write_response(os.path.join(TESTDATA, "000000000000457_Castigans-castigavit_Josquin-Des-Prez_file3.xml"), TESTDATA)

@@ -33,7 +33,7 @@ def notes(symbolic_data):
     notes = list(NotePointSet(m21_score))
     indexed_notes = (_note_indexer(n) for n in notes)
 
-    return pd.DataFrame(indexed_notes).sort_values(by=["onset", "pitch-b40"])
+    return pd.DataFrame(indexed_notes).sort_values(by=["onset", "pitch-chr"])
 
 
 def intra_vectors(piece, window):
@@ -45,8 +45,8 @@ def intra_vectors(piece, window):
         vectors = df.diff(periods = window).dropna()
         vectors['window'] = window
 
-        vectors['x'] = vectors['offset']
-        vectors['y'] = vectors['pitch-b40'].astype('int32')
+        vectors['x'] = vectors['onset']
+        vectors['y'] = vectors['pitch-chr'].astype('int32')
         vectors['startIndex'] = vectors.index - window
         vectors['endIndex'] = vectors.index
         intervals.append(vectors)
