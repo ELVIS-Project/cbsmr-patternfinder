@@ -19,7 +19,11 @@ def coloured_excerpt(db_conn, note_list, piece_id):
         if not results:
             raise Exception(f"excerpts: no data found for piece {piece_id}!")
 
-    score = music21.converter.parse(base64.b64decode(results[0][0]))
+    #score = music21.converter.parse(base64.b64decode(results[0][0]))
+    with open(f"{piece_id}.xml", "rb") as f:
+        score = music21.converter.parse(f.read())
+    #score.makeNotation(inPlace=True)
+
     nps = list(indexers.NotePointSet(score))
     nps_ids = [nps[i].original_note_id for i in note_list]
 

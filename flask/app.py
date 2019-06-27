@@ -100,13 +100,17 @@ def index_id(piece_id):
         return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
 
     xml = m21_score_to_xml_write(m21_score)
+    """
     data = base64.b64encode(xml).decode('utf-8')
     with db_conn, db_conn.cursor() as cur:
         cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}';")
+    """
+    with open(f"{piece_id}.xml", "wb") as f:
+        f.write(xml)
 
     with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
         stub = smr_pb2_grpc.IndexStub(channel)
-        pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = symbolic_data))
+        pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = xml))
 
     with grpc.insecure_channel(application.config['SMR_URI']) as channel:
         stub = smr_pb2_grpc.SmrStub(channel)
