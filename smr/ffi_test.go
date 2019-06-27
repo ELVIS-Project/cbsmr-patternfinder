@@ -7,6 +7,8 @@ import (
 	"path"
 )
 
+const WINDOW = 10
+
 func TestLemstrom(t *testing.T) {
 
 	query := InitScoreFromFile(LEIERMANN_QUERY[0] + ".idxresp_notes", 1)
@@ -39,11 +41,11 @@ func TestPalestrina(t *testing.T) {
 		t.Run(file.Name(), func(t *testing.T) {
 			println(file.Name())
 			targetNotes := UnmarshalNotesFromFile(path.Join(PALESTRINA, "pb_notes", file.Name()))
-			targetVecs := VecsFromNotes(targetNotes)
+			targetVecs := VecsFromNotes(targetNotes, len(targetNotes))
 			target := InitScoreFromVectors(len(targetNotes), targetVecs)
 
 			queryNotes := UnmarshalNotesFromFile(path.Join(QUERIES, "double_leading_tone.idxresp_notes"))
-			queryVecs := VecsFromNotes(queryNotes)
+			queryVecs := VecsFromNotes(queryNotes, len(queryNotes))
 			query := InitScoreFromVectors(len(queryNotes), queryVecs)
 
 			arr, err := CSearch(query, target)
@@ -79,7 +81,7 @@ func TestPalestrina(t *testing.T) {
 func Test457(t *testing.T) {
 	target := InitScoreFromFile("testdata/000000000000457_Castigans-castigavit_Josquin-Des-Prez_file3.idxresp_notes", 10)
 	queryNotes := UnmarshalNotesFromFile("testdata/queries/" + "CG_E.idxresp_notes")
-	queryVecs := VecsFromNotes(queryNotes)
+	queryVecs := VecsFromNotes(queryNotes, len(queryNotes))
 	query := InitScoreFromVectors(len(queryNotes), queryVecs)
 
 	_, err := CSearch(query, target)

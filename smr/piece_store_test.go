@@ -53,7 +53,7 @@ func TestBoltPieceStoreSearchLemstrom(t *testing.T) {
 	store, err := NewBoltPieceStore(db)
 	xk(err)
 
-	leiermannPiece := NewPieceFromFile(LEIERMANN + ".idxresp_notes", 0)
+	leiermannPiece := NewPieceFromFile(LEIERMANN + ".idxresp_notes", 0, 10)
 	query := UnmarshalNotesFromFile(LEIERMANN_QUERY[0] + ".idxresp_notes")
 
 	err = store.Set(0, leiermannPiece)
