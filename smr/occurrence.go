@@ -48,6 +48,6 @@ func (occs rankOccurrencesTrivial) Less(i, j int) bool {
 		return false
 	} else {
 		// If all else equal, sort on piece id for deterministic results
-		return occs[i].pid < occs[j].pid
+		return occs[i].pid > occs[j].pid
 	}
 }
