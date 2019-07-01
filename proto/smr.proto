@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package proto;
+
+service Index {
+    rpc IndexNotes (IndexRequest) returns (IndexResponse);
+}
+	
+service Smr {
+    rpc Search (SearchRequest) returns (SearchResponse);
+    rpc AddPiece (AddPieceRequest) returns (AddPieceResponse);
+		rpc GetPieceIds (GetPieceIdsRequest) returns (GetPieceIdsResponse);
+}
+
+message IndexRequest {
+	enum Encoding {
+		UNKNOWN = 0;
+		BASE64 = 1;
+		UTF8 = 2;
+	}
+	bytes symbolic_data = 1;
+	Encoding encoding = 2;
+}
+message IndexResponse {
+	repeated Note notes = 1;
+}
+
+message AddPieceRequest {
+	uint32 pid = 1;
+	repeated Note notes = 2;
+}
+message AddPieceResponse {}
+
+message GetPieceIdsRequest {}
+message GetPieceIdsResponse {
+	repeated uint32 pids = 1;
+}
+
+message SearchRequest {
+	repeated Note notes = 1;	
+}
+message SearchResponse {
+	repeated Occurrence occurrences = 1;
+}
+
+message Note {
+		float onset = 1;
+		float offset = 2;
+		int32 pitch = 3;
+		uint32 piece_idx = 4;
+}
+
+message Occurrence {
+	uint32 pid = 1;
+	repeated Note notes = 2;
+}

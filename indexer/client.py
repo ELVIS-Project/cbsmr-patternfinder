@@ -3,34 +3,59 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'proto'))
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'indexer'))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'conf'))
 
 import logging
 import base64
-
 import grpc
 
-import types_pb2
-from indexer import indexer_pb2, indexer_pb2_grpc
+from indexer import server
+from proto import smr_pb2, smr_pb2_grpc
 
-def index_piece(path, name, fmt):
-    with open(path, 'rb') as f:
-        symbolic_data = f.read()
+def index_notes_oneshot(pb_req):
+    s = server.new_server(os.environ['INDEXER_PORT'])
+    s.start()
 
-    pb_piece = types_pb2.Piece(
-        symbolicData = symbolic_data,
-        encoding = fmt,
-        name = name
-    )
+    resp = index_notes(pb_req)
 
-    with grpc.insecure_channel('localhost:50051') as channel:
-        stub = indexer_pb2_grpc.IndexerStub(channel)
-        response = stub.IndexPiece(indexer_pb2.IndexRequest(piece=pb_piece))
+    s.stop(0)
+
+    return resp
+
+def index_notes(pb_req):
+
+    with grpc.insecure_channel(f"{os.environ['INDEXER_HOST']}:{os.environ['INDEXER_PORT']}", options = server.OPTIONS) as channel:
+        stub = smr_pb2_grpc.IndexStub(channel)
+        response = stub.IndexNotes(pb_req)
 
     return response
+
+def index_notes_from_file(path):
+    with open(path, 'rb') as f:
+        data = f.read()
+
+    req = smr_pb2.IndexRequest(symbolic_data = data)
+
+    try:
+        return index_notes(req)
+    except Exception as e:
+        return index_notes_oneshot(req)
+
+def index_notes_write_response(symbolic_data_path, output_dir):
+    """test.xml => ${output_dir}/test.idxresp_notes"""
+    file_name_without_extension = os.path.splitext(os.path.basename(symbolic_data_path))[0]
+    output_path = os.path.join(output_dir, file_name_without_extension) + ".idxresp_notes"
+
+    response = index_notes_from_file(symbolic_data_path)
+    with open(output_path, "wb") as f:
+        f.write(response.SerializeToString())
     
 if __name__ == '__main__':
     logging.basicConfig()
-    response = index_piece(sys.argv[1])
+    response = index_notes_from_file(sys.argv[1])
 
-    print(response.notes)
-    print(base64.b64decode(response.measures[0].symbolicData).decode('utf-8'))
+    if len(sys.argv) > 2:
+        with open(sys.argv[2], "wb") as f:
+            f.write(response.SerializeToString())
+    else:
+        print(response.notes)

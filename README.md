@@ -4,19 +4,26 @@ Content-based symbolic music retrieval service infrastructure.
 
 ## Basic installation instructions
 
-Clone repo and instantiate required submodules
+### With docker-compose
+
+Clone repo
+
+```
+source conf/env.docker
+docker-compose up
+```
+
+
+### Otherwise
+
+Clone repo and launch docker container with database
 
 ```
 git clone https://github.com/ELVIS-Project/cbsmr-patterfinder.git
 cd cbsmr-patterfinder/
-git submodule update --init
-```
-
-Launch docker container with database
-
-```
-cd cbsmr-patterfinder/db
-docker-compose up db
+source conf/env.docker
+make docker
+docker-compose up
 ```
 
 Compile required libraries and install dependencies. In a new terminal window:

@@ -1,12 +1,42 @@
 version: "3.1"
 
 services:
-  search:
-    build: search/
-  db:
-    image: 'postgres:10'
-    volumes:
-      - ./db/db-init-scripts/:/docker-entrypoint-initdb.d/
-      - ./db/postgres-data:/var/lib/postgresql/data
+  indexer:
+    build: ./indexer
+    env_file:
+      - conf/env.docker
     ports:
-      - '5432:5432'
+      - '${INDEXER_PORT}:${INDEXER_PORT}'
+  smr:
+    build: ./smr
+    env_file:
+      - conf/env.docker
+    ports:
+      - '${SMR_PORT}:${SMR_PORT}'
+    volumes:
+      - ./smr/bolt:/cbsmr/smr/bolt
+  flask:
+    build: ./flask
+    env_file:
+      - conf/env.docker
+    volumes:
+      - ./flask/socket:/cbsmr/flask/socket
+    depends_on:
+      - "indexer"
+      - "smr"
+      - "db"
+      - "nginx"
+  db:
+    image: postgres:10
+    volumes:
+      - ./db/postgres-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+    ports:
+      - '${PG_PORT}:${PG_PORT}'
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./conf/nginx.docker:/etc/nginx/conf.d/cbsmr.conf
+      - ./flask/socket:/cbsmr/flask/socket
+    ports:
+      - '${NGINX_PORT}:${NGINX_PORT}'

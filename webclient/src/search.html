@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+	<meta charset="UTF-8">
+  <body>
+
+		<!-- Header -->
+		<div class="navbar navbar-expand-lg navbar-light bg-info">
+			<span class="navbar-brand">Content-Based Symbolic Music Retrieval</span>
+		</div>
+
+		<!-- GET /search hidden form -->
+		<form name="search" action="/search" method="get">
+			<input name="query" type="hidden">
+			<input name="rpp" type="hidden">
+			<input name="page" type="hidden">
+			<input type="submit" id="search-form" style="display: none;">
+		</form>
+
+		<div id="query-section" class="container-fluid">
+				<div class="row">
+					<div class="col-md-4 w-100 pl-0">
+						<div id="ace-editor"></div>
+						<label class="btn btn-primary form-control bg-info" for="search-form">Search!</label>
+					</div>
+					<div class="col-md-8">
+						<span id="humdrum-viewer"></span>
+					</div>
+				</div>
+		</div>
+
+		<div class="align-middle font-weight-light text-center">#{{searchResponse.get("totalCount", 0)}} Occurrences</div>
+		{% if searchResponse.get("totalCount", 0) > 0 %}
+		<div id="results" class="container-fluid">
+
+			{% for n in range(searchResponse["rpp"]) %}
+			<div class="row">
+				<div class="col-md-3"></div>
+				<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel panel-header">Piece ID #{{searchResponse["pages"][searchResponse["curPage"]][n]["pid"]}} {{searchResponse["pages"][searchResponse["curPage"]][n]["name"]}}</div>
+							<div class="panel panel-body" id="occ-{{n}}"></div>
+						</div>
+				</div>
+				<div class="col-md-3"></div>
+			</div>
+			{% endfor %}
+		</div>
+
+			
+    <div id="results-section" class="row">
+			<div id="results-report"></div>
+			<div id="results-container"></div>
+			<div class="col-md-3"></div>
+
+			<div class="col-md-6">
+				<nav id="results-paginator-links" class="paginator">
+					<ul class="pagination">
+						<li class="page-item">
+							<a class="page-link" href="{{searchResponse['nextPageLink']}}">Previous</a>
+						</li>
+						{% for i in searchResponse["paginatorRange"] %}
+						<li class="page-item"><a class="page-link" href="{{searchResponse['paginatorLinks'][i]}}">{{i}}</a></li>
+						{% endfor %}
+						<li class="page-item">
+							<a class="page-link" href="{{searchResponse['previousPageLink']}}">Next</a>
+						</li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+		{% endif %}
+
+
+		<!-- Footer -->
+		<nav class="navbar">
+			<div>
+				<ul class="navbar-nav mr-auto">
+					<li class="nav-item"><a href="/about">About</a></li>
+					<li class="nav-item"><a href="https://github.com/elvis-project/cbsmr-patternfinder">Github</a></li>
+					<li class="nav-item"><a href="mailto:david.garfinkle@mail.mcgill.ca">Contact</a></li>
+				</ul>
+			</div>
+		</nav>
+
+		<script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>
+    <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
+    <script src="/dist/search.js"></script>
+  </body>
+</html>

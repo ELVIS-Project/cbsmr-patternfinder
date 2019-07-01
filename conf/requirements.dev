@@ -1,0 +1,13 @@
+-e .
+music21
+pandas
+numpy
+tqdm
+psycopg2
+pytest
+grpcio
+grpcio-tools
+protobuf
+flask
+uwsgi
+requests
