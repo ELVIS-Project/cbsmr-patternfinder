@@ -127,7 +127,7 @@ func resultToIntArrays(resultList *C.ResultList) (arrays [][]uint32) {
 
 	curResult := (*C.ResultListNode)(unsafe.Pointer(resultList.head))
 	for i := 0; (C.int)(i) < resultList.length; i++ {
-		chain := (*[1 << 10]C.int)(unsafe.Pointer(curResult.chain))
+		chain := (*[1 << 10]C.int)(unsafe.Pointer(curResult.targetNotes))
 		arr := make([]uint32, curResult.length)
 
 		for j := 0; (C.int)(j) < curResult.length; j++ {
