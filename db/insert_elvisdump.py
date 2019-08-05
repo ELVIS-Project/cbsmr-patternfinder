@@ -10,14 +10,17 @@ import smr_pb2, smr_pb2_grpc
 import music21
 from tqdm import tqdm
 
-ELVISDUMP = os.environ.get('dump') or "/Users/davidgarfinkle/elvis-project/elvisdump/"
-
-POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
+POSTGRES_CONN_STR = "host={} dbname=postgres user=postgres password=postgres".format(os.getenv("PG_HOST"))
 CONN = psycopg2.connect(POSTGRES_CONN_STR)
 CONN.autocommit = True
 
-PIECES = [(subdir, [os.path.join(ELVISDUMP, subdir, f) for f in os.listdir(os.path.join(ELVISDUMP, subdir))])
-            for subdir in ("XML", "MID", "MEI")]
+ELVISDUMP = os.getenv("ELVISDUMP")
+def get_elvis_pieces():
+    if ELVISDUMP:
+        return [(subdir, [os.path.join(ELVISDUMP, subdir, f) for f in os.listdir(os.path.join(ELVISDUMP, subdir))])
+                    for subdir in ("XML", "MID", "MEI")]
+    else:
+        return None
 
 def parse_piece_path(piece_path):
     basename, fmt = os.path.splitext(os.path.basename(piece_path))
@@ -40,42 +43,44 @@ def create_piece_table():
             ;
             """)
 
-def do_insert(pid, fmt, data, path):
+def db_insert(pid, fmt, data, path):
     with CONN, CONN.cursor() as cur:
-        cur.execute(f"""
-            INSERT INTO Piece(pid, fmt, data, path)
-            VALUES ('{pid}', '{fmt}', '{data}', '{path}')
-            ON CONFLICT (pid) DO UPDATE SET data = '{data}'""")
-
+        insert = "INSERT INTO Piece(pid, fmt, data, path)"
+        values = "VALUES('{}', '{}', '{}', '{}')".format(pid, fmt, data, path)
+        conflict = "ON CONFLICT (pid) DO UPDATE SET data = '{}'".format(data)
+        cur.execute(insert + values + conflict)
 
 def existingPieces():
     with CONN, CONN.cursor() as cur:
-        cur.execute(f"SELECT pid FROM Piece")
+        cur.execute("SELECT pid FROM Piece")
         res = cur.fetchall()
     return [int(tup[0]) for tup in res]
 
+def do_one_insert(piece):
+    piece_id, fmt, name = parse_piece_path(piece)
+    with open(piece, "rb") as f:
+        filebytes = f.read()
+
+    try:
+        m21_score = music21.converter.parse(filebytes)
+        xml = m21_score_to_xml_write(m21_score)
+        data = base64.b64encode(xml).decode('utf-8')
+        db_insert(piece_id, fmt, data, piece)
+    except Exception as e:
+        db_insert(piece_id, 'failed', 'failed', piece)
+
 def do_all_inserts(pieces):
     curPieces = existingPieces()
-    print(f"We have {len(curPieces)} already in the db")
+    print("We have {} already in the db".format(len(curPieces)))
 
-    for name, it in pieces:
+    for subfolder, it in pieces:
         for piece in tqdm(it):
 
             piece_id, fmt, name = parse_piece_path(piece)
             if int(piece_id) in curPieces and os.environ.get("SKIP", False) == "true":
                 continue
-
-            with open(piece, "rb") as f:
-                filebytes = f.read()
-
-            try:
-                m21_score = music21.converter.parse(filebytes)
-                xml = m21_score_to_xml_write(m21_score) 
-                data = base64.b64encode(xml).decode('utf-8')
-                do_insert(piece_id, fmt, data, piece)
-            except Exception as e:
-                do_insert(piece_id, 'failed', 'failed', piece)
-                
+            else:
+                do_one_insert(piece)
 
 def m21_score_to_xml_sx(m21_score):
     sx = music21.musicxml.m21ToXml.ScoreExporter(m21_score)
@@ -98,7 +103,9 @@ def m21_score_to_xml_write(m21_score):
 
 def main():
     create_piece_table()
-    do_all_inserts(PIECES)
+    for p in sys.argv[1:]:
+        print("inserting {}...".format(p))
+        do_one_insert(p)
 
 if __name__ == '__main__':
     main()

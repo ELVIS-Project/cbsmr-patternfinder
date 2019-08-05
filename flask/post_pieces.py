@@ -12,6 +12,7 @@ from tqdm import tqdm
 ELVISDUMP = "/Users/davidgarfinkle/elvis-project/elvisdump/"
 ENDPOINT = "http://localhost:80/"
 
+"""
 POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
 CONN = psycopg2.connect(POSTGRES_CONN_STR)
 CONN.autocommit = True
@@ -19,6 +20,7 @@ CONN.autocommit = True
 xml_pieces = (os.path.join(ELVISDUMP, "XML", f) for f in os.listdir(os.path.join(ELVISDUMP, "XML")))
 mid_pieces = (os.path.join(ELVISDUMP, "MID", f) for f in os.listdir(os.path.join(ELVISDUMP, "MID")))
 mei_pieces = (os.path.join(ELVISDUMP, "MEI", f) for f in os.listdir(os.path.join(ELVISDUMP, "MEI")))
+"""
 
 def parse_piece_path(piece_path):
     basename, fmt = os.path.splitext(os.path.basename(piece_path))
@@ -52,6 +54,7 @@ def search_grpc():
             params={'query': query_str, 'rpp': 5, 'page': 0})
 
 
+"""
 def index_all():
     files = []
 
@@ -74,6 +77,7 @@ def index_one(path=None):
     from pprint import pprint
     pprint(response.content.decode('utf-8'))
 
+"""
 def get_search(query):
     if not query:
         query = """**kern
@@ -152,10 +156,10 @@ def search_one_db():
 
     print("selecting vecs and notes from db...")
     with CONN, CONN.cursor() as cur:
-        cur.execute(f"SELECT * FROM index.legacy_intra_vectors WHERE piece_id = {pid} ORDER BY y")
+        cur.execute("SELECT * FROM index.legacy_intra_vectors WHERE piece_id = {} ORDER BY y".format(pid))
         target_tuple = cur.fetchall()
         vec_count = str(cur.rowcount)
-        cur.execute(f"SELECT * FROM index.notes WHERE piece_id = {pid}")
+        cur.execute("SELECT * FROM index.notes WHERE piece_id = {}".format(pid))
         note_count = str(cur.rowcount)
 
     print("constructing csv...")
@@ -172,6 +176,7 @@ def search_one_db():
     # TODO: make an sql to Struct* Score function so you can store the data structure in mem
 
     return res
+"""
 
 
 def search_lemstrom():
@@ -220,6 +225,7 @@ def coloured_excerpt(note_list, piece_id):
         excerpt_encoded = base64.b64encode(f.read()).decode('utf-8')
 
     return excerpt_encoded
+"""
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
