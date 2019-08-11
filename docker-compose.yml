@@ -16,7 +16,9 @@ services:
     volumes:
       - ./smr/bolt:/cbsmr/smr/bolt
   flask:
-    build: ./flask
+    build:
+        context: .
+        dockerfile: flask/Dockerfile
     env_file:
       - conf/env.docker
     volumes:
