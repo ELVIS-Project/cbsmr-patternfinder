@@ -1,12 +1,12 @@
 #!/usr/local/bin/python3
 import sys
 import os
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'conf'))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'proto'))
 CURDIR = os.path.abspath(os.path.dirname(__file__))
 
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
-from tqdm import tqdm
 import music21
 import psycopg2
 import base64
@@ -15,7 +15,6 @@ import time
 import grpc
 from proto import smr_pb2, smr_pb2_grpc
 
-from indexer import indexers
 from response import build_response
 
 application = Flask(__name__)
@@ -53,7 +52,7 @@ def index():
 
 @application.route("/dist/<path>", methods=["GET"])
 def get_dist(path):
-    return send_from_directory(os.environ['WEB_DIST'], path)
+    return send_from_directory('templates', path)
 
 def m21_score_to_xml_write(m21_score):
     o = m21_score.write('xml')

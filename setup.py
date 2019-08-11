@@ -8,6 +8,5 @@ setup(
         'indexer': 'indexer/',
         'proto': 'proto/',
     },
-    long_description=open('README.md').read()
 )
 

@@ -1,7 +1,10 @@
-VERSION_TAG?=dev-$(shell git rev-parse --short HEAD)
-export VERSION_TAG
-
 .PHONY: proto venv docker
+
+proto/smr_pb2.py:
+	python3 -m grpc_tools.protoc -I=proto/ --python_out=proto/ proto/smr.proto
+
+proto/smr_pb2_grpc.py:
+	python3 -m grpc_tools.protoc -I=proto/ --grpc_python_out=proto/ proto/smr.proto
 
 proto:
 	# Regular proto gen for python & golang
