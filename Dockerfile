@@ -7,7 +7,7 @@ ENV PATH $PATH:$GOBIN
 RUN apk add --update --no-cache \
 		git make libtool autoconf automake build-base \
 		postgresql-dev \ 
-		musl-dev linux-headers \
+		musl-dev linux-headers libffi \
 		python3 python3-dev \
 		nodejs nodejs-npm \
 		protobuf \
@@ -23,6 +23,7 @@ WORKDIR /cbsmr
 ADD ./conf/requirements.prod ./conf/requirements.prod
 RUN pip3 install --upgrade pip setuptools
 RUN pip3 install -r conf/requirements.prod --timeout 120
+RUN pip3 install cffi
 
 # Cache webclient deps
 ADD ./webclient/package*.json ./webclient/
