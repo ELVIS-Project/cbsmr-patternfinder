@@ -8,7 +8,9 @@ services:
     ports:
       - '${INDEXER_PORT}:${INDEXER_PORT}'
   smr:
-    build: ./smr
+    build:
+        context: .
+        dockerfile: ./smr
     env_file:
       - conf/env.docker
     ports:
