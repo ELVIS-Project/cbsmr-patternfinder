@@ -2,6 +2,7 @@ import base64
 import json
 import math
 import os
+from errors import *
 from flask import url_for
 from excerpt import coloured_excerpt
 
@@ -39,6 +40,8 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
 
     with db_conn, db_conn.cursor() as cur:
         cur.execute(f"SELECT path FROM Piece WHERE pid={pb_occ.pid}")
+        if cur.rowcount == 0:
+            raise DatabasesOutOfSyncError(f"pid {pb_occ.pid} does not exist in the flask database")
         name = cur.fetchone()
         if name and name[0]:
             resp["name"] = " ".join(os.path.basename(name[0]).split("_")[1:])

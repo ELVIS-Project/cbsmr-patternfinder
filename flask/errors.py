@@ -15,3 +15,6 @@ class IndexerError(AppError):
 
 class ExcerptError(AppError):
     msg = "Failed to generate excerpt"
+
+class DatabasesOutOfSyncError(AppError):
+    msg = "The flask database and bolt database are out of sync."
