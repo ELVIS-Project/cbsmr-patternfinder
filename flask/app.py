@@ -7,6 +7,7 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
+from occurrence import filter_occurrences, OccurrenceFilters
 import music21
 import psycopg2
 import base64
@@ -102,8 +103,6 @@ def index_id(piece_id):
     data = base64.b64encode(xml).decode('utf-8')
     with db_conn, db_conn.cursor() as cur:
         cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}';")
-    with open(f"{piece_id}.xml", "wb") as f:
-        f.write(xml)
 
     with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
         stub = smr_pb2_grpc.IndexStub(channel)
@@ -131,7 +130,7 @@ def excerpt():
 @application.route("/search", methods=["GET"])
 def search():
 
-    for arg in ("page", "rpp", "query"):
+    for arg in ("page", "rpp", "query", "tnps", "intervening"):
         missing = []
         if not request.args.get(arg):
             missing.append(arg)
@@ -141,6 +140,8 @@ def search():
     try:
         page = int(request.args.get("page"))
         rpp = int(request.args.get("rpp"))
+        tnps = request.args.get("tnps").split(",")
+        intervening = int(request.args.get("intervening"))
     except ValueError as e:
         return Response(f"Failed to parse parameter(s) to integer, got exception {str(e)}", status=400)
 
@@ -150,18 +151,27 @@ def search():
     try:
         with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
             stub = smr_pb2_grpc.IndexStub(channel)
-            pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = query_bytes, encoding = smr_pb2.IndexRequest.UTF8))
+            query_pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = query_bytes, encoding = smr_pb2.IndexRequest.UTF8))
     except Exception as e:
         return Response(f"failed to index query with gRPC service: {str(e)}", status=500)
 
     try:
         with grpc.insecure_channel(application.config['SMR_URI']) as channel:
             stub = smr_pb2_grpc.SmrStub(channel)
-            response = stub.Search(pb_notes)
+            response = stub.Search(query_pb_notes)
     except Exception as e:
         return Response(f"failed to search: {str(e)}", status=500)
 
-    search_response = build_response(application.config['PSQL_CONN'], response.occurrences, rpp, page, query_str)
+    occfilters = OccurrenceFilters(
+            transpositions = [int(x) for x in tnps],
+            intervening = intervening)
+
+    search_response = build_response(
+            application.config['PSQL_CONN'],
+            filter_occurrences(response.occurrences, query_pb_notes.notes, occfilters),
+            rpp,
+            page,
+            query_str)
 
     if request.content_type == "application/json":
         return jsonify(search_response)
