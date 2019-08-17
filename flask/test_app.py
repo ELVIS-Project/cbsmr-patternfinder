@@ -3,7 +3,7 @@ import base64
 import pytest
 import requests
 
-ENDPOINT = f"http://{os.environ['FLASK_HOST']}:{os.environ['FLASK_PORT']}/"
+ENDPOINT = f"http://{os.environ['NGINX_HOST']}:{os.environ['FLASK_PORT']}/"
 
 def test_root_conn():
     assert requests.get(ENDPOINT).status_code == 200

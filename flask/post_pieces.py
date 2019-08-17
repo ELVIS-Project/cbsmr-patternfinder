@@ -10,8 +10,9 @@ from tqdm import tqdm
 
 
 ELVISDUMP = "/Users/davidgarfinkle/elvis-project/elvisdump/"
-ENDPOINT = "http://localhost:80/"
+ENDPOINT = os.getenv("HOST") or "localhost:80"
 
+"""
 POSTGRES_CONN_STR = 'host=localhost dbname=postgres user=postgres password=postgres'
 CONN = psycopg2.connect(POSTGRES_CONN_STR)
 CONN.autocommit = True
@@ -19,6 +20,7 @@ CONN.autocommit = True
 xml_pieces = (os.path.join(ELVISDUMP, "XML", f) for f in os.listdir(os.path.join(ELVISDUMP, "XML")))
 mid_pieces = (os.path.join(ELVISDUMP, "MID", f) for f in os.listdir(os.path.join(ELVISDUMP, "MID")))
 mei_pieces = (os.path.join(ELVISDUMP, "MEI", f) for f in os.listdir(os.path.join(ELVISDUMP, "MEI")))
+"""
 
 def parse_piece_path(piece_path):
     basename, fmt = os.path.splitext(os.path.basename(piece_path))
@@ -36,7 +38,7 @@ def post_piece(path, endpoint=ENDPOINT):
     with open(path, 'rb') as f:
         data = f.read()
 
-    return requests.post(endpoint + "index/" + str(index),
+    return requests.post(f"http://{ENDPOINT}/index/{str(index)}",
                         data=data,
                         headers={'Content-Type': 'application/octet-stream'})
 
@@ -223,5 +225,6 @@ def coloured_excerpt(note_list, piece_id):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("post_pieces.py <path>")
-    post_piece(sys.argv[1])
+        print("post_pieces.py <path1> <path2> ... <pathn>")
+    for p in sys.argv[1:]:
+        post_piece(p)
