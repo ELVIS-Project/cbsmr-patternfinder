@@ -62,19 +62,19 @@ def m21_score_to_xml_write(m21_score):
     os.remove(o)
     return xml
 
+@application.route("/index", methods=["POST"])
 @application.route("/index/<piece_id>", methods=["POST"])
-def index_id(piece_id):
+def index_id(piece_id=None):
     """
     Indexes a piece and stores it at :param id
     """
     db_conn = application.config['PSQL_CONN']
 
-    if not piece_id:
-        return Response("POST /index/<piece_id> requires an integer argument", status=400)
-    try:
-        piece_id = int(piece_id)
-    except ValueError as e:
-        return Response(f"POST /index/<piece_id> requires an integer argument; tried parsing, failed with {str(e)}", status=400)
+    if piece_id:
+        try:
+            piece_id = int(piece_id)
+        except ValueError as e:
+            return Response(f"POST /index/<piece_id> requires an integer argument; tried parsing, failed with {str(e)}", status=400)
 
     # :ref https://werkzeug.palletsprojects.com/en/0.14.x/request_data/#how-does-it-parse
     if request.content_type == "multipart/form-data":
@@ -102,7 +102,11 @@ def index_id(piece_id):
     xml = m21_score_to_xml_write(m21_score)
     data = base64.b64encode(xml).decode('utf-8')
     with db_conn, db_conn.cursor() as cur:
-        cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}';")
+        if piece_id:
+            cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}';")
+        else:
+            cur.execute(f"INSERT INTO Piece (data) VALUES ('{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}' RETURNING pid;")
+            piece_id = cur.fetchone()
 
     sc = indexers.parse(xml)
     pb_notes = indexers.pb_notes(sc)
