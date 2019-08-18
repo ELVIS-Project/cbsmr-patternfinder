@@ -1,12 +1,6 @@
 version: "3.1"
 
 services:
-  indexer:
-    build: ./indexer
-    env_file:
-      - conf/env.docker
-    ports:
-      - '${INDEXER_PORT}:${INDEXER_PORT}'
   smr:
     build:
         context: .
@@ -26,7 +20,6 @@ services:
     volumes:
       - ./flask/socket:/cbsmr/flask/socket
     depends_on:
-      - "indexer"
       - "smr"
       - "db"
       - "nginx"

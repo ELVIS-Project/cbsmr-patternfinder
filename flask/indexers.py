@@ -5,6 +5,7 @@ import csv
 import music21
 import pandas as pd
 import numpy as np
+from proto import smr_pb2
 from indexer.errors import *
 
 us = music21.environment.UserSettings()
@@ -35,6 +36,16 @@ def notes(symbolic_data):
 
     return pd.DataFrame(indexed_notes).sort_values(by=["onset", "pitch-chr"])
 
+def pb_notes(symbolic_data):
+    ns = notes(symbolic_data)[['onset', 'offset', 'pitch-chr']]
+    pb_notes = [smr_pb2.Note(
+        onset=on,
+        offset=off,
+        pitch=int(p),
+        piece_idx=idx)
+        for idx, (_, on, off, p) in enumerate(ns.itertuples())]
+    pb_notes.sort(key=lambda n: (n.piece_idx))
+    return pb_notes
 
 def intra_vectors(piece, window):
 

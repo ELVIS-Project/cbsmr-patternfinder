@@ -2,27 +2,10 @@ syntax = "proto3";
 
 package proto;
 
-service Index {
-    rpc IndexNotes (IndexRequest) returns (IndexResponse);
-}
-	
 service Smr {
     rpc Search (SearchRequest) returns (SearchResponse);
     rpc AddPiece (AddPieceRequest) returns (AddPieceResponse);
 		rpc GetPieceIds (GetPieceIdsRequest) returns (GetPieceIdsResponse);
-}
-
-message IndexRequest {
-	enum Encoding {
-		UNKNOWN = 0;
-		BASE64 = 1;
-		UTF8 = 2;
-	}
-	bytes symbolic_data = 1;
-	Encoding encoding = 2;
-}
-message IndexResponse {
-	repeated Note notes = 1;
 }
 
 message AddPieceRequest {

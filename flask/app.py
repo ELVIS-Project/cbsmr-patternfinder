@@ -8,6 +8,7 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
 from occurrence import filter_occurrences, OccurrenceFilters
+import indexers
 import music21
 import psycopg2
 import base64
@@ -20,7 +21,6 @@ from response import build_response
 
 application = Flask(__name__)
 
-application.config['INDEXER_URI'] = f"{os.environ['INDEXER_HOST']}:{os.environ['INDEXER_PORT']}"
 application.config['SMR_URI'] = f"{os.environ['SMR_HOST']}:{os.environ['SMR_PORT']}"
 
 def connect_to_psql():
@@ -104,13 +104,11 @@ def index_id(piece_id):
     with db_conn, db_conn.cursor() as cur:
         cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}';")
 
-    with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
-        stub = smr_pb2_grpc.IndexStub(channel)
-        pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = xml))
+    pb_notes = indexers.pb_notes(xml)
 
     with grpc.insecure_channel(application.config['SMR_URI']) as channel:
         stub = smr_pb2_grpc.SmrStub(channel)
-        response = stub.AddPiece(smr_pb2.AddPieceRequest(pid = piece_id, notes = pb_notes.notes))
+        response = stub.AddPiece(smr_pb2.AddPieceRequest(pid = piece_id, notes = pb_notes))
 
     return Response(str(piece_id), mimetype='text/plain')
 
@@ -148,12 +146,7 @@ def search():
     query_str = request.args.get("query")
     query_bytes = bytes(query_str, encoding='utf-8')
 
-    try:
-        with grpc.insecure_channel(application.config['INDEXER_URI']) as channel:
-            stub = smr_pb2_grpc.IndexStub(channel)
-            query_pb_notes = stub.IndexNotes(smr_pb2.IndexRequest(symbolic_data = query_bytes, encoding = smr_pb2.IndexRequest.UTF8))
-    except Exception as e:
-        return Response(f"failed to index query with gRPC service: {str(e)}", status=500)
+    query_pb_notes = indexers.pb_notes(query_bytes)
 
     try:
         with grpc.insecure_channel(application.config['SMR_URI']) as channel:

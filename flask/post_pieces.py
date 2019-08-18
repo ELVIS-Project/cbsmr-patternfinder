@@ -34,14 +34,23 @@ def parse_piece_path(piece_path):
     return piece_id, fmt, name
 
 def post_piece(path, endpoint=ENDPOINT):
-    index, fmt, name = parse_piece_path(path)
+    global COUNT
+    if os.getenv("PARSE_ELVIS"):
+        index, fmt, name = parse_piece_path(path)
+        endpoint = f"http://{ENDPOINT}/index/{str(index)}"
+    else:
+        endpoint = f"http://{ENDPOINT}/index"
 
     with open(path, 'rb') as f:
         data = f.read()
 
-    return requests.post(f"http://{ENDPOINT}/index/{str(index)}",
+    resp = requests.post(endpoint,
                         data=data,
                         headers={'Content-Type': 'application/octet-stream'})
+    if resp.status_code != 200:
+        print(f"failed to post {path}: {resp.content}")
+    else:
+        print("OK")
 
 def search_grpc():
     query_str = """**kern

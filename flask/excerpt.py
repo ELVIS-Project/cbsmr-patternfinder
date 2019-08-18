@@ -3,7 +3,7 @@ import base64
 from io import StringIO
 
 import music21
-from indexer import indexers
+import indexers
 
 def coloured_excerpt(db_conn, note_list, piece_id):
     note_list = [int(i) for i in note_list]

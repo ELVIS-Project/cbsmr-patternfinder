@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from indexer import indexers
+import indexers
 
 @dataclass
 class OccurrenceFilters:
