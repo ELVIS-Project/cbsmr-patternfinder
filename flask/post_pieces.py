@@ -1,5 +1,6 @@
 import sys
 import os
+import multiprocessing
 import requests
 import base64
 import psycopg2
@@ -226,5 +227,5 @@ def coloured_excerpt(note_list, piece_id):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("post_pieces.py <path1> <path2> ... <pathn>")
-    for p in sys.argv[1:]:
-        post_piece(p)
+    with multiprocessing.Pool() as p:
+        p.map(post_piece, sys.argv[1:])

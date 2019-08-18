@@ -10,7 +10,7 @@ services:
   smr:
     build:
         context: .
-        dockerfile: ./smr
+        dockerfile: smr/Dockerfile
     env_file:
       - conf/env.docker
     ports:

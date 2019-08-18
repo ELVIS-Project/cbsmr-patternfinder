@@ -1,4 +1,6 @@
-.PHONY: proto venv docker
+.PHONY: docker proto
+
+proto: proto/smr_pb2.py proto/smr_pb2_grpc.py proto/smr.pb.go
 
 proto/smr_pb2.py:
 	python3 -m grpc_tools.protoc -I=proto/ --python_out=proto/ proto/smr.proto

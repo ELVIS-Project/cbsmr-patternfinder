@@ -1,5 +1,6 @@
-import pytest
 import os
+import multiprocessing
+import pytest
 import requests
 
 PROJROOT = os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir)
@@ -17,12 +18,12 @@ def query_template(q):
 def search(q, rpp, page):
     response = requests.get(
             f"{ENDPOINT}/search",
-            params={"query": query_template(q), "rpp": rpp, "page": page})
+            params={"query": query_template(q), "rpp": rpp, "page": page, "tnps": "0,1,2,3,4,5,6,7,8,9,10,11", "intervening": 10})
     return response
 
 def assert_search_200(q, rpp, page):
     resp = search(q, rpp, page)
-    assert resp.status_code == 200, "searching for {} failed: {}".format(q, status.content)
+    assert resp.status_code == 200, "searching for {} failed: {}".format(q, resp.content)
 
 def post_piece_from_file(i, p):
     with open(p, "rb") as f:
@@ -33,9 +34,9 @@ def main():
     pdir = os.path.join(PROJROOT, 'tests', 'testdata', 'palestrina_masses', 'mid')
     masses = os.listdir(pdir)
 
-    for i, mass in enumerate(masses):
-        mpath = os.path.join(pdir, mass)
-        post_piece_from_file(i, mpath)
+    with multiprocessing.Pool() as p:
+        inputs = ((i, os.path.join(pdir, m)) for i, m in enumerate(masses))
+        p.starmap_async(post_piece_from_file, inputs)
 
     assert_search_200("""
         4c 4e 4a 4cc
