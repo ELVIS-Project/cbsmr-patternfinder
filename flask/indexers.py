@@ -5,8 +5,8 @@ import csv
 import music21
 import pandas as pd
 import numpy as np
-from proto import smr_pb2
-from indexer.errors import *
+import smr_pb2
+from errors import *
 
 us = music21.environment.UserSettings()
 us.restoreDefaults()
@@ -20,24 +20,26 @@ def _note_indexer(note):
         'pitch-b40': music21.musedata.base40.pitchToBase40(note),
     }
 
-def notes(symbolic_data):
+def parse(symbolic_data):
     try:
         m21_score = music21.converter.parse(symbolic_data)
     except Exception as e:
         raise music21.Music21Exception from e
-
+    
     # Returning an empty index is not desirable behaviour. User should be aware
     # that no notes were extracted from the score they provided.
     if len(m21_score.flat.notes) == 0:
         raise EmptyScoreError
+
+def notes(m21_score):
 
     notes = list(NotePointSet(m21_score))
     indexed_notes = (_note_indexer(n) for n in notes)
 
     return pd.DataFrame(indexed_notes).sort_values(by=["onset", "pitch-chr"])
 
-def pb_notes(symbolic_data):
-    ns = notes(symbolic_data)[['onset', 'offset', 'pitch-chr']]
+def pb_notes(m21_score):
+    ns = notes(m21_score)[['onset', 'offset', 'pitch-chr']]
     pb_notes = [smr_pb2.Note(
         onset=on,
         offset=off,
@@ -49,7 +51,8 @@ def pb_notes(symbolic_data):
 
 def intra_vectors(piece, window):
 
-    df = notes(piece)
+    sc = parse(piece)
+    df = notes(sc)
 
     intervals = []
     for window in range(1, min(window + 1, len(df))):

@@ -18,3 +18,6 @@ class ExcerptError(AppError):
 
 class DatabasesOutOfSyncError(AppError):
     msg = "The flask database and bolt database are out of sync."
+
+class EmptyScoreError(Exception):
+    msg = "music21 parsed a score but found 0 notes"

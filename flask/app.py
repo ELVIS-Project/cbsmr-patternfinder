@@ -95,7 +95,7 @@ def index_id(piece_id):
         symbolic_data = request.data
 
     try:
-        m21_score = music21.converter.parse(symbolic_data)
+        m21_score = indexers.parse(symbolic_data)
     except Exception as e:
         return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
 
@@ -104,7 +104,8 @@ def index_id(piece_id):
     with db_conn, db_conn.cursor() as cur:
         cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}';")
 
-    pb_notes = indexers.pb_notes(xml)
+    sc = indexers.parse(xml)
+    pb_notes = indexers.pb_notes(sc)
 
     with grpc.insecure_channel(application.config['SMR_URI']) as channel:
         stub = smr_pb2_grpc.SmrStub(channel)
