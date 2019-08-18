@@ -11,6 +11,3 @@ proto/smr_pb2_grpc.py:
 proto/smr.pb.go:
 	protoc --go_out=./ proto/smr.proto
 	protoc -I proto/ proto/smr.proto --go_out=plugins=grpc:proto --proto_path=./
-
-docker:
-	docker build . -t cbsmr:latest
