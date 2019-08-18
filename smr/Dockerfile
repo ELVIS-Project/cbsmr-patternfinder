@@ -24,8 +24,8 @@ RUN make proto/smr.pb.go
 
 ADD ./smr /cbsmr/smr
 WORKDIR /cbsmr/smr
-RUN GO111MODULE=off go get
 COPY --from=helsinki-build /cbsmr/smr/helsinki-ttwi/build/libw2.so /cbsmr/smr/helsinki-ttwi/build/libw2.so
+RUN GO111MODULE=off go get
 RUN GO111MODULE=off go build
 
 #
