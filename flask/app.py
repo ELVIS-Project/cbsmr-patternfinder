@@ -106,7 +106,7 @@ def index_id(piece_id=None):
             cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}';")
         else:
             cur.execute(f"INSERT INTO Piece (data) VALUES ('{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}' RETURNING pid;")
-            piece_id = cur.fetchone()
+            piece_id = cur.fetchone()[0]
 
     sc = indexers.parse(xml)
     pb_notes = indexers.pb_notes(sc)

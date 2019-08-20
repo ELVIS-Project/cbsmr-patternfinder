@@ -33,7 +33,6 @@ def parse_piece_path(piece_path):
     return piece_id, fmt, name
 
 def post_piece(path, endpoint=ENDPOINT):
-    global COUNT
     if os.getenv("PARSE_ELVIS"):
         index, fmt, name = parse_piece_path(path)
         endpoint = f"http://{ENDPOINT}/index/{str(index)}"
