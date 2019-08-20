@@ -87,12 +87,12 @@ def index_id(piece_id):
                     but received a multipart/form-data POST with {len(files)} files", status=415)
         else:
             symbolic_data = files[0]
-
     elif request.content_type == "application/x-www-form-urlencoded":
         return Response("TODO; Content-Type: application/x-www-form-urlencoded is unsupported", status=415)
-
     else:
         symbolic_data = request.data
+    if not symbolic_data:
+        return Response("Failed to find piece data in POST request body", status=400)
 
     try:
         m21_score = indexers.parse(symbolic_data)
@@ -145,14 +145,14 @@ def search():
         return Response(f"Failed to parse parameter(s) to integer, got exception {str(e)}", status=400)
 
     query_str = request.args.get("query")
-    query_bytes = bytes(query_str, encoding='utf-8')
 
-    query_pb_notes = indexers.pb_notes(query_bytes)
+    query_score = indexers.parse(query_str)
+    query_pb_notes = indexers.pb_notes(query_score)
 
     try:
         with grpc.insecure_channel(application.config['SMR_URI']) as channel:
             stub = smr_pb2_grpc.SmrStub(channel)
-            response = stub.Search(query_pb_notes)
+            response = stub.Search(smr_pb2.SearchRequest(notes=query_pb_notes))
     except Exception as e:
         return Response(f"failed to search: {str(e)}", status=500)
 
@@ -162,7 +162,7 @@ def search():
 
     search_response = build_response(
             application.config['PSQL_CONN'],
-            filter_occurrences(response.occurrences, query_pb_notes.notes, occfilters),
+            filter_occurrences(response.occurrences, query_pb_notes, occfilters),
             rpp,
             page,
             query_str)

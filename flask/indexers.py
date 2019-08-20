@@ -31,6 +31,8 @@ def parse(symbolic_data):
     if len(m21_score.flat.notes) == 0:
         raise EmptyScoreError
 
+    return m21_score
+
 def notes(m21_score):
 
     notes = list(NotePointSet(m21_score))
