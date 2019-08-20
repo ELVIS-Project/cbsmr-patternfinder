@@ -50,7 +50,6 @@ go build
 
 To run the app:
 ```
-python3 indexer/server.py &
 smr/smr &
 python3 flask/app.py
 ```
