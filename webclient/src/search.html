@@ -1,6 +1,9 @@
 <!doctype html>
 <html>
-	<meta charset="UTF-8">
+  <meta charset="UTF-8">
+  <head>
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  </head>
   <body>
 
 		<!-- Header -->
@@ -24,9 +27,26 @@
 						<div id="ace-editor"></div>
 						<label class="btn btn-primary form-control bg-info" for="search-form">Search!</label>
 					</div>
-					<div class="col-md-8">
+					<div class="col-md-6">
 						<span id="humdrum-viewer"></span>
 					</div>
+
+                    <div class="col-md-2">
+                        <!-- TARGET WINDOW -->
+                        <span> # of intervening notes</span>
+                        <div>
+                            <span class="mr-2" id="targetWindowSliderLeftIndicator"></span>
+                            <div class="w-75 d-inline-block" id="targetWindowSlider"></div>
+                            <span class="ml-2" id="targetWindowSliderRightIndicator"></span>
+                        </div>
+                        <!-- TRANSPOSITIONS -->
+                        <span>Chromatic transpositions mod 12</span>
+                        <div>
+                            <span class="mr-2" id="transpositionSliderLeftIndicator"></span>
+                            <div class="w-75 d-inline-block" id="transpositionSlider"></div>
+                            <span class="ml-2" id="transpositionSliderRightIndicator"></span>
+                        </div>
+                    </div>
 				</div>
 		</div>
 
@@ -84,8 +104,13 @@
 			</div>
 		</nav>
 
-		<script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>
+    <script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>
     <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="/dist/search.js"></script>
   </body>
 </html>

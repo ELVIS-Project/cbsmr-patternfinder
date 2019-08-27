@@ -98,8 +98,52 @@ function setSearchForm(rpp, page) {
 	form.elements["page"].value = page;
 }
 
+function setTranspositionFilter(values) {
+    var leftIndicator = document.getElementById("transpositionSliderLeftIndicator");
+    leftIndicator.innerHTML = values[0];
+    var rightIndicator = document.getElementById("transpositionSliderRightIndicator");
+    rightIndicator.innerHTML = values[1];
+
+    var form = document.forms["search"]
+    form.elements["tnps"].value = values.join(',')
+}
+
+function setWindowFilter(values) {
+    var leftIndicator = document.getElementById("targetWindowSliderLeftIndicator");
+    leftIndicator.innerHTML = values[0];
+    var rightIndicator = document.getElementById("targetWindowSliderRightIndicator");
+    rightIndicator.innerHTML = values[1];
+
+    var form = document.forms["search"]
+    form.elements["intervening"].value = values.join(',')
+}
+
+function initFilters() {
+    $("#targetWindowSlider").slider({
+        range: true,
+        min: 1,
+        max: 15,
+        values: [1, 1],
+        slide: function(event, ui) {
+            setWindowFilter(ui.values)
+        }
+    });
+
+    $("#transpositionSlider").slider({
+        range: true,
+        min: -12,
+        max: 12,
+        values: [-12, 12],
+        slide: function(event, ui) {
+            setTranspositionFilter(ui.values)
+        }
+    });
+}
+
+
 (() => {
 	newAceEditor();
+    initFilters();
 	setSearchForm(5, 0);
 
 	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
