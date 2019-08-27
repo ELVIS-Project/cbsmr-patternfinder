@@ -8,6 +8,8 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
 from occurrence import filter_occurrences, OccurrenceFilters
+from webargs import fields
+from webargs.flaskparser import use_args
 import indexers
 import music21
 import psycopg2
@@ -63,8 +65,12 @@ def m21_score_to_xml_write(m21_score):
     return xml
 
 @application.route("/index", methods=["POST"])
+def index_id_no_argument():
+    index_id(None)
+
 @application.route("/index/<piece_id>", methods=["POST"])
-def index_id(piece_id=None):
+@use_args({"piece_id": fields.Int()})
+def index_id(piece_id):
     """
     Indexes a piece and stores it at :param id
     """
