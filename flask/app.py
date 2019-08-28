@@ -144,7 +144,10 @@ def search():
         page = int(request.args.get("page"))
         rpp = int(request.args.get("rpp"))
         tnps = request.args.get("tnps").split(",")
-        intervening = int(request.args.get("intervening"))
+        tnps_ints = list(map(int, tnps))
+        tnps_ints[1] += 1 # increase range to include end
+        intervening = request.args.get("intervening").split(",")
+        intervening_ints = tuple(map(int, intervening))
     except ValueError as e:
         return Response(f"Failed to parse parameter(s) to integer, got exception {str(e)}", status=400)
 
@@ -161,14 +164,16 @@ def search():
         return Response(f"failed to search: {str(e)}", status=500)
 
     occfilters = OccurrenceFilters(
-            transpositions = [int(x) for x in tnps],
-            intervening = intervening)
+            transpositions = range(*tnps_ints),
+            intervening = intervening_ints)
 
     search_response = build_response(
             application.config['PSQL_CONN'],
             filter_occurrences(response.occurrences, query_pb_notes, occfilters),
             rpp,
             page,
+            tnps,
+            intervening,
             query_str)
 
     if request.content_type == "application/json":

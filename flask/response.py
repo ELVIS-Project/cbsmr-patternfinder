@@ -6,7 +6,7 @@ from errors import *
 from flask import url_for
 from excerpt import coloured_excerpt
 
-def build_response(db_conn, occs, rpp, page, query):
+def build_response(db_conn, occs, rpp, page, tnps, intervening, query):
     if rpp > 0:
         num_pages = int(len(occs) / rpp) + 1
     else:
@@ -14,9 +14,9 @@ def build_response(db_conn, occs, rpp, page, query):
     paginator_range = calculate_page_range(page, num_pages)
 
     return {
-        'paginatorLinks': [url_for("search", query=query, page=i, rpp=rpp) for i in paginator_range],
-        'previousPageLink': url_for("search", query=query, page=max(0, page-1), rpp=rpp),
-        'nextPageLink': url_for("search", query=query, page=min(num_pages, page+1), rpp=rpp),
+        'paginatorLinks': [url_for("search", query=query, page=i, rpp=rpp, tnps=tnps, intervening=intervening) for i in paginator_range],
+        'previousPageLink': url_for("search", query=query, page=max(0, page-1), rpp=rpp, tnps=tnps, intervening=intervening),
+        'nextPageLink': url_for("search", query=query, page=min(num_pages, page+1), rpp=rpp, tnps=tnps, intervening=intervening),
         'paginatorRange': paginator_range,
         'totalCount': len(occs),
         'pagesCount': num_pages,

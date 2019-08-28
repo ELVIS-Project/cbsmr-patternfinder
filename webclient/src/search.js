@@ -119,25 +119,37 @@ function setWindowFilter(values) {
 }
 
 function initFilters() {
+    if (URLPARAMS.get("intervening")) {
+        var windowSliderValues = URLPARAMS.get("intervening").split(",")
+    } else {
+        var windowSliderValues = [1, 1]
+    }
     $("#targetWindowSlider").slider({
         range: true,
-        min: 1,
+        min: 0,
         max: 15,
-        values: [1, 1],
+        values: windowSliderValues,
         slide: function(event, ui) {
             setWindowFilter(ui.values)
         }
     });
+    setWindowFilter(windowSliderValues);
 
+    if (URLPARAMS.get("tnps")) {
+        var transpositionSliderValues = URLPARAMS.get("tnps").split(",")
+    } else {
+        var transpositionSliderValues = [-12, 12]
+    }
     $("#transpositionSlider").slider({
         range: true,
         min: -12,
         max: 12,
-        values: [-12, 12],
+        values: transpositionSliderValues,
         slide: function(event, ui) {
             setTranspositionFilter(ui.values)
         }
     });
+    setTranspositionFilter(transpositionSliderValues);
 }
 
 
