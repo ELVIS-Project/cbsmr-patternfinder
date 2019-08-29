@@ -12,7 +12,7 @@ const searchBoilerplate =
 
 var ACE_EDITOR;
 
-function renderSvgFromBase64Xml(xmlBase64) {
+function renderSvgFromXml(xml) {
 	var vrvToolkit = new verovio.toolkit();
 
 	var options = {
@@ -24,7 +24,6 @@ function renderSvgFromBase64Xml(xmlBase64) {
 		noHeader: 1
 	}
 	vrvToolkit.setOptions(options)
-	var xml = window.atob(xmlBase64)
 	var svg = vrvToolkit.renderData(xml, options);
 	return svg
 }
@@ -60,6 +59,24 @@ function uncollapseKrn(krn) {
 	return horizontal
 }
 
+function renderOccurrencePanel(i, xml) {
+    var svg = renderSvgFromXml(xml)
+    console.log("rendering occ panel " + i.toString())
+    document.getElementById("occ-" + i.toString()).innerHTML = svg
+}
+
+function getAndRenderPageExcerpts(pageJsonArray) {
+    for (var i=0; i < pageJsonArray.length; i++) {
+        (function(j) {
+            var res = $.get(pageJsonArray[j]['excerptUrl']).done(function(res) {
+                var sr = new XMLSerializer()
+                var xml = sr.serializeToString(res.documentElement)
+                renderOccurrencePanel(j, xml)
+            });
+        })(i);
+    }
+}
+
 function ProcessResponse(searchResponse) {
 	ACE_EDITOR.setValue(searchResponse['query'])
 	
@@ -72,8 +89,8 @@ function ProcessResponse(searchResponse) {
 		if (occJson['excerptFailed']) {
 			console.log("excerpt failed: " + occJson)
 		} else {
-			var svg = renderSvgFromBase64Xml(occJson['xmlBase64'])
-			document.getElementById("occ-" + i.toString()).innerHTML = svg
+            var xml = window.atob(occJson['xmlBase64'])
+            renderOccurrencePanel(i, xml)
 		}
 	} 
 }
@@ -159,6 +176,7 @@ function initFilters() {
 	setSearchForm(5, 0);
 
 	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
+    getAndRenderPageExcerpts(searchResponse['pages'][URLPARAMS.get('page')])
 	//var searchResponse = {pageCount: URLPARAMS.get('pageCount'), page: URLPARAMS.get('page'), rpp: URLPARAMS.get('rpp'), query: URLPARAMS.get('query')}
 
 	if (Object.values(searchResponse).length !== 0)  {

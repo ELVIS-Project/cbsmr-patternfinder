@@ -31,11 +31,13 @@ def build_response(db_conn, occs, rpp, page, tnps, intervening, query):
 def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
 
     excerptIndices = [n.piece_idx for n in pb_occ.notes]
+    pid = str(pb_occ.pid)
 
     resp = {
         "excerptFailed": False,
         "excerptSkipped": True,
-        "pid": str(pb_occ.pid)
+        "pid": pid,
+        "excerptUrl": url_for("excerpt", pid=pid, nid=",".join(str(x) for x in excerptIndices))
     }
 
     with db_conn, db_conn.cursor() as cur:
@@ -50,6 +52,7 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
 
     if get_excerpt:
         try:
+            raise Exception("skipping server-side rendering")
             xml = coloured_excerpt(db_conn, excerptIndices, pb_occ.pid)
         except Exception as e:
             b64_xml = "excerpt failed: " + str(e)
@@ -60,7 +63,6 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
     else:
         b64_xml = ""
 
-    resp["url"] = url_for("excerpt", pid=pb_occ.pid, nid=",".join(str(x) for x in excerptIndices))
     resp["xmlBase64"] = b64_xml
 
     return resp

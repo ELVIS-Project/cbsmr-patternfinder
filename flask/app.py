@@ -8,6 +8,7 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
 from occurrence import filter_occurrences, OccurrenceFilters
+from excerpt import coloured_excerpt
 import indexers
 import music21
 import psycopg2
@@ -44,8 +45,7 @@ def connect_to_psql():
     conn.autocommit = False
 
     application.config['PSQL_CONN'] = conn
-print("connecting to pg")
-connect_to_psql()
+    return conn
 
 @application.route("/", methods=["GET"])
 def index():
@@ -68,7 +68,8 @@ def index_id(piece_id=None):
     """
     Indexes a piece and stores it at :param id
     """
-    db_conn = application.config['PSQL_CONN']
+    print("connecting to pg")
+    db_conn = connect_to_psql()
 
     if piece_id:
         try:
@@ -123,15 +124,17 @@ def excerpt():
     """
     Returns a highlighted excerpt of a score
     """
-    piece_id = request.args.get("pid")
-    notes = request.args.get("nid").split(",")
+    db_conn = connect_to_psql()
+    piece_id = int(request.args.get("pid"))
+    notes = [str(x) for x in request.args.get("nid").split(",")]
 
-    excerpt_xml = coloured_excerpt(application.config["PSQL_CONN"], notes, piece_id)
+    excerpt_xml = coloured_excerpt(db_conn, notes, piece_id)
     return Response(excerpt_xml, mimetype='text/xml')
 
 
 @application.route("/search", methods=["GET"])
 def search():
+    db_conn = connect_to_psql()
 
     for arg in ("page", "rpp", "query", "tnps", "intervening"):
         missing = []
@@ -168,7 +171,7 @@ def search():
             intervening = intervening_ints)
 
     search_response = build_response(
-            application.config['PSQL_CONN'],
+            db_conn,
             filter_occurrences(response.occurrences, query_pb_notes, occfilters),
             rpp,
             page,
