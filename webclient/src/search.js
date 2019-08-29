@@ -139,7 +139,7 @@ function initFilters() {
     if (URLPARAMS.get("intervening")) {
         var windowSliderValues = URLPARAMS.get("intervening").split(",")
     } else {
-        var windowSliderValues = [1, 1]
+        var windowSliderValues = [0, 0]
     }
     $("#targetWindowSlider").slider({
         range: true,
@@ -155,7 +155,7 @@ function initFilters() {
     if (URLPARAMS.get("tnps")) {
         var transpositionSliderValues = URLPARAMS.get("tnps").split(",")
     } else {
-        var transpositionSliderValues = [-12, 12]
+        var transpositionSliderValues = [0, 0]
     }
     $("#transpositionSlider").slider({
         range: true,
