@@ -28,7 +28,12 @@ def coloured_excerpt(db_conn, note_list, piece_id):
     # Get stream excerpt
     _, start_measure = score.beatAndMeasureFromOffset(nps[note_list[0]].offset)
     _, end_measure = score.beatAndMeasureFromOffset(nps[note_list[-1]].offset + nps[note_list[-1]].duration.quarterLength - 1)
-    excerpt = score.measures(numberStart=start_measure.number, numberEnd=end_measure.number)
+
+    start_measure_num = max(0, start_measure.number - 1)
+    last_measure = score.measure(-1)
+    if last_measure is not end_measure:
+        end_measure_num = end_measure.number + 1
+    excerpt = score.measures(numberStart=start_measure_num, numberEnd=end_measure_num)
 
     # Colour notes
     for note in excerpt.flat.notes:
