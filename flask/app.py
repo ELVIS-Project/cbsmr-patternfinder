@@ -136,7 +136,7 @@ def excerpt():
 def search():
     db_conn = connect_to_psql()
 
-    for arg in ("page", "rpp", "query", "tnps", "intervening"):
+    for arg in ("page", "rpp", "query", "tnps", "intervening", "inexact"):
         missing = []
         if not request.args.get(arg):
             missing.append(arg)
@@ -151,6 +151,8 @@ def search():
         tnps_ints[1] += 1 # increase range to include end
         intervening = request.args.get("intervening").split(",")
         intervening_ints = tuple(map(int, intervening))
+        inexact = request.args.get("inexact").split(",")
+        inexact_ints = tuple(map(int, inexact))
     except ValueError as e:
         return Response(f"Failed to parse parameter(s) to integer, got exception {str(e)}", status=400)
 
@@ -168,7 +170,8 @@ def search():
 
     occfilters = OccurrenceFilters(
             transpositions = range(*tnps_ints),
-            intervening = intervening_ints)
+            intervening = intervening_ints,
+            inexact = inexact_ints)
 
     search_response = build_response(
             db_conn,

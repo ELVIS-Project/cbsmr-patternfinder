@@ -6,7 +6,7 @@ ADD ./webclient/package*.json /webclient/
 WORKDIR /webclient
 RUN npm install
 ADD ./webclient .
-RUN node_modules/webpack/bin/webpack.js --mode production
+RUN node_modules/webpack/bin/webpack.js --mode development
 
 ### Virtualenv ###
 FROM python:3.7.4 AS venv-image

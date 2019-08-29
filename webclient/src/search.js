@@ -115,6 +115,16 @@ function setSearchForm(rpp, page) {
 	form.elements["page"].value = page;
 }
 
+function setInexactFilter(values) {
+    var leftIndicator = document.getElementById("inexactSliderLeftIndicator");
+    leftIndicator.innerHTML = values[0];
+    var rightIndicator = document.getElementById("inexactSliderRightIndicator");
+    rightIndicator.innerHTML = values[1];
+
+    var form = document.forms["search"]
+    form.elements["inexact"].value = values.join(',')
+}
+
 function setTranspositionFilter(values) {
     var leftIndicator = document.getElementById("transpositionSliderLeftIndicator");
     leftIndicator.innerHTML = values[0];
@@ -167,6 +177,22 @@ function initFilters() {
         }
     });
     setTranspositionFilter(transpositionSliderValues);
+
+    if (URLPARAMS.get("inexact")) {
+        var inexactSliderValues = URLPARAMS.get("inexact").split(",")
+    } else {
+        var inexactSliderValues = [0, 0]
+    }
+    $("#inexactSlider").slider({
+        range: true,
+        min: -12,
+        max: 12,
+        values: inexactSliderValues,
+        slide: function(event, ui) {
+            setInexactFilter(ui.values)
+        }
+    });
+    setInexactFilter(inexactSliderValues);
 }
 
 
