@@ -185,7 +185,7 @@ function initFilters() {
     }
     $("#inexactSlider").slider({
         range: true,
-        min: -12,
+        min: 0,
         max: 12,
         values: inexactSliderValues,
         slide: function(event, ui) {
