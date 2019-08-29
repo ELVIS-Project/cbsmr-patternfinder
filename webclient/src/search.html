@@ -62,13 +62,13 @@
 		{% if searchResponse.get("totalCount", 0) > 0 %}
 		<div id="results" class="container-fluid">
 
-			{% for n in range(searchResponse["rpp"]) %}
+			{% for occ in searchResponse["pages"][searchResponse["curPage"]] %}
 			<div class="row">
 				<div class="col-md-3"></div>
 				<div class="col-md-6">
 						<div class="panel panel-default">
-							<div class="panel panel-header">Piece ID #{{searchResponse["pages"][searchResponse["curPage"]][n]["pid"]}} {{searchResponse["pages"][searchResponse["curPage"]][n]["name"]}}</div>
-							<div class="panel panel-body" id="occ-{{n}}"></div>
+							<div class="panel panel-header">Piece ID #{{occ["pid"]}} {{occ["name"]}}</div>
+							<div class="panel panel-body" id="occ-{{loop.index}}"></div>
 						</div>
 				</div>
 				<div class="col-md-3"></div>
