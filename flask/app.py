@@ -9,6 +9,8 @@ from flask import Flask, request, jsonify, Response, send_from_directory, url_fo
 from errors import *
 from occurrence import filter_occurrences, OccurrenceFilters
 from excerpt import coloured_excerpt
+from binascii import unhexlify
+import json
 import indexers
 import music21
 import psycopg2
@@ -21,6 +23,7 @@ from proto import smr_pb2, smr_pb2_grpc
 from response import build_response
 
 application = Flask(__name__)
+logger = application.logger
 
 application.config['SMR_URI'] = f"{os.environ['SMR_HOST']}:{os.environ['SMR_PORT']}"
 
@@ -71,6 +74,12 @@ def index_id(piece_id=None):
     print("connecting to pg")
     db_conn = connect_to_psql()
 
+    symbolic_data = None
+    metadata = {
+        "filename": None,
+        "collection": None
+    }
+
     if piece_id:
         try:
             piece_id = int(piece_id)
@@ -79,19 +88,39 @@ def index_id(piece_id=None):
 
     # :ref https://werkzeug.palletsprojects.com/en/0.14.x/request_data/#how-does-it-parse
     if request.content_type == "multipart/form-data":
-        files = list(request.file.items())
-        # `request.file` will be a MultiDict object
+        # :todo can't get this working. request.files and request.forms is always empty
+        # :ref https://github.com/psf/requests/issues/2505
+        # :ref https://github.com/pallets/flask/issues/1384
+        # :ref https://github.com/psf/requests/issues/2883
+        # :ref https://github.com/psf/requests/issues/2313
+        return Response("TODO; Content-Type: multipart/form-data is unsupported", status=415)
+
+        # `request.files` will be a MultiDict object
         # :ref https://werkzeug.palletsprojects.com/en/0.15.x/datastructures/#werkzeug.datastructures.MultiDict
-        if len(files) > 1:
+
+        """
+        files = list(request.files.items())
+        if len(files) != 1:
             return Response(
-                    f"POST /index/<piece_id> only accepts one file at a time, \
-                    but received a multipart/form-data POST with {len(files)} files", status=415)
+                    "POST /index/<piece_id> accepts exactly file at a time "
+                    f"but received a multipart/form-data POST with {len(files)} files", status=415)
         else:
-            symbolic_data = files[0]
+            symbolic_data = files[0].read()
+            metadata["filename"] = request.form.get("filename", None)
+            metadata["collection"] = request.form.get("collection", None)
+        """
+
     elif request.content_type == "application/x-www-form-urlencoded":
         return Response("TODO; Content-Type: application/x-www-form-urlencoded is unsupported", status=415)
+    elif request.content_type == "application/octet-stream":
+        # Random 16-byte string
+        SEPARATOR = unhexlify("90dc2e88fb6b4777432355a4bc7348fd17872e78905a7ec6626fe7b0f10a2e5a")
+        metadata, symbolic_data = request.data.split(SEPARATOR)
+        metadata = json.loads(metadata.decode("utf-8"))
+        metadata.update(metadata)
+        symbolic_data = symbolic_data.decode("utf-8")
     else:
-        symbolic_data = request.data
+        return Response(f"Unsupported Content-Type: {request.content_type}", 415)
     if not symbolic_data:
         return Response("Failed to find piece data in POST request body", status=400)
 
@@ -100,14 +129,12 @@ def index_id(piece_id=None):
     except Exception as e:
         return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
 
+    logger.info(f"POST /index/<piece_id>: inserting piece of size {len(bytes(symbolic_data, 'utf-8'))} bytes, with metadata {metadata}")
+
     xml = m21_score_to_xml_write(m21_score)
     data = base64.b64encode(xml).decode('utf-8')
     with db_conn, db_conn.cursor() as cur:
-        if piece_id:
-            cur.execute(f"INSERT INTO Piece (pid, data) VALUES ('{piece_id}', '{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}';")
-        else:
-            cur.execute(f"INSERT INTO Piece (data) VALUES ('{data}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET data = '{data}' RETURNING pid;")
-            piece_id = cur.fetchone()[0]
+        cur.execute(f"INSERT INTO Piece (pid, data, name, collection_id) VALUES ('{piece_id}', '{data}', '{metadata['filename']}', '{metadata['collection']}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET (data, name, collection_id) = ('{data}', '{metadata['filename']}', '{metadata['collection']}');")
 
     sc = indexers.parse(xml)
     pb_notes = indexers.pb_notes(sc)

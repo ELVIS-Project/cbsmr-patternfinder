@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 import sys
 import os
 import multiprocessing
@@ -7,6 +9,7 @@ import psycopg2
 import json
 import music21
 from tqdm import tqdm
+from binascii import unhexlify
 
 
 ELVISDUMP = "/Users/davidgarfinkle/elvis-project/elvisdump/"
@@ -32,7 +35,32 @@ def parse_piece_path(piece_path):
 
     return piece_id, fmt, name
 
-def post_piece(path, endpoint=ENDPOINT):
+def post_piece_octet_stream(path, endpoint=ENDPOINT):
+    if os.getenv("PARSE_ELVIS"):
+        index, fmt, name = parse_piece_path(path)
+        endpoint = f"http://{ENDPOINT}/index/{str(index)}"
+    else:
+        endpoint = f"http://{ENDPOINT}/index"
+
+    data = b''
+    metadata = bytes(json.dumps({
+        "filename": name,
+        "collection": 0
+    }), "utf-8")
+    data += metadata
+    data += unhexlify("90dc2e88fb6b4777432355a4bc7348fd17872e78905a7ec6626fe7b0f10a2e5a")
+    with open(path, 'rb') as f:
+        data += f.read()
+
+    resp = requests.post(endpoint,
+                        data=data,
+                        headers={'Content-Type': 'application/octet-stream'})
+    if resp.status_code != 200:
+        print(f"failed to post {path}: {resp.content}")
+    else:
+        print("OK")
+
+def post_piece_multipart_formdata(path, endpoint=ENDPOINT):
     if os.getenv("PARSE_ELVIS"):
         index, fmt, name = parse_piece_path(path)
         endpoint = f"http://{ENDPOINT}/index/{str(index)}"
@@ -43,8 +71,12 @@ def post_piece(path, endpoint=ENDPOINT):
         data = f.read()
 
     resp = requests.post(endpoint,
-                        data=data,
-                        headers={'Content-Type': 'application/octet-stream'})
+                        data={
+                            "file_name": name,
+                            "collection": 1
+                        },
+                        files={"foo": data},
+                        headers={'Content-Type': 'multipart/form-data'})
     if resp.status_code != 200:
         print(f"failed to post {path}: {resp.content}")
     else:
@@ -144,5 +176,8 @@ def res_to_measures(res):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("post_pieces.py <path1> <path2> ... <pathn>")
+    print(sys.argv)
     with multiprocessing.Pool() as p:
-        p.map(post_piece, sys.argv[1:])
+        print(sys.argv)
+        #p.map(post_piece_multipart_formdata, sys.argv[1:])
+    post_piece_octet_stream(sys.argv[1])
