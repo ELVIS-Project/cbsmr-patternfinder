@@ -45,7 +45,7 @@ def post_piece_octet_stream(path, endpoint=ENDPOINT):
     data = b''
     metadata = bytes(json.dumps({
         "filename": name,
-        "collection": 0
+        "collection": 2
     }), "utf-8")
     data += metadata
     data += unhexlify("90dc2e88fb6b4777432355a4bc7348fd17872e78905a7ec6626fe7b0f10a2e5a")
@@ -178,6 +178,4 @@ if __name__ == "__main__":
         print("post_pieces.py <path1> <path2> ... <pathn>")
     print(sys.argv)
     with multiprocessing.Pool() as p:
-        print(sys.argv)
-        #p.map(post_piece_multipart_formdata, sys.argv[1:])
-    post_piece_octet_stream(sys.argv[1])
+        p.map(post_piece_octet_stream, sys.argv[1:])

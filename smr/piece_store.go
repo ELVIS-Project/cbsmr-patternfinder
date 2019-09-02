@@ -98,7 +98,7 @@ func (bps *BoltPieceStore) ListIds() (pids []PieceId, err error) {
 	return
 }
 
-func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
+func (bps *BoltPieceStore) Search(query []Note, pids map[PieceId]bool) (occs []Occurrence, err error) {
 	queryScore := InitScoreFromVectors(len(query), VecsFromNotes(query, 1))
 
 	err = bps.View(func(tx *bolt.Tx) error {
@@ -108,6 +108,11 @@ func (bps *BoltPieceStore) Search(query []Note) (occs []Occurrence, err error) {
 		}
 
 		err = bucket.ForEach(func(k, v []byte) error {
+            curPid := pieceIdFromBytes(k)
+            if _, ok := pids[curPid]; !ok {
+                return nil
+            }
+
 			piece, err := DecodePiece(v)
 			if err != nil {
 				return err
@@ -172,7 +177,7 @@ func (m MapCScoreStore) ListIds() (pids []PieceId) {
 	return pids
 }
 
-func (m MapCScoreStore) Search(query []Note) (occs []Occurrence, err error) {
+func (m MapCScoreStore) Search(query []Note, pids []PieceId) (occs []Occurrence, err error) {
 	queryScore := InitScoreFromVectors(len(query), VecsFromNotes(query, 1))
 
 	for k, targetScore := range m {

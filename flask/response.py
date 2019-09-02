@@ -41,7 +41,7 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
     }
 
     with db_conn, db_conn.cursor() as cur:
-        cur.execute(f"SELECT path FROM Piece WHERE pid={pb_occ.pid}")
+        cur.execute(f"SELECT name FROM Piece WHERE pid={pb_occ.pid}")
         if cur.rowcount == 0:
             raise DatabasesOutOfSyncError(f"pid {pb_occ.pid} does not exist in the flask database")
         name = cur.fetchone()

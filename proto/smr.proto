@@ -5,7 +5,7 @@ package proto;
 service Smr {
     rpc Search (SearchRequest) returns (SearchResponse);
     rpc AddPiece (AddPieceRequest) returns (AddPieceResponse);
-		rpc GetPieceIds (GetPieceIdsRequest) returns (GetPieceIdsResponse);
+    rpc GetPieceIds (GetPieceIdsRequest) returns (GetPieceIdsResponse);
 }
 
 message AddPieceRequest {
@@ -21,6 +21,7 @@ message GetPieceIdsResponse {
 
 message SearchRequest {
 	repeated Note notes = 1;	
+    repeated uint32 pids = 2;
 }
 message SearchResponse {
 	repeated Occurrence occurrences = 1;

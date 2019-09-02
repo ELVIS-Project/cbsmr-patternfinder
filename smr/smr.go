@@ -40,8 +40,12 @@ func (s *SmrServer) AddPiece(ctx context.Context, req *pb.AddPieceRequest) (resp
 func (s SmrServer) Search(ctx context.Context, req *pb.SearchRequest) (resp *pb.SearchResponse, err error) {
 
 	notes := NotesFromPbNotes(req.Notes)
+    pids := make(map[PieceId]bool)
+    for _, p := range req.Pids {
+        pids[PieceId(p)] = true
+    }
 	//occs, err = Search(s.pieceMap, notes)
-	occs, err := s.pieceStore.Search(notes)
+	occs, err := s.pieceStore.Search(notes, pids)
 	if err != nil {
 		return &pb.SearchResponse{}, err
 	}

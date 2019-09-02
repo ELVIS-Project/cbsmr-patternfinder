@@ -118,7 +118,6 @@ def index_id(piece_id=None):
         metadata, symbolic_data = request.data.split(SEPARATOR)
         metadata = json.loads(metadata.decode("utf-8"))
         metadata.update(metadata)
-        symbolic_data = symbolic_data.decode("utf-8")
     else:
         return Response(f"Unsupported Content-Type: {request.content_type}", 415)
     if not symbolic_data:
@@ -129,7 +128,7 @@ def index_id(piece_id=None):
     except Exception as e:
         return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
 
-    logger.info(f"POST /index/<piece_id>: inserting piece of size {len(bytes(symbolic_data, 'utf-8'))} bytes, with metadata {metadata}")
+    logger.info(f"POST /index/<piece_id>: inserting piece of size {len(symbolic_data)} bytes, with metadata {metadata}")
 
     xml = m21_score_to_xml_write(m21_score)
     data = base64.b64encode(xml).decode('utf-8')
@@ -163,7 +162,7 @@ def excerpt():
 def search():
     db_conn = connect_to_psql()
 
-    for arg in ("page", "rpp", "query", "tnps", "intervening", "inexact"):
+    for arg in ("page", "rpp", "query", "tnps", "intervening", "inexact", "collection"):
         missing = []
         if not request.args.get(arg):
             missing.append(arg)
@@ -180,6 +179,7 @@ def search():
         intervening_ints = tuple(map(int, intervening))
         inexact = request.args.get("inexact").split(",")
         inexact_ints = tuple(map(int, inexact))
+        collection = int(request.args.get("collection"))
     except ValueError as e:
         return Response(f"Failed to parse parameter(s) to integer, got exception {str(e)}", status=400)
 
@@ -188,10 +188,18 @@ def search():
     query_score = indexers.parse(query_str)
     query_pb_notes = indexers.pb_notes(query_score)
 
+    with db_conn.cursor() as cur:
+        if collection == 0:
+            # all pieces
+            cur.execute("SELECT pid FROM Piece;")
+        else:
+            cur.execute(f"SELECT pid FROM Piece WHERE collection_id={collection}")
+        collection_pids = [x[0] for x in cur.fetchall()]
+
     try:
         with grpc.insecure_channel(application.config['SMR_URI']) as channel:
             stub = smr_pb2_grpc.SmrStub(channel)
-            response = stub.Search(smr_pb2.SearchRequest(notes=query_pb_notes))
+            response = stub.Search(smr_pb2.SearchRequest(notes=query_pb_notes, pids=collection_pids))
     except Exception as e:
         return Response(f"failed to search: {str(e)}", status=500)
 
