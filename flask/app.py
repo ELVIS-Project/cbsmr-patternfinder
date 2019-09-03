@@ -115,7 +115,10 @@ def index_id(piece_id=None):
     elif request.content_type == "application/octet-stream":
         # Random 16-byte string
         SEPARATOR = unhexlify("90dc2e88fb6b4777432355a4bc7348fd17872e78905a7ec6626fe7b0f10a2e5a")
-        metadata, symbolic_data = request.data.split(SEPARATOR)
+        try:
+            metadata, symbolic_data = request.data.split(SEPARATOR)
+        except ValueError:
+            return Response(f"Request is malformed. It must have exactly one occurrence of the following byte string separating the JSON metadata and piece data, and this separator cannot be contained in the data itself: {SEPARATOR}")
         metadata = json.loads(metadata.decode("utf-8"))
         metadata.update(metadata)
     else:
