@@ -59,10 +59,13 @@ function uncollapseKrn(krn) {
 	return horizontal
 }
 
-function renderOccurrencePanel(i, xml) {
+function renderOccurrencePanel(i, occJson, xml) {
     var svg = renderSvgFromXml(xml)
     console.log("rendering occ panel " + i.toString())
     document.getElementById("occ-" + i.toString()).innerHTML = svg
+
+    var headerText = "Piece ID #" + occJson["pid"] + " " + occJson["name"]
+    document.getElementById("occ-" + i.toString() + "-header").innerHTML = headerText
 }
 
 function getAndRenderPageExcerpts(pageJsonArray) {
@@ -71,7 +74,7 @@ function getAndRenderPageExcerpts(pageJsonArray) {
             var res = $.get(pageJsonArray[j]['excerptUrl']).done(function(res) {
                 var sr = new XMLSerializer()
                 var xml = sr.serializeToString(res.documentElement)
-                renderOccurrencePanel(j, xml)
+                renderOccurrencePanel(j, pageJsonArray[j], xml)
             });
         })(i);
     }
