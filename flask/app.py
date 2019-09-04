@@ -133,7 +133,10 @@ def index(piece_id):
     try:
         m21_score = indexers.parse(symbolic_data)
     except Exception as e:
-        return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
+        try:
+            m21_score = indexers.parse(symbolic_data.decode('utf-8'))
+        except Exception as e:
+            return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
 
     logger.info(f"POST /index/<piece_id>: inserting piece of size {len(symbolic_data)} bytes, with metadata {metadata}")
 
