@@ -127,7 +127,7 @@ def index_id(piece_id=None):
         return Response("Failed to find piece data in POST request body", status=400)
 
     try:
-        m21_score = indexers.parse(symbolic_data)
+        m21_score = indexers.parse(symbolic_data.decode('utf-8'))
     except Exception as e:
         return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
 
