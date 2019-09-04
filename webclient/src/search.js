@@ -208,6 +208,7 @@ function initFilters() {
     });
     setInexactFilter(inexactSliderValues);
 
+    /*
     var palestrinaRadio = document.getElementById("collectionPalestrina");
     palestrinaRadio.addEventListener("click", function(event) {
         setCollection(3)    
@@ -217,6 +218,7 @@ function initFilters() {
         setCollection(2)    
     })
     setCollection(3)
+    */
 }
 
 
