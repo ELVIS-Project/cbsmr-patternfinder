@@ -19,6 +19,7 @@
             <input name="tnps" type="hidden">
             <input name="intervening" type="hidden">
             <input name="inexact" type="hidden">
+            <input name="collection" type="hidden">
 			<input type="submit" id="search-form" style="display: none;">
 		</form>
 
@@ -53,6 +54,15 @@
                             <span class="mr-2" id="inexactSliderLeftIndicator"></span>
                             <div class="w-75 d-inline-block" id="inexactSlider"></div>
                             <span class="ml-2" id="inexactSliderRightIndicator"></span>
+                        </div>
+                        <!-- COLLECTION -->
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                          <label id="collectionPalestrina" class="btn btn-secondary active">
+                            <input type="radio" name="collection">Palestrina
+                          </label>
+                          <label id="collectionBach" class="btn btn-secondary">
+                            <input type="radio" name="collection">Bach
+                          </label>
                         </div>
                     </div>
 				</div>

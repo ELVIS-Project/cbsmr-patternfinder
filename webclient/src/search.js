@@ -86,6 +86,11 @@ function ProcessResponse(searchResponse) {
 	// Svg Container
 	setQuery(searchResponse['query']);
 
+    getAndRenderPageExcerpts(searchResponse['pages'][URLPARAMS.get('page')])
+    
+    //:todo set all filters to the previous search request
+
+    /*
 	// Render Excerpts
 	for (var i = 0; i < searchResponse['pages'][URLPARAMS.get('page')].length; i++) {
 		var occJson = searchResponse['pages'][URLPARAMS.get('page')][i]
@@ -96,6 +101,7 @@ function ProcessResponse(searchResponse) {
             renderOccurrencePanel(i, xml)
 		}
 	} 
+    */
 }
 
 function newAceEditor() {
@@ -148,6 +154,11 @@ function setWindowFilter(values) {
     form.elements["intervening"].value = values.join(',')
 }
 
+function setCollection(value) {
+    var form = document.forms["search"]
+    form.elements["collection"].value = value
+}
+
 function initFilters() {
     if (URLPARAMS.get("intervening")) {
         var windowSliderValues = URLPARAMS.get("intervening").split(",")
@@ -196,6 +207,16 @@ function initFilters() {
         }
     });
     setInexactFilter(inexactSliderValues);
+
+    var palestrinaRadio = document.getElementById("collectionPalestrina");
+    palestrinaRadio.addEventListener("click", function(event) {
+        setCollection(3)    
+    })
+    var bachRadio = document.getElementById("collectionBach");
+    bachRadio.addEventListener("click", function(event) {
+        setCollection(2)    
+    })
+    setCollection(3)
 }
 
 
@@ -205,9 +226,6 @@ function initFilters() {
 	setSearchForm(5, 0);
 
 	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
-    getAndRenderPageExcerpts(searchResponse['pages'][URLPARAMS.get('page')])
-	//var searchResponse = {pageCount: URLPARAMS.get('pageCount'), page: URLPARAMS.get('page'), rpp: URLPARAMS.get('rpp'), query: URLPARAMS.get('query')}
-
 	if (Object.values(searchResponse).length !== 0)  {
 		ProcessResponse(searchResponse)
 	}
