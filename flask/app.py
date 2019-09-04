@@ -66,8 +66,18 @@ def m21_score_to_xml_write(m21_score):
     return xml
 
 @application.route("/index", methods=["POST"])
+def index_no_oarg():
+    return index(None)
+
 @application.route("/index/<piece_id>", methods=["POST"])
-def index_id(piece_id=None):
+def index_with_arg(piece_id):
+    try:
+        piece_id = int(piece_id)
+    except ValueError as e:
+        return Response(f"POST /index/<piece_id> requires an integer argument; tried parsing, failed with {str(e)}", status=400)
+    return index(piece_id)
+
+def index(piece_id):
     """
     Indexes a piece and stores it at :param id
     """
@@ -79,12 +89,6 @@ def index_id(piece_id=None):
         "filename": None,
         "collection": None
     }
-
-    if piece_id:
-        try:
-            piece_id = int(piece_id)
-        except ValueError as e:
-            return Response(f"POST /index/<piece_id> requires an integer argument; tried parsing, failed with {str(e)}", status=400)
 
     # :ref https://werkzeug.palletsprojects.com/en/0.14.x/request_data/#how-does-it-parse
     if request.content_type == "multipart/form-data":
@@ -116,18 +120,18 @@ def index_id(piece_id=None):
         # Random 16-byte string
         SEPARATOR = unhexlify("90dc2e88fb6b4777432355a4bc7348fd17872e78905a7ec6626fe7b0f10a2e5a")
         try:
-            metadata, symbolic_data = request.data.split(SEPARATOR)
+            metadata_bytes, symbolic_data = request.data.split(SEPARATOR)
         except ValueError:
             return Response(f"Request is malformed. It must have exactly one occurrence of the following byte string separating the JSON metadata and piece data, and this separator cannot be contained in the data itself: {SEPARATOR}")
-        metadata = json.loads(metadata.decode("utf-8"))
-        metadata.update(metadata)
+        metadata_req = json.loads(metadata_bytes.decode("utf-8"))
+        metadata.update(metadata_req)
     else:
         return Response(f"Unsupported Content-Type: {request.content_type}", 415)
     if not symbolic_data:
         return Response("Failed to find piece data in POST request body", status=400)
 
     try:
-        m21_score = indexers.parse(symbolic_data.decode('utf-8'))
+        m21_score = indexers.parse(symbolic_data)
     except Exception as e:
         return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
 
@@ -136,14 +140,26 @@ def index_id(piece_id=None):
     xml = m21_score_to_xml_write(m21_score)
     data = base64.b64encode(xml).decode('utf-8')
     with db_conn, db_conn.cursor() as cur:
-        values = (piece_id, data, metadata['filename'], metadata['collection'])
-        conflict_values = values[1:]
-        cur.execute(f"""
-            INSERT INTO Piece (pid, data, name, collection_id)
-            VALUES (%s, %s, %s, %s)
-            ON CONFLICT ON CONSTRAINT piece_pkey DO
-            UPDATE SET (data, name, collection_id) = (%s, %s, %s)
-        ;""", values + conflict_values)
+        if piece_id:
+            values = (piece_id, data, metadata['filename'], metadata['collection'])
+            conflict_values = values[1:]
+            cur.execute(f"""
+                INSERT INTO Piece (pid, data, name, collection_id)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT ON CONSTRAINT piece_pkey DO
+                UPDATE SET (data, name, collection_id) = (%s, %s, %s)
+            ;""", values + conflict_values)
+        else:
+            values = (data, metadata['filename'], metadata['collection'])
+            conflict_values = values
+            cur.execute(f"""
+                INSERT INTO Piece (data, name, collection_id)
+                VALUES (%s, %s, %s)
+                ON CONFLICT ON CONSTRAINT piece_pkey DO
+                UPDATE SET (data, name, collection_id) = (%s, %s, %s)
+                RETURNING pid
+            ;""", values + conflict_values)
+            piece_id, = cur.fetchone()
 
     sc = indexers.parse(xml)
     pb_notes = indexers.pb_notes(sc)
