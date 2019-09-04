@@ -136,7 +136,14 @@ def index_id(piece_id=None):
     xml = m21_score_to_xml_write(m21_score)
     data = base64.b64encode(xml).decode('utf-8')
     with db_conn, db_conn.cursor() as cur:
-        cur.execute(f"INSERT INTO Piece (pid, data, name, collection_id) VALUES ('{piece_id}', '{data}', '{metadata['filename']}', '{metadata['collection']}') ON CONFLICT ON CONSTRAINT piece_pkey DO UPDATE SET (data, name, collection_id) = ('{data}', '{metadata['filename']}', '{metadata['collection']}');")
+        values = (piece_id, data, metadata['filename'], metadata['collection'])
+        conflict_values = values[1:]
+        cur.execute(f"""
+            INSERT INTO Piece (pid, data, name, collection_id)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT ON CONSTRAINT piece_pkey DO
+            UPDATE SET (data, name, collection_id) = (%s, %s, %s)
+        ;""", values + conflict_values)
 
     sc = indexers.parse(xml)
     pb_notes = indexers.pb_notes(sc)
