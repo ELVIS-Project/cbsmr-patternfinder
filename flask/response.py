@@ -2,21 +2,25 @@ import base64
 import json
 import math
 import os
+from functools import partial
 from errors import *
 from flask import url_for
 from excerpt import coloured_excerpt
 
-def build_response(db_conn, occs, rpp, page, tnps, intervening, query):
+def build_response(db_conn, occs, rpp, page, tnps, intervening, query, inexact):
     if rpp > 0:
         num_pages = int(len(occs) / rpp) + 1
     else:
         num_pages = 0
     paginator_range = calculate_page_range(page, num_pages)
 
+    pagelink = partial(url_for, endpoint="search", inexact=inexact, query=query, rpp=rpp, tnps=tnps, intervening=intervening)
     return {
-        'paginatorLinks': [url_for("search", query=query, page=i, rpp=rpp, tnps=tnps, intervening=intervening) for i in paginator_range],
-        'previousPageLink': url_for("search", query=query, page=max(0, page-1), rpp=rpp, tnps=tnps, intervening=intervening),
-        'nextPageLink': url_for("search", query=query, page=min(num_pages, page+1), rpp=rpp, tnps=tnps, intervening=intervening),
+        'paginatorLinks': [pagelink(page=i) for i in paginator_range],
+        'previousPageLink': pagelink(page=max(0, page-1)),
+        'nextPageLink': pagelink(page=min(num_pages, page+1)),
+        'firstPage': pagelink(page=0),
+        'lastPage': pagelink(page=(num_pages-1)),
         'paginatorRange': paginator_range,
         'totalCount': len(occs),
         'pagesCount': num_pages,

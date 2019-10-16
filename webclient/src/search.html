@@ -109,15 +109,27 @@
 			<div class="col-md-6">
 				<nav id="results-paginator-links" class="paginator">
 					<ul class="pagination">
-						<li class="page-item">
-							<a class="page-link" href="{{searchResponse['nextPageLink']}}">Previous</a>
-						</li>
+                        {% if searchResponse["paginatorRange"][0] > 1 %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{searchResponse['firstPage']}}">1</a>
+                            </li>
+                            <li class="page-item">
+                                ...
+                            </li>
+                        {% endif %}
 						{% for i in searchResponse["paginatorRange"] %}
-						<li class="page-item"><a class="page-link" href="{{searchResponse['paginatorLinks'][i]}}">{{i}}</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="{{searchResponse['paginatorLinks'][i]}}">{{i}}</a>
+                            </li>
 						{% endfor %}
-						<li class="page-item">
-							<a class="page-link" href="{{searchResponse['previousPageLink']}}">Next</a>
-						</li>
+                        {% if searchResponse["paginatorRange"][-1] < searchResponse["pagesCount"] - 2 %}
+                            <li class="page-item">
+                                ...
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="{{searchResponse['lastPage']}}">{{searchResponse['pagesCount']}}</a>
+                            </li>
+                        {% endif %}
 					</ul>
 				</nav>
 			</div>

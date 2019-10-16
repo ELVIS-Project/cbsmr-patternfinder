@@ -244,7 +244,8 @@ def search():
             page,
             tnps,
             intervening,
-            query_str)
+            query_str,
+            inexact)
 
     if request.content_type == "application/json":
         return jsonify(search_response)
