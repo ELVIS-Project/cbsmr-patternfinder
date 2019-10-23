@@ -37,6 +37,7 @@ RUN pip3 install -e .
 ADD ./flask/ ./flask/
 COPY --from=webapp-build /webclient/src/*.html /cbsmr/flask/templates/search.html
 COPY --from=webapp-build /webclient/dist/*.js /cbsmr/flask/templates/search.js
+COPY --from=webapp-build /webclient/favicon.ico /cbsmr/flask/templates/
 
 WORKDIR /cbsmr/flask
 CMD ["uwsgi", "--module", "wsgi", "--uwsgi-socket", "socket/uwsgi.sock", "--chmod-socket=666", "--workers", "3", "--vacuum", "--die-on-term", "--master"]

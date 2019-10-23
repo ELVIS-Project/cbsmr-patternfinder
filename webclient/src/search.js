@@ -86,7 +86,7 @@ function ProcessResponse(searchResponse) {
 	// Svg Container
 	setQuery(searchResponse['query']);
 
-    getAndRenderPageExcerpts(searchResponse['pages'][URLPARAMS.get('page')])
+    getAndRenderPageExcerpts(searchResponse['pagination']['pages'][parseInt(URLPARAMS.get('page'))])
     
     //:todo set all filters to the previous search request
 
@@ -217,8 +217,8 @@ function initFilters() {
     bachRadio.addEventListener("click", function(event) {
         setCollection(2)    
     })
-    setCollection(3)
     */
+    setCollection(1)
 }
 
 

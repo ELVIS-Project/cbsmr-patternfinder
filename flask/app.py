@@ -10,6 +10,7 @@ from errors import *
 from occurrence import filter_occurrences, OccurrenceFilters
 from excerpt import coloured_excerpt
 from binascii import unhexlify
+from dataclasses import dataclass, fields
 import json
 import indexers
 import music21
@@ -20,7 +21,7 @@ import time
 import grpc
 from proto import smr_pb2, smr_pb2_grpc
 
-from response import build_response
+from response import build_response, QueryArgs
 
 application = Flask(__name__)
 logger = application.logger
@@ -186,12 +187,11 @@ def excerpt():
     excerpt_xml = coloured_excerpt(db_conn, notes, piece_id)
     return Response(excerpt_xml, mimetype='text/xml')
 
-
 @application.route("/search", methods=["GET"])
 def search():
     db_conn = connect_to_psql()
 
-    for arg in ("page", "rpp", "query", "tnps", "intervening", "inexact", "collection"):
+    for arg in (x.name for x in fields(QueryArgs)):
         missing = []
         if not request.args.get(arg):
             missing.append(arg)
@@ -209,10 +209,10 @@ def search():
         inexact = request.args.get("inexact").split(",")
         inexact_ints = tuple(map(int, inexact))
         collection = int(request.args.get("collection"))
+        query_str = request.args.get("query")
+        qargs = QueryArgs(rpp, page, tnps, intervening, inexact, collection, query_str)
     except ValueError as e:
         return Response(f"Failed to parse parameter(s) to integer, got exception {str(e)}", status=400)
-
-    query_str = request.args.get("query")
 
     query_score = indexers.parse(query_str)
     query_pb_notes = indexers.pb_notes(query_score)
@@ -240,12 +240,7 @@ def search():
     search_response = build_response(
             db_conn,
             filter_occurrences(response.occurrences, query_pb_notes, occfilters),
-            rpp,
-            page,
-            tnps,
-            intervening,
-            query_str,
-            inexact)
+            qargs)
 
     if request.content_type == "application/json":
         return jsonify(search_response)
