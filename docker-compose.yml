@@ -11,6 +11,7 @@ services:
       - '${SMR_PORT}:${SMR_PORT}'
     volumes:
       - ./smr/bolt:/cbsmr/smr/bolt
+    restart: always
   flask:
     build:
         context: .
@@ -23,6 +24,7 @@ services:
       - "smr"
       - "db"
       - "nginx"
+    restart: always
   db:
     image: postgres:10
     volumes:
@@ -30,6 +32,7 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/01_init.sql
     ports:
       - '${PG_PORT}:${PG_PORT}'
+    restart: always
   nginx:
     image: nginx:latest
     volumes:
@@ -37,3 +40,4 @@ services:
       - ./flask/socket:/cbsmr/flask/socket
     ports:
       - '${NGINX_PORT}:${NGINX_PORT}'
+    restart: always
