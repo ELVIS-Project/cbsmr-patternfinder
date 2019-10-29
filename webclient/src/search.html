@@ -83,11 +83,11 @@
 				</div>
 		</div>
 
-		<div class="align-middle font-weight-light text-center">#{{searchResponse["pagination"]["numOccs"]}} Occurrences</div>
-		{% if searchResponse["pagination"]["numOccs"] > 0 %}
+		{% if 'pagination' in searchResponse and searchResponse["pagination"]["numOccs"] > 0 %}
 		<div id="results" class="container-fluid">
+            <div class="align-middle font-weight-light text-center">#{{searchResponse["pagination"]["numOccs"]}} Occurrences</div>
 
-			{% for occ in searchResponse["pagination"]["pages"][searchResponse["pagination"]["cur"]] %}
+			{% for occ in searchResponse["pagination"]["pages"][searchResponse["pagination"]["cur"] - 1] %}
 			<div class="row">
 				<div class="col-md-3"></div>
 				<div class="col-md-6">
@@ -102,7 +102,7 @@
 		</div>
 
 			
-    <div id="results-section" class="row">
+        <div id="results-section" class="row">
 			<div id="results-report"></div>
 			<div id="results-container"></div>
 			<div class="col-md-3"></div>
@@ -114,20 +114,29 @@
                             <li class="page-item">
                                 <a class="page-link" href="{{searchResponse['pagination']['firstLink']}}">1</a>
                             </li>
+                            {% if searchResponse["range"][0] > 2 %}
                             <li class="page-item">
                                 ...
                             </li>
+                            {% endif %}
                         {% endif %}
 						{% for i in searchResponse["range"] %}
                             <li class="page-item">
-                                <a class="page-link" href="{{searchResponse['pagination']['links'][i]}}">{{i}}</a>
+                                <a class="page-link" href="{{searchResponse['pagination']['links'][loop.index - 1]}}">
+                                    {% if i == searchResponse["pagination"]["cur"] %}
+                                    <span class="font-weight-bold">{{i}}</span>
+                                    {% else %}
+                                    <span>{{i}}</span>
+                                    {% endif %}
+                                </a>
                             </li>
 						{% endfor %}
-                        {% if searchResponse["range"][-1] < searchResponse["numPages"] - 2 %}
-
+                        {% if searchResponse["range"][-1] < searchResponse["numPages"] %}
+                            {% if searchResponse["range"][-1] < searchResponse["numPages"] - 1%}
                             <li class="page-item">
                                 ...
                             </li>
+                            {% endif %}
                             <li class="page-item">
                                 <a class="page-link" href="{{searchResponse['pagination']['lastLink']}}">{{searchResponse['numPages']}}</a>
                             </li>

@@ -86,20 +86,27 @@ class Pagination:
 
     def __post_init__(self):
         if self.queryArgs.rpp > 0:
-            self.numPages = int(self.numOccs / self.queryArgs.rpp) + 1
+            self.numPages = math.ceil(self.numOccs / self.queryArgs.rpp)
         else:
-            self.numPages = 0
+            self.numPages = 1
 
-        self.range = calculate_page_range(self.queryArgs.page, self.numPages, 3)
-        self.cur = self.queryArgs.page
+        self.cur = min(self.queryArgs.page, self.numPages)
+        if self.cur == 0:
+            self.cur = 1
 
-        pagelink = partial(url_for, endpoint="search", **{param: request.args.get(param) for param in (x.name for x in fields(QueryArgs))})
+        self.range = calculate_page_range(self.cur, self.numPages, 3)
+
+        pagelink = partial(url_for, endpoint="search", **{param: request.args.get(param) for param in (x.name for x in fields(QueryArgs)) if param != 'page'})
         self.links = [pagelink(page=i) for i in self.range]
-        self.previousLink = pagelink(page = self.cur - 1) if self.cur > 0 else None
+        self.previousLink = pagelink(page = self.cur - 1) if self.cur > 1 else None
         self.nextLink = pagelink(page=min(self.numPages, self.cur+1)),
-        self.firstLink = pagelink(page=0)
-        self.lastLink = pagelink(page=(self.numPages - 1)) if self.numPages > 0 else 0
+        self.firstLink = pagelink(page=1)
+        self.lastLink = pagelink(page=(self.numPages if self.numPages > 1 else 1))
 
 def calculate_page_range(cur, total, numrange):
-    page_nums = range(min(numrange, total))
-    return tuple(map(lambda x: x + min(total - len(page_nums) + 1, cur), page_nums))
+    page_nums = range(1, min(numrange, total) + 1)
+    if cur > 1:
+        range_offset = min(total - len(page_nums), cur - int(len(page_nums) / 2) - 1)
+    else:
+        range_offset = 0
+    return tuple(map(lambda x: x + range_offset, page_nums))
