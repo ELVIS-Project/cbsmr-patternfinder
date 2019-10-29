@@ -1,0 +1,116 @@
+{
+  "definitions": {
+    "proto.AddPieceRequest": {
+      "title": "AddPieceRequest",
+      "type": "object",
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/proto.Note"
+          }
+        }
+      }
+    },
+    "proto.AddPieceResponse": {
+      "title": "AddPieceResponse",
+      "type": "object",
+      "properties": {}
+    },
+    "proto.GetPieceIdsRequest": {
+      "title": "GetPieceIdsRequest",
+      "type": "object",
+      "properties": {}
+    },
+    "proto.GetPieceIdsResponse": {
+      "title": "GetPieceIdsResponse",
+      "type": "object",
+      "properties": {
+        "pids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        }
+      }
+    },
+    "proto.Note": {
+      "title": "Note",
+      "type": "object",
+      "properties": {
+        "onset": {
+          "type": "number"
+        },
+        "offset": {
+          "type": "number"
+        },
+        "pitch": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "piece_idx": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      }
+    },
+    "proto.SearchRequest": {
+      "title": "SearchRequest",
+      "type": "object",
+      "properties": {
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/proto.Note"
+          }
+        },
+        "pids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        }
+      }
+    },
+    "proto.SearchResponse": {
+      "title": "SearchResponse",
+      "type": "object",
+      "properties": {
+        "occurrences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/proto.Occurrence"
+          }
+        }
+      }
+    },
+    "proto.Occurrence": {
+      "title": "Occurrence",
+      "type": "object",
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/proto.Note"
+          }
+        }
+      }
+    }
+  }
+}
