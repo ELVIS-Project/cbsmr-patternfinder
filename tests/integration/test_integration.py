@@ -1,9 +1,11 @@
+import sys
 import os
+PROJROOT = os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir)
+sys.path.append(PROJROOT)
 import multiprocessing
 import pytest
 import requests
-
-PROJROOT = os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir)
+from flask.post_pieces import post_piece_octet_stream
 
 ENDPOINT = f"http://{os.getenv('NGINX_HOST')}"
 
@@ -15,10 +17,10 @@ def query_template(q):
     =-
     {q}"""
 
-def search(q, rpp, page):
+def search(q, rpp, page, intervening, tnps, inexact, collection):
     response = requests.get(
             f"{ENDPOINT}/search",
-            params={"query": query_template(q), "rpp": rpp, "page": page, "tnps": "0,1,2,3,4,5,6,7,8,9,10,11", "intervening": 10})
+            params={"query": query_template(q), "rpp": rpp, "page": page, "tnps": ",".join(tnps), "intervening": ",".join(intervening), "inexact": ",".join(inexact), "collection": collection})
     return response
 
 def assert_search_200(q, rpp, page):

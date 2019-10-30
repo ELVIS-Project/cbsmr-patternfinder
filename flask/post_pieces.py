@@ -33,7 +33,7 @@ def parse_kern_chorale_piece_path(piece_path):
     return Metadata(unique_index(index, collection_id), fmt, name, collection_id)
 
 def parse_elvis_piece_path(piece_path):
-    collection_id = 1
+    collection_id = 3
     basename, fmt = os.path.splitext(os.path.basename(piece_path))
     fmt = fmt[1:] # skip '.'
     base = [x for x in os.path.basename(basename).split("_") if not "file" in x]
@@ -42,7 +42,7 @@ def parse_elvis_piece_path(piece_path):
     return Metadata(unique_index(piece_id, collection_id), fmt, name, collection_id)
 
 def parse_palestrina_path(piece_path):
-    collection_id=3
+    collection_id=1
     fmt = 'mid'
     basename, _ = os.path.splitext(os.path.basename(piece_path))
     xs = basename.split('_')
