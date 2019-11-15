@@ -48,7 +48,7 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
             raise DatabasesOutOfSyncError(f"pid {pb_occ.pid} does not exist in the flask database")
         name = cur.fetchone()
         if name and name[0]:
-            resp["name"] = " ".join(os.path.basename(name[0]).split("_")[1:])
+            resp["name"] = name[0]
         else:
             resp["name"] = "no name info"
 
@@ -91,22 +91,20 @@ class Pagination:
             self.numPages = 1
 
         self.cur = min(self.queryArgs.page, self.numPages)
-        if self.cur == 0:
-            self.cur = 1
 
         self.range = calculate_page_range(self.cur, self.numPages, 3)
 
         pagelink = partial(url_for, endpoint="search", **{param: request.args.get(param) for param in (x.name for x in fields(QueryArgs)) if param != 'page'})
         self.links = [pagelink(page=i) for i in self.range]
-        self.previousLink = pagelink(page = self.cur - 1) if self.cur > 1 else None
-        self.nextLink = pagelink(page=min(self.numPages, self.cur+1)),
-        self.firstLink = pagelink(page=1)
-        self.lastLink = pagelink(page=(self.numPages if self.numPages > 1 else 1))
+        self.previousLink = pagelink(page = self.cur - 1) if self.cur > 0 else None
+        self.nextLink = pagelink(page=min(self.numPages-1, self.cur+1)),
+        self.firstLink = pagelink(page=0)
+        self.lastLink = pagelink(page=(self.numPages-1 if self.numPages > 0 else 0))
 
 def calculate_page_range(cur, total, numrange):
-    page_nums = range(1, min(numrange, total) + 1)
-    if cur > 1:
-        range_offset = min(total - len(page_nums), cur - int(len(page_nums) / 2) - 1)
+    page_nums = range(0, min(numrange, total))
+    if cur > 0:
+        range_offset = min(total - len(page_nums), cur - int(len(page_nums) / 2))
     else:
         range_offset = 0
     return tuple(map(lambda x: x + range_offset, page_nums))
