@@ -1,0 +1,195 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+	"title": "Content-based symbolic music retrieval",
+	"version": "0.0.1"
+    },
+    "paths": {
+	"/index": {
+	    "summary": "Add a piece",
+	    "responses": {
+		"200": {
+		    "description": "200 response",
+		    "content": {
+			"application/json": {
+			}
+		    }
+		}
+	    }
+	},
+	"/search": {
+	    "summary": "Search a query",
+	    "get": {
+		"parameters": {
+		},
+		"responses": {
+		    "200": {
+			"description": "200 response",
+			"content": {
+			    "application/json": {
+				"schema": { "$ref": "#/components/schemas/searchResponse" }
+			    }
+			}
+		    }
+		}
+	    }
+	},
+	"/search": {
+	    "summary": "Search a query",
+	    "responses": {
+		"200": {
+		    "description": "200 response",
+		    "content": {
+			"application/json": {
+			    "schema": { "$ref": "#/components/schemas/searchResponse" }
+			}
+		    }
+		}
+	    }
+	}
+    },
+    "components": {
+	"parameters": {
+	    "rpp": {
+		"name": "rpp",
+		"in": "query",
+		"description": "Results per page",
+		"schema": {
+		    "type": "number",
+		    "minimum": 1
+		}
+	    },
+	    "page": {
+		"name": "page",
+		"in": "query",
+		"description": "The current page",
+		"schema": { "$ref": "#/components/schemas/pagination/cur" }
+	    },
+	    "tnps": {
+		"name": "transpositions",
+		"in": "query",
+		"description": "List of acceptable transpositions to filter for",
+		"schema": {
+		    "type": "array",
+		    "items": {
+			"type": "number"
+		    }
+		}
+	    },
+	    "intervening": {
+		"name": "intervening",
+		"in": "query",
+		"description": "The amount of decorative notes we are willing to tolerate that obscure our query.",
+		"schema": {
+		    "type": "array",
+		    "items": {
+			"type": "number"
+		    }
+		}
+	    },
+	    "inexact": {
+		"name": "inexact",
+		"in": "query",
+		"description": "The number of notes that can be missing in each occurrence",
+		"schema": {
+		    "type": "array",
+		    "items": {
+			"type": "number"
+		    }
+		}
+	    },
+	    "collection": {
+		"name": "collection",
+		"in": "query",
+		"description": "The collection of pieces to search over",
+		"schema": {
+		    "type": "number",
+		    "minimum": 0
+		}
+	    },
+	    "query": {
+		"name": "query",
+		"in": "query",
+		"description": "**kern query to search for in the database",
+		"schema": { "$ref": "#/components/schemas/kernQuery" }
+	    }
+	},
+	"schemas": {
+	    "occurrence": {
+		"type": "object",
+		"properties": {
+		    "pid": {
+			"type": "number",
+			"minimum": 0,
+			"description": "Piece ID that contains this occurrence"
+		    },
+		    "excerptUrl": {
+			"type": "string",
+			"pattern": ".*/excerpt/.*",
+			"description": "GET this url to fetch this occurrence's XML excerpt."
+		    }
+		}
+	    },
+	    "searchResponse": {
+		"type": "object",
+		"properties": {
+		    "query": { "$ref": "/components/schemas/kernQuery" },
+		    "pagination": { "$ref": "#/components/schemas/pagination" },
+		    "numPages": {
+			"type": "number",
+			"minimum": 0,
+			"description": "The number of pages returned in this search result"
+		    },
+		    "range": {
+			"type": "array",
+			"items": {
+			    "type": "number"
+			}
+		    }
+		}
+	    },
+	    "pagination": {
+		"type": "object",
+		"properties": {
+		    "numOccs": {
+			"type": "number",
+			"minimum": "0"
+		    },
+		    "cur": {
+			"type": "number",
+			"minimum": "0"
+		    },
+		    "previousLink": {
+			"type": "string",
+			"pattern": ".*page?=.*"
+		    },
+		    "nextLink": {
+			"type": "string",
+			"pattern": ".*page?=.*"
+		    },
+		    "firstLink": {
+			"type": "string",
+			"pattern": ".*page?=1.*"
+		    },
+		    "lastLink": {
+			"type": "string",
+			"pattern": ".*page?=.*"
+		    },
+		    "pages": {
+			"type": "array",
+			"items": { "$ref": "#/components/schemas/page" }
+		    }
+		}
+	    },
+	    "page": {
+		"type": "array",
+		"items": { "$ref": "#/components/schema/occurrence" }
+	    },
+	    "kernQuery": {
+		"type": "string",
+		"pattern": ".*\*\*kern.*",
+		"description": "The **krn query that inquired this search response"
+	    }
+	}
+    }
+}
