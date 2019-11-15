@@ -208,17 +208,7 @@ function initFilters() {
     });
     setInexactFilter(inexactSliderValues);
 
-    /*
-    var palestrinaRadio = document.getElementById("collectionPalestrina");
-    palestrinaRadio.addEventListener("click", function(event) {
-        setCollection(3)    
-    })
-    var bachRadio = document.getElementById("collectionBach");
-    bachRadio.addEventListener("click", function(event) {
-        setCollection(2)    
-    })
-    */
-    setCollection(1)
+    setCollection(URLPARAMS.get("collection"))
 }
 
 

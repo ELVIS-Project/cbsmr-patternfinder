@@ -232,6 +232,7 @@ def search():
     except Exception as e:
         return Response(f"failed to search: {str(e)}", status=500)
 
+    print("smr service returned #" + str(len(response.occurrences)) + " occurrences")
     occfilters = OccurrenceFilters(
             transpositions = range(*tnps_ints),
             intervening = intervening_ints,
