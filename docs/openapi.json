@@ -6,28 +6,17 @@
     },
     "paths": {
 	"/index": {
-	    "summary": "Add a piece",
-	    "responses": {
-		"200": {
-		    "description": "200 response",
-		    "content": {
-			"application/json": {
-			}
-		    }
-		}
-	    }
-	},
-	"/search": {
-	    "summary": "Search a query",
-	    "get": {
-		"parameters": {
-		},
+	    "post": {
+	        "summary": "Add a piece",
 		"responses": {
 		    "200": {
 			"description": "200 response",
 			"content": {
 			    "application/json": {
-				"schema": { "$ref": "#/components/schemas/searchResponse" }
+				"schema": {
+				    "type": "number",
+				    "description": "The pid of the newly added piece"
+				}
 			    }
 			}
 		    }
@@ -35,13 +24,24 @@
 	    }
 	},
 	"/search": {
-	    "summary": "Search a query",
-	    "responses": {
-		"200": {
-		    "description": "200 response",
-		    "content": {
-			"application/json": {
-			    "schema": { "$ref": "#/components/schemas/searchResponse" }
+	    "get": {
+	        "summary": "Search",
+		"parameters": [
+		    { "$ref": "#/components/parameters/rpp" },
+		    { "$ref": "#/components/parameters/page" },
+		    { "$ref": "#/components/parameters/tnps" },
+		    { "$ref": "#/components/parameters/intervening" },
+		    { "$ref": "#/components/parameters/inexact" },
+		    { "$ref": "#/components/parameters/collection" },
+		    { "$ref": "#/components/parameters/query" }
+		],
+		"responses": {
+		    "200": {
+			"description": "200 response",
+			"content": {
+			    "application/json": {
+				"schema": { "$ref": "#/components/schemas/searchResponse" }
+			    }
 			}
 		    }
 		}
@@ -63,7 +63,10 @@
 		"name": "page",
 		"in": "query",
 		"description": "The current page",
-		"schema": { "$ref": "#/components/schemas/pagination/cur" }
+		"schema": {
+		    "type": "number",
+		    "minimum": 0
+		}
 	    },
 	    "tnps": {
 		"name": "transpositions",
@@ -133,7 +136,7 @@
 	    "searchResponse": {
 		"type": "object",
 		"properties": {
-		    "query": { "$ref": "/components/schemas/kernQuery" },
+		    "query": { "$ref": "#/components/schemas/kernQuery" },
 		    "pagination": { "$ref": "#/components/schemas/pagination" },
 		    "numPages": {
 			"type": "number",
@@ -153,11 +156,11 @@
 		"properties": {
 		    "numOccs": {
 			"type": "number",
-			"minimum": "0"
+			"minimum": 0
 		    },
 		    "cur": {
 			"type": "number",
-			"minimum": "0"
+			"minimum": 0
 		    },
 		    "previousLink": {
 			"type": "string",
@@ -183,11 +186,11 @@
 	    },
 	    "page": {
 		"type": "array",
-		"items": { "$ref": "#/components/schema/occurrence" }
+		"items": { "$ref": "#/components/schemas/occurrence" }
 	    },
 	    "kernQuery": {
 		"type": "string",
-		"pattern": ".*\*\*kern.*",
+		"pattern": ".*\\*\\*kern.*",
 		"description": "The **krn query that inquired this search response"
 	    }
 	}
