@@ -53,13 +53,14 @@ def symbolic_data_to_m21_xml(sd_b64):
 def excerpt(m21_xml, nids, measure_start, measure_end, color='#FF0000'):
     stream = music21.converter.parse(m21_xml)
     excerpt = stream.measures(numberStart=measure_start, numberEnd=measure_end)
-    m21_xml_excerpt = m21_to_xml_write(excerpt)
+    m21_xml_excerpt = m21_score_to_xml_write(excerpt)
     root = ET.fromstring(m21_xml_excerpt)
     tree = ET.ElementTree(root)
     for note_tag in root.findall('.//footnote/..'):
-        nid_tag = note_tag.find('footnote/nid')
-        nid = nid_tag.text
-        if nid in nids:
+        footnote_tag = note_tag.find('footnote')
+        _, _, nid_str = footnote_tag.text.partition('=')
+        nid_int = int(nid_str)
+        if nid_int in nids:
             note_tag.attrib.update({'color': color})
             notehead_tag = ET.SubElement(note_tag, 'notehead', attrib={'color': color, 'parantheses': 'no'})
             notehead_tag.text = 'normal'

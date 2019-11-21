@@ -87,7 +87,7 @@
 		<div id="results" class="container-fluid">
             <div class="align-middle font-weight-light text-center">#{{searchResponse["pagination"]["numOccs"]}} Occurrences</div>
 
-			{% for occ in searchResponse["pagination"]["pages"][searchResponse["pagination"]["cur"] - 1] %}
+			{% for occ in searchResponse["pagination"]["pages"][searchResponse["pagination"]["cur"]] %}
 			<div class="row">
 				<div class="col-md-3"></div>
 				<div class="col-md-6">
@@ -160,12 +160,12 @@
 		</nav>
 
     <script id="searchResponse" type="application/json">{{searchResponse | tojson}}</script>
-    <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
     <script
       src="https://code.jquery.com/jquery-3.4.1.min.js"
       integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
       crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
     <script src="/dist/search.js"></script>
   </body>
 </html>

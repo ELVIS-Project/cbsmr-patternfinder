@@ -185,7 +185,8 @@ def excerpt():
     notes = [str(x) for x in request.args.get("nid").split(",")]
 
     with db_conn, db_conn.cursor() as cur:
-        cur.execute("SELECT colored_excerpt(" + piece_id + ", '{" + request.args.get("nid") + "}', '#FF0000');")
+        query = "SELECT colored_excerpt(" + str(piece_id) + ", '{" + request.args.get("nid") + "}', '#FF0000');"
+        cur.execute(query)
         excerpt_xml, = cur.fetchone()
     return Response(excerpt_xml, mimetype='text/xml')
 
