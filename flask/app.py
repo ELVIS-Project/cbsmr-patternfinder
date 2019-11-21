@@ -148,19 +148,19 @@ def index(piece_id):
             values = (piece_id, data, metadata['filename'], metadata['collection'])
             conflict_values = values[1:]
             cur.execute(f"""
-                INSERT INTO Piece (pid, data, name, collection_id)
+                INSERT INTO Piece (pid, symbolic_data, name, collection_id)
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT piece_pkey DO
-                UPDATE SET (data, name, collection_id) = (%s, %s, %s)
+                UPDATE SET (symbolic_data, name, collection_id) = (%s, %s, %s)
             ;""", values + conflict_values)
         else:
             values = (data, metadata['filename'], metadata['collection'])
             conflict_values = values
             cur.execute(f"""
-                INSERT INTO Piece (data, name, collection_id)
+                INSERT INTO Piece (symbolic_data, name, collection_id)
                 VALUES (%s, %s, %s)
                 ON CONFLICT ON CONSTRAINT piece_pkey DO
-                UPDATE SET (data, name, collection_id) = (%s, %s, %s)
+                UPDATE SET (symbolic_data, name, collection_id) = (%s, %s, %s)
                 RETURNING pid
             ;""", values + conflict_values)
             piece_id, = cur.fetchone()
@@ -184,7 +184,9 @@ def excerpt():
     piece_id = int(request.args.get("pid"))
     notes = [str(x) for x in request.args.get("nid").split(",")]
 
-    excerpt_xml = coloured_excerpt(db_conn, notes, piece_id)
+    with db_conn, db_conn.cursor() as cur:
+        cur.execute("SELECT colored_excerpt(" + piece_id + ", '{" + request.args.get("nid") + "}', '#FF0000');")
+        excerpt_xml, = cur.fetchone()
     return Response(excerpt_xml, mimetype='text/xml')
 
 @application.route("/search", methods=["GET"])

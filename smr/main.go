@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	vp "github.com/spf13/viper"
 	"net"
+	"fmt"
 	"time"
 )
 
@@ -38,7 +39,7 @@ func openBolt() (db *bolt.DB) {
 	var err error
 	db, err = bolt.Open(vp.GetString("SMR_DB"), 0666, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("couldn't open bolt db at location %s: %s", vp.GetString("SMR_DB"), err))
 	} else {
 		log.Infof("connected to bolt %v", vp.GetString("SMR_DB"))
 	}

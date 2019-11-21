@@ -7,3 +7,5 @@ grpcio-tools
 flask
 uwsgi
 psycopg2
+requests
+tqdm
