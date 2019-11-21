@@ -5,6 +5,10 @@ server {
     location / {
         include uwsgi_params;
         uwsgi_pass unix:/cbsmr/flask/socket/uwsgi.sock;
+        uwsgi_connect_timeout       75s;
+        uwsgi_send_timeout          300s;
+        uwsgi_read_timeout          300s;
+        send_timeout                300;
     }
 }
 
