@@ -3,6 +3,7 @@
   <meta charset="UTF-8">
   <head>
       <title>SMR</title>
+      <div id="loadOverlay" style="background-color:#333; position:absolute; top:0px; left:0px; width:100%; height:100%; z-index:2000;"></div>
       <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   </head>
   <body>
@@ -167,5 +168,10 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="http://verovio-script.humdrum.org/scripts/verovio-toolkit.js"></script>
     <script src="/dist/search.js"></script>
+	<script>
+		$(document).ready(function() {
+		  $("#loadOverlay").css("display","none");
+		});
+	</script>
   </body>
 </html>
