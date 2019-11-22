@@ -1,0 +1,1 @@
+../../webclient/dist/search.js
