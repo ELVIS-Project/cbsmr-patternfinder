@@ -59,6 +59,10 @@ def index():
 def get_dist(path):
     return send_from_directory('templates', path)
 
+@application.route("/favicon.ico", methods=["GET"])
+def get_favicon():
+    return send_from_directory('templates', 'favicon.ico')
+
 def m21_score_to_xml_write(m21_score):
     o = m21_score.write('xml')
     with open(o, 'rb') as f:
