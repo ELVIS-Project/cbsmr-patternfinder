@@ -16,7 +16,15 @@
 		<!-- GET /search hidden form -->
 		<form name="search" action="/search" method="get">
 			<input name="query" type="hidden">
-			<input name="rpp" type="hidden">
+            <label>Results Per Page
+            <select name="rpp" id="select-rpp">
+                <option>3</option>
+                <option selected>5</option>
+                <option>7</option>
+                <option>10</option>
+                <option>20</option>
+            </select>
+            </label>
 			<input name="page" type="hidden">
             <input name="tnps" type="hidden">
             <input name="intervening" type="hidden">
@@ -106,9 +114,9 @@
         <div id="results-section" class="row">
 			<div id="results-report"></div>
 			<div id="results-container"></div>
-			<div class="col-md-3"></div>
+			<div class="col-md-4"></div>
 
-			<div class="col-md-6">
+			<div class="col-md-4">
 				<nav id="results-paginator-links" class="paginator">
 					<ul class="pagination">
                         {% if searchResponse["range"][0] > 0 %}
@@ -145,6 +153,8 @@
 					</ul>
 				</nav>
 			</div>
+            <div class="col-md-4">
+            </div>
 		</div>
 		{% endif %}
 
