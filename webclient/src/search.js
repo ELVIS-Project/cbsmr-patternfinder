@@ -208,7 +208,11 @@ function initFilters() {
     });
     setInexactFilter(inexactSliderValues);
 
-    setCollection(URLPARAMS.get("collection"))
+    if (URLPARAMS.get("collection")) {
+        setCollection(URLPARAMS.get("collection"))
+    } else {
+        setCollection(0)
+    }
 }
 
 
