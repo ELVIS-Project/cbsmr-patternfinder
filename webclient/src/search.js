@@ -118,9 +118,8 @@ function newAceEditor() {
 	});
 }
 
-function setSearchForm(rpp, page) {
+function setSearchForm(page) {
 	var form = document.forms["search"]
-	form.elements["rpp"].value = rpp;
 	form.elements["page"].value = page;
 }
 
@@ -157,6 +156,11 @@ function setWindowFilter(values) {
 function setCollection(value) {
     var form = document.forms["search"]
     form.elements["collection"].value = value
+}
+
+function setResultsPerPage(value) {
+    var form = document.forms["search"]
+    form.elements["rpp"].value = value
 }
 
 function initFilters() {
@@ -213,13 +217,19 @@ function initFilters() {
     } else {
         setCollection(0)
     }
+
+    if (URLPARAMS.get("rpp")) {
+        setResultsPerPage(URLPARAMS.get("rpp"))
+    } else {
+        setResultsPerPage(5)
+    }
 }
 
 
 (() => {
 	newAceEditor();
     initFilters();
-	setSearchForm(5, 0);
+	setSearchForm(0);
 
 	var searchResponse = JSON.parse(document.getElementById("searchResponse").innerHTML)
 	if (Object.values(searchResponse).length !== 0)  {
