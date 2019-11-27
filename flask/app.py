@@ -21,7 +21,7 @@ import time
 import grpc
 from proto import smr_pb2, smr_pb2_grpc
 
-from response import build_response, QueryArgs
+from response import build_response, QueryArgs, available_search_options
 
 application = Flask(__name__)
 logger = application.logger
@@ -51,9 +51,14 @@ def connect_to_psql():
     application.config['PSQL_CONN'] = conn
     return conn
 
+def render_search(searchResponse, searchOptions):
+    return render_template("search.html", searchResponse = searchResponse, searchOptions=searchOptions)
+
 @application.route("/", methods=["GET"])
 def index():
-    return render_template("search.html", searchResponse = {})
+    db_conn = connect_to_psql()
+    opts = available_search_options(db_conn)
+    return render_search(searchResponse = {}, searchOptions = opts)
 
 @application.route("/dist/<path>", methods=["GET"])
 def get_dist(path):
@@ -253,7 +258,7 @@ def search():
     if request.content_type == "application/json":
         return jsonify(search_response)
     else:
-        return render_template("search.html", searchResponse = search_response)
+        return render_search(searchResponse = search_response, searchOptions = available_search_options(db_conn))
 
 def main():
     application.run(host="0.0.0.0", port=int(os.environ['FLASK_PORT']))

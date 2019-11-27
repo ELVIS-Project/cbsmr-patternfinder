@@ -30,17 +30,12 @@
             <input name="intervening" type="hidden">
             <input name="inexact" type="hidden">
 
-            <label for="collectionAll">
-                <input id="collectionAll" name="collection" type="radio" value="0">
-                All
-            </label>
-            <label for="collectionPalestrina">
-                <input name="collection" type="radio" value="3">
-                Palestrina
-            </label>
-            <label for="collectionBach">
-                <input name="collection" type="radio" value="2">
-                Bach
+            <label>Collection
+            <select name="collection">
+                {% for c_id, c_name in searchOptions["collections"] %}
+                    <option value={{c_id}}>{{c_name}}</option>
+                {% endfor %}
+            </select>
             </label>
 			<input type="submit" id="search-form" style="display: none;">
 		</form>
@@ -77,21 +72,13 @@
                             <div class="w-75 d-inline-block" id="inexactSlider"></div>
                             <span class="ml-2" id="inexactSliderRightIndicator"></span>
                         </div>
-                        <!-- COLLECTION -->
-                        <!--
-                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                          <label id="collectionPalestrina" class="btn btn-secondary active">
-                            <input type="radio" name="collection">Palestrina
-                          </label>
-                          <label id="collectionBach" class="btn btn-secondary">
-                            <input type="radio" name="collection">Bach
-                          </label>
-                        </div>
-                        -->
                     </div>
 				</div>
 		</div>
 
+        {% if 'pagination' in searchResponse and searchResponse['pagination']['numOccs'] == 0 %}
+            <div class="align-middle font-weight-light text-center">No Occurrences!</div>
+        {% endif %}
 		{% if 'pagination' in searchResponse and searchResponse["pagination"]["numOccs"] > 0 %}
 		<div id="results" class="container-fluid">
             <div class="align-middle font-weight-light text-center">#{{searchResponse["pagination"]["numOccs"]}} Occurrences</div>

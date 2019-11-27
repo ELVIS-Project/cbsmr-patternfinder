@@ -18,6 +18,15 @@ class QueryArgs:
     collection: int
     query: str
 
+def available_search_options(db_conn):
+    opts = {}
+    with db_conn, db_conn.cursor() as cur:
+        cur.execute(f"""
+            SELECT id, name FROM Collection
+        """)
+        opts.update({'collections': [(cid, name) for cid, name in cur.fetchall()]})
+    return opts
+
 def build_response(db_conn, occs, qargs):
     pagination = Pagination(len(occs), qargs)
     pagination.pages = [

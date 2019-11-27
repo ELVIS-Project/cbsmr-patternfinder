@@ -3,10 +3,10 @@ CREATE TABLE IF NOT EXISTS Piece (
   fmt TEXT,
   symbolic_data TEXT,
   music21_xml TEXT,
-  composer TEXT,
   name TEXT,
   filename TEXT,
-  collection_id INTEGER
+  composer_id INTEGER REFERENCES Composer(id),
+  collection_id INTEGER REFERENCES Collection(id)
 );
 
 CREATE TABLE IF NOT EXISTS MeasureOnsetMap (
@@ -26,3 +26,13 @@ CREATE TABLE IF NOT EXISTS Note (
 );
 
 CREATE INDEX idx_note_nid ON Note(nid);
+
+CREATE TABLE IF NOT EXISTS Collection (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS Composer (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE
+);
