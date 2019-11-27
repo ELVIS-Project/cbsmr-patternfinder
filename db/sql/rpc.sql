@@ -12,6 +12,7 @@ CREATE TRIGGER index_piece_before_insert BEFORE INSERT OR UPDATE OF symbolic_dat
 CREATE OR REPLACE FUNCTION index_piece_after_insert() RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO Note(pid, n, nid) SELECT NEW.pid, n, nid FROM generate_notes(NEW.music21_xml);
+    PERFORM index_piece_notewindows(NEW.pid, 40);
     INSERT INTO MeasureOnsetMap(pid, mid, onset) SELECT NEW.pid, mid, onset FROM smrpy_measure_onset_map(NEW.music21_xml);
     RETURN NULL;
 END;
@@ -49,4 +50,83 @@ $$ LANGUAGE plpython3u IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION smrpy_measure_onset_map(symbolic_data TEXT) RETURNS SETOF MeasureOnsetMap AS $$
     from smrpy import measure_onset_map
     return measure_onset_map(symbolic_data)
+$$ LANGUAGE plpython3u IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION index_piece_notewindows(pid INTEGER, window_size INTEGER) RETURNS VOID AS $$
+DECLARE
+    notes POINT[];
+BEGIN
+    SELECT array_agg(Note.n ORDER BY (Note.n[0], Note.n[1])) INTO notes FROM Note WHERE Note.pid=index_piece_notewindows.pid;
+    DELETE FROM NoteWindow WHERE NoteWindow.pid=index_piece_notewindows.pid;
+    INSERT INTO NoteWindow(pid, u, v, note_ids, onset_start, onset_end, unnormalized, normalized)
+        SELECT index_piece_notewindows.pid, u, v, note_ids, onset_start, onset_end, unnormalized, normalized FROM smrpy_generate_notewindows(notes, window_size);
+    UPDATE Piece SET window_size = index_piece_notewindows.window_size WHERE Piece.pid = index_piece_notewindows.pid;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION index_piece_notevectors(pid INTEGER) RETURNS VOID AS $$
+DECLARE
+    notes POINT[];
+BEGIN
+    SELECT array_agg(Note.n ORDER BY (Note.n[0], Note.n[1])) INTO notes FROM Note WHERE Note.pid=index_piece_notevectors.pid;
+    DELETE FROM NoteVector WHERE NoteVector.pid=index_piece_notevectors.pid;
+    INSERT INTO NoteVector(pid, x, y, l, r)
+        SELECT index_piece_notevectors.pid, x, y, l, r FROM smrpy_generate_notevectors(notes);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION smrpy_generate_notewindows(notes POINT[], window_size INTEGER) RETURNS TABLE(like NoteWindow) AS $$
+    from smrpy import generate_notewindows
+    return generate_notewindows(notes, window_size)
+$$ LANGUAGE plpython3u IMMUTABLE STRICT;
+
+
+CREATE OR REPLACE FUNCTION search_sql_gin_exact(normalized_query POINT[]) RETURNS TABLE(pid INTEGER, notes POINT[], nids INTEGER[]) AS
+$$
+WITH matching_windows AS (
+        SELECT pid, u, v, normalized, unnormalized, note_ids
+        FROM notewindow
+        WHERE (normalized @> normalized_query)),
+    window_note_matches AS (
+        SELECT w.pid, u, v, w.unnormalized[array_position(w.normalized, pattern_notes.n)] AS note,  w.note_ids[array_position(w.normalized, pattern_notes.n)] AS nid
+        FROM (SELECT unnest(normalized_query) AS n) AS pattern_notes JOIN matching_windows AS w
+        ON true)
+SELECT window_note_matches.pid, array_agg(note) notes, array_agg(nid) nids
+FROM window_note_matches
+GROUP BY (window_note_matches.pid, u, v);
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION smrpy_search_filtered(query POINT[], transpositions INTEGER[], intervening INTEGER[], inexact INTEGER[]) RETURNS TABLE(pid INTEGER, nids INTEGER[], notes POINT[]) AS $$
+    from smrpy import search_filtered
+    return search_filtered(query, transpositions, intervening, inexact)
+$$ LANGUAGE plpython3u IMMUTABLE STRICT;
+	
+CREATE OR REPLACE FUNCTION smrpy_search(query POINT[]) RETURNS TABLE(pid INTEGER, nids INTEGER[], notes POINT[]) AS $$
+    from smrpy import search
+    return search(query)
+$$ LANGUAGE plpython3u IMMUTABLE STRICT;
+	
+CREATE OR REPLACE FUNCTION search(query POINT[]) RETURNS TABLE(pid INTEGER, name TEXT, nids INTEGER[], notes POINT[]) AS $$
+    SELECT
+        Piece.pid,
+        Piece.name,
+        smrpy_search.nids,
+        smrpy_search.notes
+        FROM smrpy_search(query)
+        JOIN Piece ON smrpy_search.pid = Piece.pid;
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION search_filtered(query POINT[], transpositions INTEGER[], intervening INTEGER[], inexact INTEGER[]) RETURNS TABLE(pid INTEGER, name TEXT, nids INTEGER[], notes POINT[]) AS $$
+    SELECT
+        Piece.pid,
+        Piece.name,
+        smrpy_search_filtered.nids,
+        smrpy_search_filtered.notes
+        FROM smrpy_search_filtered(query, transpositions, intervening, inexact)
+        JOIN Piece ON smrpy_search_filtered.pid = Piece.pid;
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION smrpy_generate_notevectors(points POINT[]) RETURNS TABLE(x NUMERIC, y INTEGER, l POINT, r POINT) AS $$
+    from smrpy import generate_notevectors
+    return generate_notevectors(points)
 $$ LANGUAGE plpython3u IMMUTABLE STRICT;

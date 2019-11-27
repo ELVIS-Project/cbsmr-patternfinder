@@ -20,8 +20,9 @@ import time
 
 import grpc
 from proto import smr_pb2, smr_pb2_grpc
-
-from response import build_response, QueryArgs
+from smrpy.piece import Note
+from smrpy.occurrence import filter_occurrences, OccurrenceFilters
+from response import build_response, build_response_hausdorf, QueryArgs
 
 application = Flask(__name__)
 logger = application.logger
@@ -253,6 +254,58 @@ def search():
             db_conn,
             filter_occurrences(response.occurrences, query_pb_notes, occfilters),
             qargs)
+
+    if request.content_type == "application/json":
+        return jsonify(search_response)
+    else:
+        return render_template("search.html", searchResponse = search_response)
+
+def qstring(ps):
+    # :todo make this a class function for notewindow
+    return "'{" + ','.join(f'\"({x.onset},{x.pitch})\"' for x in ps) + "}'"
+
+@application.route("/search_hausdorf", methods=["GET"])
+def search_hausdorf():
+    db_conn = connect_to_psql()
+
+    for arg in (x.name for x in fields(QueryArgs)):
+        missing = []
+        if not request.args.get(arg):
+            missing.append(arg)
+        if missing:
+            return Response(f"Missing GET parameter(s): {missing}", status=400)
+
+    # :todo make parse_search_params()
+    # :todo validate against openapi schema
+    try:
+        page = int(request.args.get("page"))
+        rpp = int(request.args.get("rpp"))
+        tnps = request.args.get("tnps").split(",")
+        tnps_ints = list(map(int, tnps))
+        tnps_ints[1] += 1 # increase range to include end
+        intervening = request.args.get("intervening").split(",")
+        intervening_ints = tuple(map(int, intervening))
+        inexact = request.args.get("inexact").split(",")
+        inexact_ints = tuple(map(int, inexact))
+        collection = int(request.args.get("collection"))
+        query_str = request.args.get("query")
+        qargs = QueryArgs(rpp, page, tnps, intervening, inexact, collection, query_str)
+    except ValueError as e:
+        return Response(f"Failed to parse parameter(s) to integer, got exception {str(e)}", status=400)
+
+    query_str = request.args.get("query")
+    query_stream = indexers.parse(query_str)
+    query_nps = indexers.NotePointSet(query_stream)
+    query_points = [(n.offset, n.pitch.ps) for n in query_nps]
+    query_notes = [Note.from_m21(n, i) for i, n in enumerate(query_nps)]
+
+    with db_conn, db_conn.cursor() as cur:
+        cur.execute(f"""
+            SELECT * FROM search({qstring(query_notes)})
+        """)
+        occurrences = [{'pid': pid, 'name': name, 'nids': nids} for pid, name, nids in cur.fetchall()]
+
+    search_response = build_response_hausdorf(occurrences, qargs)
 
     if request.content_type == "application/json":
         return jsonify(search_response)

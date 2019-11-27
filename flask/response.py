@@ -30,6 +30,21 @@ def build_response(db_conn, occs, qargs):
             "range": pagination.range
             }
 
+def build_response_hausdorf(occs, qargs):
+    pagination = Pagination(len(occs), qargs)
+
+    pagination.pages = [occs[qargs.rpp * i : qargs.rpp * (i + 1)] for i in range(pagination.numPages)]
+    for o in pagination.pages[qargs.page]:
+        o.update({'excerptUrl': url_for("excerpt", pid=o['pid'], nid=",".join(str(x) for x in o['nids']))})
+
+    return {
+            "query": qargs.query,
+            "pagination": asdict(pagination),
+            "numPages": pagination.numPages,
+            "range": pagination.range
+            }
+
+
 def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
 
     excerptIndices = [n.piece_idx for n in pb_occ.notes]

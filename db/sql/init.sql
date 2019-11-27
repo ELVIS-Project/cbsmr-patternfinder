@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS Piece (
   composer TEXT,
   name TEXT,
   filename TEXT,
-  collection_id INTEGER
+  collection_id INTEGER,
+  window_size INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS MeasureOnsetMap (
@@ -26,3 +27,24 @@ CREATE TABLE IF NOT EXISTS Note (
 );
 
 CREATE INDEX idx_note_nid ON Note(nid);
+
+CREATE TABLE IF NOT EXISTS NoteWindow (
+  pid INTEGER REFERENCES Piece(pid),
+  onset_start NUMERIC,
+  onset_end NUMERIC,
+  u INTEGER, -- todo make this a single "scale" factor
+  v INTEGER,
+  note_ids INTEGER[],
+  unnormalized POINT[],
+  normalized POINT[],
+  PRIMARY KEY (pid, u, v, onset_start, onset_end)
+);
+
+CREATE TABLE IF NOT EXISTS NoteVector (
+    id SERIAL PRIMARY KEY,
+    pid INTEGER REFERENCES Piece(pid),
+    x NUMERIC,
+    y INTEGER,
+    l POINT,
+    r POINT
+);

@@ -26,6 +26,7 @@ WORKDIR /cbsmr
 
 ADD ./Makefile .
 ADD ./proto ./proto
+ADD ./smrpy ./smrpy
 RUN make proto/smr_pb2.py proto/smr_pb2_grpc.py
 
 ADD ./flask/requirements.txt ./flask/requirements.txt

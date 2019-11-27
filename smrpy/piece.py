@@ -99,7 +99,7 @@ class Note:
             return self
 
     def to_pb(self, piece_idx = None):
-        return smr_pb2.Note(onset=self.onset, offset=(self.onset + self.duration), pitch=int(self.pitch), piece_idx = piece_idx if piece_idx else self.index)
+        return smr_pb2.Note(onset=self.onset, offset=self.onset, pitch=int(self.pitch), piece_idx = piece_idx if piece_idx else self.index)
 
     @classmethod
     def from_pb(cls, pb_note):
