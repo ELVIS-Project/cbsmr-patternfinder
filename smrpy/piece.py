@@ -112,8 +112,12 @@ class Note:
         return self.onset == other.onset and self.pitch == other.pitch
 
     @classmethod
-    def from_point(cls, idx, inp):
+    def from_point_str(cls, idx, inp):
         p = ast.literal_eval(inp)
+        return cls.from_point(idx, p)
+
+    @classmethod
+    def from_point(cls, idx, p):
         return cls(p[0], None, p[1], idx)
 
     @classmethod

@@ -21,7 +21,7 @@ import time
 import grpc
 from proto import smr_pb2, smr_pb2_grpc
 from smrpy.piece import Note
-from smrpy.occurrence import filter_occurrences, OccurrenceFilters
+import smrpy
 from response import build_response, build_response_hausdorf, QueryArgs
 
 application = Flask(__name__)
@@ -264,6 +264,9 @@ def qstring(ps):
     # :todo make this a class function for notewindow
     return "'{" + ','.join(f'\"({x.onset},{x.pitch})\"' for x in ps) + "}'"
 
+def pg_quotewrap_iter(iterable):
+    return "'{" + ",".join(str(x) for x in iterable) + "}'"
+
 @application.route("/search_hausdorf", methods=["GET"])
 def search_hausdorf():
     db_conn = connect_to_psql()
@@ -300,12 +303,25 @@ def search_hausdorf():
     query_notes = [Note.from_m21(n, i) for i, n in enumerate(query_nps)]
 
     with db_conn, db_conn.cursor() as cur:
+        query_values = (
+            qstring(query_notes),
+            pg_quotewrap_iter(tnps_ints),
+            pg_quotewrap_iter(intervening_ints),
+            pg_quotewrap_iter(inexact_ints))
         cur.execute(f"""
-            SELECT * FROM search({qstring(query_notes)})
+            SELECT pid, name, nids, notes FROM search_filtered({",".join(query_values)})
         """)
-        occurrences = [{'pid': pid, 'name': name, 'nids': nids} for pid, name, nids in cur.fetchall()]
+        occurrences = [{
+            'pid': pid,
+            'name': name,
+            'nids': nids
+            } for pid, name, nids, notes in cur.fetchall()]
 
-    search_response = build_response_hausdorf(occurrences, qargs)
+    search_response = build_response_hausdorf(
+            occurrences,
+            #sorted(smrpy.occurrence.filter_occurrences(occurrences, query_notes, occfilters),
+            #    key=smrpy.occurrence.sort_key),
+            qargs)
 
     if request.content_type == "application/json":
         return jsonify(search_response)

@@ -10,24 +10,30 @@ class OccurrenceFilters:
     intervening: tuple
     inexact: tuple
 
-def filter_occurrences(occurrences, query_pb_notes, requested_filters):
-    return [occ for occ in occurrences if all((
-        #filter_by_transposition(query_pb_notes, occ, requested_filters.transpositions),
-        #filter_by_intervening(occ, requested_filters.intervening),
-        filter_by_num_notes(query_pb_notes, occ, requested_filters.inexact),
-        ))]
+def sort_key(occ):
+    return (
+        len(occ),
+        sum(y.index - x.index for x, y in zip(occ, occ[1:]))
+    )
 
-def filter_by_transposition(query_notes, occ, allowed_transpositions):
-    actual = (query_notes[0].pitch - occ.notes[0].pitch) % 12
+def filter_occurrences(occ, query_notes, requested_filters):
+    return all((
+        filter_by_transposition(query_notes, occ, requested_filters.transpositions),
+        filter_by_intervening([n.index for n in occ], requested_filters.intervening),
+        filter_by_num_notes(query_notes, occ, requested_filters.inexact),
+        ))
+
+def filter_by_transposition(query_notes, occ_notes, allowed_transpositions):
+    actual = abs(query_notes[0].pitch - occ_notes[0].pitch) % 12
     return actual in allowed_transpositions
 
-def filter_by_intervening(pb_occ, intervening):
+def filter_by_intervening(occ_nids, intervening):
     smallest_allowed, biggest_allowed = intervening
-    skips = [y - x for x, y in zip((x.piece_idx for x in pb_occ.notes), (y.piece_idx for y in pb_occ.notes[1:]))]
+    skips = [y - x for x, y in zip(occ_nids, occ_nids[1:])]
     return min(skips) > smallest_allowed and max(skips) <= biggest_allowed + 1
 
-def filter_by_num_notes(query_pb_notes, pb_occ, inexact):
-    num_missing = len(query_pb_notes) - len(pb_occ.notes)
+def filter_by_num_notes(query_notes, occ_notes, inexact):
+    num_missing = len(query_notes) - len(occ_notes)
     return num_missing >= inexact[0] and num_missing <= inexact[1]
 
 def notes_from_points(inp):

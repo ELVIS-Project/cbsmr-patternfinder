@@ -34,7 +34,7 @@ def build_response_hausdorf(occs, qargs):
     pagination = Pagination(len(occs), qargs)
 
     pagination.pages = [occs[qargs.rpp * i : qargs.rpp * (i + 1)] for i in range(pagination.numPages)]
-    for o in pagination.pages[qargs.page]:
+    for o in pagination.pages.get(qargs.page, ()):
         o.update({'excerptUrl': url_for("excerpt", pid=o['pid'], nid=",".join(str(x) for x in o['nids']))})
 
     return {
