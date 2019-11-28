@@ -8,7 +8,7 @@ services:
     env_file:
       - conf/env.docker
     ports:
-      - '${SMR_PORT}:${SMR_PORT}'
+      - '8001:8001'
     volumes:
       - ./smr/bolt:/cbsmr/smr/bolt
     restart: always
@@ -34,7 +34,7 @@ services:
       - ./db/sql/:/docker-entrypoint-initdb.d/
       - ./smrpy:/smrpy/
     ports:
-      - '${PG_PORT}:${PG_PORT}'
+        - '5432:5432'
     restart: always
   nginx:
     image: nginx:latest
@@ -42,5 +42,5 @@ services:
       - ./conf/nginx.docker:/etc/nginx/conf.d/cbsmr.conf
       - ./flask/socket:/cbsmr/flask/socket
     ports:
-      - '${NGINX_PORT}:${NGINX_PORT}'
+      - '80:80'
     restart: always

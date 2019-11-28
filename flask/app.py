@@ -232,8 +232,12 @@ def search():
             cur.execute(f"SELECT pid FROM Piece WHERE collection_id={collection}")
         collection_pids = [x[0] for x in cur.fetchall()]
 
+    channel_opts = [
+        ('grpc.max_message_length', 1024**3),
+        ('grpc.max_receive_message_length', 1024**3)
+    ]
     try:
-        with grpc.insecure_channel(application.config['SMR_URI']) as channel:
+        with grpc.insecure_channel(application.config['SMR_URI'], options=channel_opts) as channel:
             stub = smr_pb2_grpc.SmrStub(channel)
             response = stub.Search(smr_pb2.SearchRequest(notes=query_pb_notes, pids=collection_pids))
     except Exception as e:
