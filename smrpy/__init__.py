@@ -1,3 +1,8 @@
+"""
+smrpy/__init__.py
+
+This package is intended to be run as a plpython3u extension in PostgreSQL
+"""
 import ast
 import base64
 import music21
