@@ -130,3 +130,59 @@ CREATE OR REPLACE FUNCTION smrpy_generate_notevectors(points POINT[]) RETURNS TA
     from smrpy import generate_notevectors
     return generate_notevectors(points)
 $$ LANGUAGE plpython3u IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION index_piece_notevectors_sql(pid INTEGER, window_size INTEGER) RETURNS VOID AS $$
+WITH notes AS (
+	SELECT pid, n, nid FROM Note WHERE index_piece_notevectors_sql.pid = Note.pid
+),
+vecs AS (
+	SELECT
+		index_piece_notevectors_sql.pid,
+		(n2.n - n1.n)[0] AS x,
+		(n2.n - n1.n)[1] AS y,
+		n1.n,
+		n2.n,
+		n1.nid,
+		n2.nid
+	FROM notes n1 JOIN notes n2
+	ON n2.nid > n1.nid
+	AND n2.nid - n1.nid < window_size
+	AND n2.pid = n1.pid
+)
+INSERT INTO EnumeratedNoteVector(pid, x, y, l, r, l_nid, r_nid) (SELECT * FROM vecs)
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION search_lemstrom(query POINT[]) RETURNS TABLE(pid INTEGER, notes DOUBLE PRECISION[]) AS $$
+WITH RECURSIVE
+query AS (
+    SELECT * FROM smrpy_generate_notevectors('{"(0.0, 67)","(0.5, 70)","(1.0, 69)","(1.5, 62)","(2.0, 69)","(3.0, 67)"}'::POINT[])
+),
+vecs AS (
+    SELECT
+        pid,
+        ARRAY[query.l[0], query.l[1], query.r[0], query.r[1]] AS p_notes,
+        ARRAY[EnumeratedNoteVector.l[0], EnumeratedNoteVector.l[1], EnumeratedNoteVector.r[0], EnumeratedNoteVector.r[1]] AS t_notes
+    FROM EnumeratedNoteVector
+    JOIN query
+    ON query.y = EnumeratedNoteVector.y
+    AND EnumeratedNoteVector.x > 0
+    AND EnumeratedNoteVector.x < 2.5
+    AND (query.x = 0.5 OR query.l[0]=2)
+), k_tables(pid, last_p, t_notes) AS (
+        SELECT
+            pid,
+            p_notes[3:4],
+            t_notes
+        FROM vecs
+        UNION
+            SELECT
+                vecs.pid,
+                vecs.p_notes[3:4],
+                k_tables.t_notes || vecs.t_notes[3:4]
+            FROM k_tables JOIN vecs
+            ON k_tables.pid = vecs.pid
+            AND k_tables.last_p = vecs.p_notes[1:2]
+            AND k_tables.t_notes[array_length(k_tables.t_notes, 1) - 1 : array_length(k_tables.t_notes, 1)] = vecs.t_notes[1:2]
+    )
+SELECT pid, t_notes FROM k_tables WHERE array_length(t_notes, 1) = 12;
+$$ LANGUAGE SQL;

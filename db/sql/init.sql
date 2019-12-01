@@ -48,3 +48,16 @@ CREATE TABLE IF NOT EXISTS NoteVector (
     l POINT,
     r POINT
 );
+
+CREATE TABLE IF NOT EXISTS EnumeratedNoteVector (
+    pid INTEGER,
+    x NUMERIC,
+    y INTEGER,
+    l POINT,
+    r POINT,
+    l_nid INTEGER,
+    r_nid INTEGER,
+    FOREIGN KEY (pid, l_nid) REFERENCES Note(pid, nid),
+    FOREIGN KEY (pid, r_nid) REFERENCES Note(pid, nid),
+    PRIMARY KEY (pid, l_nid, r_nid)
+);

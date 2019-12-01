@@ -130,3 +130,11 @@ def generate_notevectors(points):
         l_note = Note.from_point_str(-1, l)
         r_note = Note.from_point_str(-1, r)
         yield (r_note.onset - l_note.onset, r_note.pitch - l_note.pitch, l, r)
+
+def generate_enumerated_notevectors(points):
+    enumerated_points = list(enumerate(points))
+    for (l_i, l), (r_i, r) in combinations(enumerated_points, 2): 
+        l_note = Note.from_point_str(l_i, l)
+        r_note = Note.from_point_str(r_i, r)
+        yield (r_note.onset - l_note.onset, r_note.pitch - l_note.pitch, l_i, r_i)
+
