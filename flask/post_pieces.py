@@ -55,18 +55,18 @@ def parse_palestrina_path(piece_path):
 def post_piece_octet_stream(path, endpoint=ENDPOINT):
     if os.getenv("PARSE_ELVIS"):
         metadata = parse_elvis_piece_path(path)
-        endpoint = f"http://{ENDPOINT}/index/{str(metadata.index)}"
+        endpoint = f"{ENDPOINT}/index/{str(metadata.index)}"
     elif os.getenv("PARSE_CHORALE"):
         metadata = parse_kern_chorale_piece_path(path)
-        endpoint = f"http://{ENDPOINT}/index/{str(metadata.index)}"
+        endpoint = f"{ENDPOINT}/index/{str(metadata.index)}"
     elif os.getenv("PARSE_PALESTRINA"):
         metadata = parse_palestrina_path(path)
         print(f"posting to collection {metadata.collection_id} without index arg")
-        endpoint = f"http://{ENDPOINT}/index"
+        endpoint = f"{ENDPOINT}/index"
     else:
         print("posting to collection 0 without index arg")
         metadata = Metadata(None, path[-3:], path, 0)
-        endpoint = f"http://{ENDPOINT}/index"
+        endpoint = f"{ENDPOINT}/index"
 
     data = b''
     metadata_http = bytes(json.dumps({
@@ -90,9 +90,9 @@ def post_piece_octet_stream(path, endpoint=ENDPOINT):
 def post_piece_multipart_formdata(path, endpoint=ENDPOINT):
     if os.getenv("PARSE_ELVIS"):
         index, fmt, name = parse_piece_path(path)
-        endpoint = f"http://{ENDPOINT}/index/{str(index)}"
+        endpoint = f"{ENDPOINT}/index/{str(index)}"
     else:
-        endpoint = f"http://{ENDPOINT}/index"
+        endpoint = f"{ENDPOINT}/index"
 
     with open(path, 'rb') as f:
         data = f.read()
