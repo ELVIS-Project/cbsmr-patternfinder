@@ -5,8 +5,8 @@ import base64
 import psycopg2.extensions
 import ast
 from itertools import combinations
-from smrpy import indexers
-from smrpy import smr_pb2
+import smrpy
+from proto import smr_pb2
 from dataclasses import dataclass
 
 def m21_score_to_xml_write(m21_score):
@@ -30,7 +30,7 @@ class Piece:
     stream = music21.converter.parse(self.data)
     stream.makeNotation(inPlace=True)
     self.music21_xml = m21_score_to_xml_write(self.to_m21_xml())
-    self.notes = [Note(n.offset, n.offset + n.duration.quarterLength, n.pitch.ps, i) for i, n in enumerate(indexers.NotePointSet(stream))]
+    self.notes = [smrpy.piece.Note(n.offset, n.offset + n.duration.quarterLength, n.pitch.ps, i) for i, n in enumerate(smrpy.indexers.NotePointSet(stream))]
   
   def insert_str(self):
     if self.pid: 
@@ -55,7 +55,7 @@ class Piece:
         """, types[1:], values[1:])
 
     def to_m21_xml(self):
-        return indexers.m21_xml(self.stream)
+        return smrpy.indexers.m21_xml(self.stream)
 
 @dataclass
 class Note:

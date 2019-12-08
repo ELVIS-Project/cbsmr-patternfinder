@@ -5,7 +5,6 @@ import os
 from functools import partial
 from errors import *
 from flask import url_for, request
-from excerpt import coloured_excerpt
 from dataclasses import dataclass, fields, asdict
 
 @dataclass
@@ -51,21 +50,6 @@ def pb_occ_to_json(db_conn, pb_occ, get_excerpt):
             resp["name"] = name[0]
         else:
             resp["name"] = "no name info"
-
-    if get_excerpt:
-        try:
-            raise Exception("skipping server-side rendering")
-            xml = coloured_excerpt(db_conn, excerptIndices, pb_occ.pid)
-        except Exception as e:
-            b64_xml = "excerpt failed: " + str(e)
-            resp["excerptFailed"] = True
-        else:
-            b64_xml = base64.b64encode(bytes(xml, encoding='utf-8')).decode('utf-8')
-            resp["excerptSkipped"] = False
-    else:
-        b64_xml = ""
-
-    resp["xmlBase64"] = b64_xml
 
     return resp
 

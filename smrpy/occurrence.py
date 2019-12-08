@@ -2,7 +2,7 @@ import sys
 import ast
 from dataclasses import dataclass
 from smrpy.piece import Note
-from smrpy import smr_pb2, indexers
+from smrpy import indexers
 
 @dataclass
 class OccurrenceFilters:
@@ -33,7 +33,3 @@ def filter_by_num_notes(query_pb_notes, pb_occ, inexact):
 def notes_from_points(inp):
     tuple_list = map(lambda string_tuple: ast.literal_eval(string_tuple), inp)
     return [Note(p[0], None, p[1], i) for i, p in enumerate(tuple_list)]
-
-def occ_to_occpb(occ):
-    notes = [note.to_pb(-1) for note in zip(notes_from_points(occ["notes"]))]
-    return smr_pb2.Occurrence(pid=occ["pid"], notes=notes)

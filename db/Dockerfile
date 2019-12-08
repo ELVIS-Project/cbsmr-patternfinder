@@ -21,5 +21,8 @@ RUN pip3 install -r /smrpy/requirements.txt
 ADD setup.py .
 RUN pip3 install -e .
 
+ADD ./db/plpyext /db/plpyext
+ENV PYTHONPATH=/db
+
 COPY --from=verovio /usr/local/bin/verovio /usr/local/bin/verovio
 COPY --from=verovio /usr/local/share/verovio /usr/local/share/verovio

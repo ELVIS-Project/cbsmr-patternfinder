@@ -20,12 +20,12 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER index_piece_after_insert AFTER INSERT OR UPDATE OF symbolic_data ON Piece FOR EACH ROW EXECUTE PROCEDURE index_piece_after_insert();
 
 CREATE OR REPLACE FUNCTION symbolic_data_to_m21_xml(symbolic_data TEXT) RETURNS TEXT AS $$
-    from smrpy import symbolic_data_to_m21_xml
+    from plpyext import symbolic_data_to_m21_xml
     return symbolic_data_to_m21_xml(symbolic_data)
 $$ LANGUAGE plpython3u IMMUTABLE STRICT;
 
 CREATE OR REPLACE FUNCTION smrpy_excerpt(m21_xml TEXT, nids INTEGER[], measure_start INTEGER, measure_end INTEGER, color TEXT) RETURNS TEXT AS $$
-    from smrpy import excerpt
+    from plpyext import excerpt
     return excerpt(m21_xml, nids, measure_start, measure_end, color)
 $$ LANGUAGE plpython3u IMMUTABLE STRICT;
 
@@ -42,11 +42,11 @@ CREATE OR REPLACE FUNCTION colored_excerpt(pid INTEGER, nids INTEGER[], color TE
 $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION generate_notes(symbolic_data TEXT) RETURNS SETOF Note AS $$
-    from smrpy import generate_notes
+    from plpyext import generate_notes
     return generate_notes(symbolic_data)
 $$ LANGUAGE plpython3u IMMUTABLE STRICT;
 
 CREATE OR REPLACE FUNCTION smrpy_measure_onset_map(symbolic_data TEXT) RETURNS SETOF MeasureOnsetMap AS $$
-    from smrpy import measure_onset_map
+    from plpyext import measure_onset_map
     return measure_onset_map(symbolic_data)
 $$ LANGUAGE plpython3u IMMUTABLE STRICT;

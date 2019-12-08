@@ -1,5 +1,5 @@
 webclient/node_modules
-db
+db/postgres-data
 venv
 .git/modules/search/verovio
 smr/bolt/

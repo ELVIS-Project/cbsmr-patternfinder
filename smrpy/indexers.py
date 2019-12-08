@@ -5,7 +5,8 @@ import csv
 import music21
 import pandas as pd
 import numpy as np
-from smrpy.piece import Note
+import smrpy
+from proto import smr_pb2
 from itertools import groupby
 
 us = music21.environment.UserSettings()
@@ -198,7 +199,7 @@ def m21_xml(stream):
     nps_sorted_by_onid = sorted(nps, key=sort_by_onid)
     for og_nid, nps_notes in groupby(nps_sorted_by_onid, key=sort_by_onid):
         for nps_note in nps_notes:
-            note = Note.from_m21(nps_note, nps_ids.index(nps_note.id))
+            note = smrpy.piece.Note.from_m21(nps_note, nps_ids.index(nps_note.id))
             note_comment = music21.editorial.Comment(f"nid={note.index}")
             og_note = list(stream.flat.notes)[[n.id for n in list(stream.flat.notes)].index(og_nid)]
             og_note.editorial.footnotes.append(note_comment)

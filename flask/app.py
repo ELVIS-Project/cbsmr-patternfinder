@@ -8,7 +8,6 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
 from smrpy.occurrence import filter_occurrences, OccurrenceFilters
-from excerpt import coloured_excerpt
 from binascii import unhexlify
 from dataclasses import dataclass, fields
 import json
