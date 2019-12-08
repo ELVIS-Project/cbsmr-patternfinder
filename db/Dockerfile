@@ -16,8 +16,10 @@ RUN pip3 install pandas
 RUN pip3 install music21
 
 ADD smrpy /smrpy
-ENV PYTHONPATH=/
+ADD proto /proto
 RUN pip3 install -r /smrpy/requirements.txt
+ADD setup.py .
+RUN pip3 install -e .
 
 COPY --from=verovio /usr/local/bin/verovio /usr/local/bin/verovio
 COPY --from=verovio /usr/local/share/verovio /usr/local/share/verovio

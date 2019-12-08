@@ -31,7 +31,7 @@ RUN make proto/smr_pb2.py proto/smr_pb2_grpc.py
 
 ADD ./flask/requirements.txt ./flask/requirements.txt
 RUN pip3 install -r ./flask/requirements.txt
-
+RUN pip3 install -r ./smrpy/requirements.txt
 ADD setup.py .
 RUN pip3 install -e .
 
