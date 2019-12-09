@@ -131,9 +131,14 @@ def index(piece_id):
         return Response("Failed to find piece data in POST request body", status=400)
 
     try:
+        # music21 wants midi data as bytes
         p = piece.Piece(symbolic_data, metadata.Metadata(**metadata_dict))
     except Exception as e:
-        return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
+        try:
+            # but wants (krn,xml) as a string
+            p = piece.Piece(symbolic_data.decode('utf-8'), metadata.Metadata(**metadata_dict))
+        except Exception as e:
+            return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
 
     logger.info(f"POST /index/<piece_id>: inserting piece of size {len(symbolic_data)} bytes, with metadata {metadata_dict}")
 
