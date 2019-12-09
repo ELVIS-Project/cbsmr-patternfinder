@@ -7,7 +7,7 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, render_template
 from errors import *
-from smrpy.occurrence import filter_occurrences, OccurrenceFilters
+from smrpy import occurrence, piece, metadata
 from binascii import unhexlify
 from dataclasses import dataclass, fields
 import json
@@ -88,10 +88,7 @@ def index(piece_id):
     db_conn = connect_to_psql()
 
     symbolic_data = None
-    metadata = {
-        "filename": None,
-        "collection": None
-    }
+    metadata_dict = {}
 
     # :ref https://werkzeug.palletsprojects.com/en/0.14.x/request_data/#how-does-it-parse
     if request.content_type == "multipart/form-data":
@@ -127,48 +124,39 @@ def index(piece_id):
         except ValueError:
             return Response(f"Request is malformed. It must have exactly one occurrence of the following byte string separating the JSON metadata and piece data, and this separator cannot be contained in the data itself: {SEPARATOR}")
         metadata_req = json.loads(metadata_bytes.decode("utf-8"))
-        metadata.update(metadata_req)
+        metadata_dict.update(metadata_req)
     else:
         return Response(f"Unsupported Content-Type: {request.content_type}", 415)
     if not symbolic_data:
         return Response("Failed to find piece data in POST request body", status=400)
 
     try:
-        m21_score = indexers.parse(symbolic_data)
+        p = piece.Piece(symbolic_data, metadata.Metadata(**metadata_dict))
     except Exception as e:
-        try:
-            m21_score = indexers.parse(symbolic_data.decode('utf-8'))
-        except Exception as e:
-            return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
+        return Response(f"failed to parse symbolic data with music21: {str(e)}", status=415)
 
-    logger.info(f"POST /index/<piece_id>: inserting piece of size {len(symbolic_data)} bytes, with metadata {metadata}")
+    logger.info(f"POST /index/<piece_id>: inserting piece of size {len(symbolic_data)} bytes, with metadata {metadata_dict}")
 
-    xml = m21_score_to_xml_write(m21_score)
-    data = base64.b64encode(xml).decode('utf-8')
     with db_conn, db_conn.cursor() as cur:
         if piece_id:
-            values = (piece_id, data, metadata['filename'], metadata['collection'])
+            values = (piece_id, base64.b64encode(symbolic_data).decode('utf-8'), metadata_dict['name'], metadata_dict['composer'], metadata_dict['fmt'], metadata_dict['filename'], metadata_dict['collection_id'])
             conflict_values = values[1:]
             cur.execute(f"""
-                INSERT INTO Piece (pid, symbolic_data, name, collection_id)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO Piece (pid, symbolic_data, name, composer, fmt, filename, collection_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ON CONSTRAINT piece_pkey DO
-                UPDATE SET (symbolic_data, name, collection_id) = (%s, %s, %s)
+                UPDATE SET (symbolic_data, name, composer, fmt, filename, collection_id) = (%s, %s, %s, %s, %s, %s)
             ;""", values + conflict_values)
         else:
-            values = (data, metadata['filename'], metadata['collection'])
-            conflict_values = values
+            values = (base64.b64encode(symbolic_data).decode('utf-8'), metadata_dict['name'], metadata_dict['composer'], metadata_dict['fmt'], metadata_dict['filename'], metadata_dict['collection_id'])
             cur.execute(f"""
-                INSERT INTO Piece (symbolic_data, name, collection_id)
-                VALUES (%s, %s, %s)
-                ON CONFLICT ON CONSTRAINT piece_pkey DO
-                UPDATE SET (symbolic_data, name, collection_id) = (%s, %s, %s)
+                INSERT INTO Piece (symbolic_data, name, composer, fmt, filename, collection_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING pid
-            ;""", values + conflict_values)
+            ;""", values)
             piece_id, = cur.fetchone()
 
-    sc = indexers.parse(xml)
-    pb_notes = indexers.pb_notes(sc)
+    pb_notes = [n.to_pb() for n in p.notes]
 
     with grpc.insecure_channel(application.config['SMR_URI']) as channel:
         stub = smr_pb2_grpc.SmrStub(channel)
@@ -242,14 +230,14 @@ def search():
         return Response(f"failed to search: {str(e)}", status=500)
 
     print("smr service returned #" + str(len(response.occurrences)) + " occurrences")
-    occfilters = OccurrenceFilters(
+    occfilters = occurrence.OccurrenceFilters(
             transpositions = range(*tnps_ints),
             intervening = intervening_ints,
             inexact = inexact_ints)
 
     search_response = build_response(
             db_conn,
-            filter_occurrences(response.occurrences, query_pb_notes, occfilters),
+            occurrence.filter_occurrences(response.occurrences, query_pb_notes, occfilters),
             qargs)
 
     if request.content_type == "application/json":

@@ -26,15 +26,16 @@ WORKDIR /cbsmr
 
 ADD ./Makefile .
 ADD ./proto ./proto
-ADD ./smrpy ./smrpy
 RUN make proto/smr_pb2.py proto/smr_pb2_grpc.py
 
 ADD ./flask/requirements.txt ./flask/requirements.txt
 RUN pip3 install -r ./flask/requirements.txt
+ADD ./smrpy/requirements.txt ./smrpy/requirements.txt
 RUN pip3 install -r ./smrpy/requirements.txt
 ADD setup.py .
 RUN pip3 install -e .
 
+ADD ./smrpy ./smrpy
 ADD ./flask/ ./flask/
 COPY --from=webapp-build /webclient/src/*.html /cbsmr/flask/templates/search.html
 COPY --from=webapp-build /webclient/dist/*.js /cbsmr/flask/templates/search.js

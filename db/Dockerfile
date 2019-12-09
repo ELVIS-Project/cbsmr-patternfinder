@@ -21,7 +21,8 @@ RUN pip3 install -r /smrpy/requirements.txt
 ADD setup.py .
 RUN pip3 install -e .
 
-ADD ./db/plpyext /db/plpyext
+ADD db/plpyext /db/plpyext
+ADD db/sql /docker-entrypoint-initdb.d/ 
 ENV PYTHONPATH=/db
 
 COPY --from=verovio /usr/local/bin/verovio /usr/local/bin/verovio

@@ -5,7 +5,7 @@ import base64
 import psycopg2.extensions
 import ast
 from itertools import combinations
-import smrpy
+from smrpy import piece, indexers, metadata
 from proto import smr_pb2
 from dataclasses import dataclass
 
@@ -19,32 +19,31 @@ def m21_score_to_xml_write(m21_score):
 @dataclass
 class Piece:
   data: str
-  pid: int = None
-  name: str = ""
-  fmt: str = ""
-  collection_id: int = 0
+  md: metadata.Metadata
   music21_xml: bytes = b''
   notes: tuple = ()
 
   def __post_init__(self):
     stream = music21.converter.parse(self.data)
     stream.makeNotation(inPlace=True)
-    self.music21_xml = m21_score_to_xml_write(self.to_m21_xml())
-    self.notes = [smrpy.piece.Note(n.offset, n.offset + n.duration.quarterLength, n.pitch.ps, i) for i, n in enumerate(smrpy.indexers.NotePointSet(stream))]
+    self.music21_xml = indexers.m21_xml(stream)
+    self.notes = [piece.Note(n.offset, n.offset + n.duration.quarterLength, n.pitch.ps, i) for i, n in enumerate(indexers.NotePointSet(stream))]
   
   def insert_str(self):
-    if self.pid: 
+    if self.md.pid: 
         vt = (
-            (self.pid, "integer"),
-            (self.fmt, "text"),
+            (self.md.pid, "integer"),
+            (self.md.fmt, "text"),
             (self.data, "text"),
             (base64.b64encode(self.music21_xml).decode('utf-8'), "text"),
-            (self.name, "text"),
-            (self.collection_id, "integer"))
+            (self.md.name, "text"),
+            (self.md.collection_id, "integer"))
         values, types = zip(*vt)
         return ("""
         INSERT INTO Piece (pid, fmt, symbolic_data, music21_xml, name, collection_id)
         VALUES(%s, %s, %s, %s, %s, %s)
+        ON CONFLICT ON CONSTRAINT piece_pkey DO
+        UPDATE SET (symbolic_data, name, composer, fmt, filename, collection_id) = (%s, %s, %s, %s, %s, %s)
         RETURNING pid;
         """, types, values)
     else:
@@ -53,9 +52,6 @@ class Piece:
         VALUES(%s, %s, %s, %s)
         RETURNING pid;
         """, types[1:], values[1:])
-
-    def to_m21_xml(self):
-        return smrpy.indexers.m21_xml(self.stream)
 
 @dataclass
 class Note:

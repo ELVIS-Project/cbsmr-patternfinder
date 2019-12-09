@@ -11,8 +11,12 @@ CREATE TRIGGER index_piece_before_insert BEFORE INSERT OR UPDATE OF symbolic_dat
 
 CREATE OR REPLACE FUNCTION index_piece_after_insert() RETURNS TRIGGER AS $$
 BEGIN
+    DELETE FROM Note WHERE pid=NEW.pid;
     INSERT INTO Note(pid, n, nid) SELECT NEW.pid, n, nid FROM generate_notes(NEW.music21_xml);
+
+    DELETE FROM MeasureOnsetMap WHERE pid=NEW.pid;
     INSERT INTO MeasureOnsetMap(pid, mid, onset) SELECT NEW.pid, mid, onset FROM smrpy_measure_onset_map(NEW.music21_xml);
+
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
