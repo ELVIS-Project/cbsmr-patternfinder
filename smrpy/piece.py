@@ -16,6 +16,19 @@ def m21_score_to_xml_write(m21_score):
     os.remove(o)
     return xml
 
+def symbolic_data_to_m21_xml(symbolic_data):
+    try:
+        # music21 wants midi data as bytes
+        stream = music21.converter.parse(symbolic_data)
+    except Exception as e:
+        # but wants (krn,xml) as a string
+        stream = music21.converter.parse(symbolic_data.decode('utf-8'))
+    stream.makeNotation(inPlace=True)
+
+    m21_xml = piece.m21_score_to_xml_write(stream)
+    mod_xml = indexers.m21_xml(music21.converter.parse(m21_xml))
+    return mod_xml.decode('utf-8')
+
 @dataclass
 class Piece:
   data: str
@@ -24,9 +37,8 @@ class Piece:
   notes: tuple = ()
 
   def __post_init__(self):
-    stream = music21.converter.parse(self.data)
-    stream.makeNotation(inPlace=True)
-    self.music21_xml = indexers.m21_xml(stream)
+    self.music21_xml = symbolic_data_to_m21_xml(self.data)
+    stream = music21.converter.parse(self.music21_xml)
     self.notes = [piece.Note(n.offset, n.offset + n.duration.quarterLength, n.pitch.ps, i) for i, n in enumerate(indexers.NotePointSet(stream))]
   
   def insert_str(self):

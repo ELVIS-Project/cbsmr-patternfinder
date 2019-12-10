@@ -186,16 +186,34 @@ class NotePointSet(music21.stream.Stream):
             self.insert(n)
 
 def m21_xml(stream):
+    # LOCALLY
+    # i used ../corpus/Palestrina
+    # m.77 gets nid 950
+    # 
+    # PROD
+    # i used elvisdump/MID/
+    # m.77 gets nid 895
+    # ~m.82 gets nid 950
+    # But, the measure onset map still points to measure 77
+    # so we get no colouration, even though the colours would be on the wrong notes.
+
+    # :bug
+    # is currently placing m.77 with nid 895 for missa assumpta est maria credo when parsing elvis
+    # locally, m.77 gets nid 950
+    # in production, m.77 gets nid 895
+    # 
+    # -- this isn't working locally anymore. what changed?
+    # -- 
+
+    og_notes = {n.id: n for n in stream.flat.notes}
     nps = list(NotePointSet(stream))
-    nps_ids = [n.id for n in nps]
+    nps_by_id = {n.id: n for n in nps}
     sort_by_onid = lambda n: n.original_note_id
     nps_sorted_by_onid = sorted(nps, key=sort_by_onid)
     for og_nid, nps_notes in groupby(nps_sorted_by_onid, key=sort_by_onid):
         for nps_note in nps_notes:
-            note = piece.Note.from_m21(nps_note, nps_ids.index(nps_note.id))
-            note_comment = music21.editorial.Comment(f"nid={note.index}")
-            og_note = list(stream.flat.notes)[[n.id for n in list(stream.flat.notes)].index(og_nid)]
-            og_note.editorial.footnotes.append(note_comment)
+            note_comment = music21.editorial.Comment(f"nid={nps_by_id[nps_note.id]}")
+            og_notes[og_nid].editorial.footnotes.append(note_comment)
     return piece.m21_score_to_xml_write(stream)
         
 
