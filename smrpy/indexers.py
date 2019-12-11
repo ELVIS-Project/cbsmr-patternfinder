@@ -207,12 +207,12 @@ def m21_xml(stream):
 
     og_notes = {n.id: n for n in stream.flat.notes}
     nps = list(NotePointSet(stream))
-    nps_by_id = {n.id: n for n in nps}
+    nps_by_id = {n.id: (i, n) for i, n in enumerate(nps)}
     sort_by_onid = lambda n: n.original_note_id
     nps_sorted_by_onid = sorted(nps, key=sort_by_onid)
     for og_nid, nps_notes in groupby(nps_sorted_by_onid, key=sort_by_onid):
         for nps_note in nps_notes:
-            note_comment = music21.editorial.Comment(f"nid={nps_by_id[nps_note.id]}")
+            note_comment = music21.editorial.Comment(f"nid={nps_by_id[nps_note.id][0]}")
             og_notes[og_nid].editorial.footnotes.append(note_comment)
     return piece.m21_score_to_xml_write(stream)
         
