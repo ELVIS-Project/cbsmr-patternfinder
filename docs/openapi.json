@@ -8,6 +8,17 @@
         "/index": {
             "post": {
                 "summary": "Add a piece",
+                "description": "This endpoint will add new pieces to the search application",
+                "requestBody": {
+                    "content": {
+                        "application/octet-stream": {
+                            "schema": {
+                                "type": "string",
+                                "description": "Hexadecimal string of metadata and then the piece data, separated by 90dc2e88fb6b4777432355a4bc7348fd17872e78905a7ec6626fe7b0f10a2e5a",
+                                "pattern": "[0-9a-fA-F]+",
+                            "examples": {
+                                "with_metadata": {
+                                    "summary": "",
                 "responses": {
                     "200": {
                         "description": "200 response",
@@ -50,10 +61,10 @@
         "/excerpt": {
             "get": {
                 "summary": "Highlighted Excerpt",
-                "parameters": {
+                "parameters": [
                     { "$ref": "#/components/parameters/nids" },
                     { "$ref": "#/components/parameters/pid" }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "200 response",
@@ -69,33 +80,57 @@
     },
     "components": {
         "parameters": {
+            "pid": {
+                "name": "pid",
+                "description": "A unique piece identifier",
+                "schema": {
+					"type": "number",
+					"minimum": 0,
+					"description": "Piece ID that contains this occurrence",
+					"example": 10912
+				}
+            },
+            "nids": {
+                "name": "nids",
+                "description": "A list of unique integer identifiers referring to notes within a piece",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "example": [950,951,952,953,954,955,956]
+                }
+            },
             "rpp": {
                 "name": "rpp",
                 "in": "query",
                 "description": "Results per page",
                 "schema": {
                     "type": "number",
-                    "minimum": 1
+                    "minimum": 1,
+					"example": 5
                 }
             },
             "page": {
                 "name": "page",
                 "in": "query",
-                "description": "The current page",
+                "description": "The current result page",
                 "schema": {
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+					"example": 2
                 }
             },
             "tnps": {
                 "name": "transpositions",
                 "in": "query",
-                "description": "List of acceptable transpositions to filter for",
+                "description": "Range of acceptable transpositions to filter for",
                 "schema": {
                     "type": "array",
                     "items": {
-                    "type": "number"
-                    }
+						"type": "number"
+                    },
+					"example": [0,5]
                 }
             },
             "intervening": {
@@ -105,8 +140,9 @@
                 "schema": {
                     "type": "array",
                     "items": {
-                    "type": "number"
-                    }
+						"type": "number"
+                    },
+					"example": [0,8]
                 }
             },
             "inexact": {
@@ -116,18 +152,20 @@
                 "schema": {
                     "type": "array",
                     "items": {
-                    "type": "number"
-                    }
+						"type": "number"
+                    },
+					"example": [0,4]
                 }
             },
             "collection": {
                 "name": "collection",
                 "in": "query",
-                "description": "The collection of pieces to search over",
+                "description": "The collection of pieces to search over. 0 for all pieces, 2 for Bach Chorales, 3 for Palestrina Masses",
                 "schema": {
                     "type": "number",
                     "minimum": 0
-                }
+                },
+				"example": 1
             },
             "query": {
                 "name": "query",
@@ -141,14 +179,16 @@
                 "type": "object",
                 "properties": {
                     "pid": {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "Piece ID that contains this occurrence"
+						"type": "number",
+						"minimum": 0,
+						"description": "Piece ID that contains this occurrence",
+                        "example": 10912
                     },
                     "excerptUrl": {
-                    "type": "string",
-                    "pattern": ".*/excerpt/.*",
-                    "description": "GET this url to fetch this occurrence's XML excerpt."
+						"type": "string",
+					    "pattern": ".*/excerpt/.*",
+                        "description": "GET this url to fetch this occurrence's XML excerpt.",
+                        "example": "/excerpt?pid=10912&nids=950,951,952,953,954,955,956"
                     }
                 }
             },
@@ -158,15 +198,18 @@
                     "query": { "$ref": "#/components/schemas/kernQuery" },
                     "pagination": { "$ref": "#/components/schemas/pagination" },
                     "numPages": {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "The number of pages returned in this search result"
+						"type": "number",
+						"minimum": 0,
+						"description": "The number of pages returned in this search result",
+						"example": "8"
                     },
                     "range": {
-                    "type": "array",
-                    "items": {
-                        "type": "number"
-                    }
+						"type": "array",
+                        "description": "The visible pagination buttons pointing to previous and next pages.",
+						"items": {
+							"type": "number"
+						},
+                        "example": [4,5,6]
                     }
                 }
             },
@@ -175,30 +218,37 @@
                 "properties": {
                     "numOccs": {
                         "type": "number",
+                        "description": "The total number of occurrences found.",
                         "minimum": 0
                     },
                     "cur": {
                         "type": "number",
+                        "description": "The current page.",
                         "minimum": 0
                     },
                     "previousLink": {
                         "type": "string",
+                        "description": "A hyperlink to the previous page.",
                         "pattern": ".*page?=.*"
                     },
                     "nextLink": {
                         "type": "string",
+                        "description": "A hyperlink to the next page.",
                         "pattern": ".*page?=.*"
                     },
                     "firstLink": {
                         "type": "string",
+                        "description": "A hyperlink to the first page.",
                         "pattern": ".*page?=1.*"
                     },
                     "lastLink": {
                         "type": "string",
+                        "description": "A hyperlink to the last page.",
                         "pattern": ".*page?=.*"
                     },
                     "pages": {
                         "type": "array",
+                        "description": "Lists of occurrences partitioned by page.",
                         "items": { "$ref": "#/components/schemas/page" }
                     }
                 }
@@ -210,6 +260,7 @@
             "kernQuery": {
                 "type": "string",
                 "pattern": ".*\\*\\*kern.*",
+				"example": "**kern\n*clefG2\n*k[]\n=-\n4c g\n4e\nf",
                 "description": "The **krn query that inquired this search response"
             }
         }
