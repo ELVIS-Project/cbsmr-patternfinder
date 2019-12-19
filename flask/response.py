@@ -17,6 +17,29 @@ class QueryArgs:
     collection: int
     query: str
 
+def build_sql_response(occs, qargs):
+    def sql_occ_to_json(o):
+        pid, excerptIndices = o
+        resp = {
+            "excerptFailed": False,
+            "excerptSkipped": True,
+            "name": "no name info",
+            "pid": pid,
+            "excerptUrl": url_for("excerpt", pid=pid, nid=",".join(str(x) for x in excerptIndices))
+        }
+        return resp
+
+    pagination = Pagination(len(occs), qargs)
+    pagination.pages = [
+            [sql_occ_to_json(o) for o in occs]
+            for i in range(pagination.numPages)]
+    return {
+            "query": qargs.query,
+            "pagination": asdict(pagination),
+            "numPages": pagination.numPages,
+            "range": pagination.range
+            }
+
 def build_response(db_conn, occs, qargs):
     pagination = Pagination(len(occs), qargs)
     pagination.pages = [

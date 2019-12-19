@@ -19,7 +19,7 @@ import time
 
 import grpc
 from proto import smr_pb2, smr_pb2_grpc
-from response import build_response, QueryArgs
+from response import build_response, build_sql_response, QueryArgs
 
 application = Flask(__name__)
 logger = application.logger
@@ -239,6 +239,53 @@ def search():
             db_conn,
             occurrence.filter_occurrences(response.occurrences, query_pb_notes, occfilters),
             qargs)
+
+    if request.content_type == "application/json":
+        return jsonify(search_response)
+    else:
+        return render_template("search.html", searchResponse = search_response)
+
+@application.route("/search_sql", methods=["GET"])
+def search_sql():
+    def qstring(ps):
+        return "'{" + ','.join(f'\"({x.onset},{x.pitch})\"' for x in ps) + "}'"
+    db_conn = connect_to_psql()
+
+    for arg in (x.name for x in fields(QueryArgs)):
+        missing = []
+        if not request.args.get(arg):
+            missing.append(arg)
+        if missing:
+            return Response(f"Missing GET parameter(s): {missing}", status=400)
+
+    try:
+        page = int(request.args.get("page"))
+        rpp = int(request.args.get("rpp"))
+        tnps = request.args.get("tnps").split(",")
+        tnps_ints = list(map(int, tnps))
+        tnps_ints[1] += 1 # increase range to include end
+        intervening = request.args.get("intervening").split(",")
+        intervening_ints = tuple(map(int, intervening))
+        inexact = request.args.get("inexact").split(",")
+        inexact_ints = tuple(map(int, inexact))
+        collection = int(request.args.get("collection"))
+        query_str = request.args.get("query")
+        qargs = QueryArgs(rpp, page, tnps, intervening, inexact, collection, query_str)
+    except ValueError as e:
+        return Response(f"Failed to parse parameter(s) to integer, got exception {str(e)}", status=400)
+
+    query_score = indexers.parse(query_str)
+    query_notes = [piece.Note.from_m21(n, i) for i, n in enumerate(indexers.NotePointSet(query_score))]
+
+    print("asking pg to search...")
+    with db_conn, db_conn.cursor() as cur:
+        cur.execute(f"""
+            SELECT pid, nids FROM search_sql({qstring(query_notes)})
+            WHERE array_length(nids, 1) >= 5;""")
+        occurrences = cur.fetchall()
+    print(f"got {len(occurrences)} results")
+
+    search_response = build_sql_response(occurrences, qargs)
 
     if request.content_type == "application/json":
         return jsonify(search_response)

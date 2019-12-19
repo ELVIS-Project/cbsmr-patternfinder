@@ -32,6 +32,7 @@ services:
     volumes:
       - ./db/postgres-data:/var/lib/postgresql/data
       - ./db/sql/:/docker-entrypoint-initdb.d/
+      - ./db/plpyext:/db/plpyext/
       - ./smrpy:/smrpy/
     ports:
         - '5432:5432'

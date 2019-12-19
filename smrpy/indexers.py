@@ -97,8 +97,8 @@ def parse_piece_path(piece_path):
 
     piece_id = base[0]
     name = base[1]
-	#name = base[1].replace('-', ' ')
-	#composer = base[2].replace('-', ' ')
+    #name = base[1].replace('-', ' ')
+    #composer = base[2].replace('-', ' ')
     composer = ""
     corpus = 'elvis'
 
@@ -162,6 +162,10 @@ class NotePointSet(music21.stream.Stream):
         sort_keyfunc = lambda n: ((n.offset + n.duration.quarterLength, n.pitch.frequency)
                 if offsetSort else (n.offset, n.pitch.frequency))
 
+        # Mark the Part context of each note
+        noteparts_by_id = {}
+        for note in score.recurse().getElementsByClass(('Note', 'Chord')): 
+            noteparts_by_id[note.id] = note.getContextByClass('Part') 
         # Get each note or chord, convert it to a tuple of notes, and sort them by the keyfunc
         new_notes = []
         for note in score.flat.notes:
@@ -173,6 +177,7 @@ class NotePointSet(music21.stream.Stream):
             # the decision making for occurrences later on.
             for n in to_add:
                 n.original_note_id = note.id
+                n.original_part = noteparts_by_id[note.id]
             new_notes.extend(to_add)
         new_notes.sort(key=sort_keyfunc)
 
