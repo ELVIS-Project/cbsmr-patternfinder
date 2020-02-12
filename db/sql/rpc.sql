@@ -55,6 +55,11 @@ CREATE OR REPLACE FUNCTION smrpy_measure_onset_map(symbolic_data TEXT) RETURNS S
     return measure_onset_map(symbolic_data)
 $$ LANGUAGE plpython3u IMMUTABLE STRICT;
 
+CREATE OR REPLACE FUNCTION smrpy_search(pids INTEGER[], p_binds INTEGER[][], t_binds INTEGER[][], p_vecs INTEGER[][], t_vecs INTEGER[][]) RETURNS TABLE(pid INTEGER, nids INTEGER[]) AS $$
+    from plpyext import search
+    search(pids, p_binds, t_binds, p_vecs, t_vecs)
+$$ LANGUAGE plpython3u;
+
 CREATE OR REPLACE FUNCTION search_sql_two(query POINT[], target_window INTEGER, within_part BOOLEAN) RETURNS TABLE(pid INTEGER, nids INTEGER[]) AS $$
 WITH RECURSIVE
 vecs AS (
@@ -69,8 +74,8 @@ vecs AS (
     WHERE ((EnumeratedNoteVector.x > 0 AND query.x > 0) OR (EnumeratedNoteVector.x = 0 AND query.x = 0))
     AND EnumeratedNoteVector.w <= target_window
 	AND (
-        (EnumeratedNoteVector.within_part IS TRUE AND search_sql_two.within_part IS TRUE)
-        OR (search_sql_two.within_part IS NOT TRUE)
+        (EnumeratedNoteVector.within_part AND search_sql_two.within_part)
+        OR (NOT search_sql_two.within_part)
     )
 ),
 extension AS (SELECT
