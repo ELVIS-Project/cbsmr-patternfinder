@@ -6,7 +6,7 @@ pid  |   p_notes   |   t_notes   | t_nids
 import itertools
 import heapq
 
-def search(p_nids, t_nids, len_pattern, threshold=4):
+def search(p_nids, t_nids, len_pattern, threshold):
 
     def should_discard_from_queue(row):
         if not queue:
@@ -28,7 +28,7 @@ def search(p_nids, t_nids, len_pattern, threshold=4):
     assert len(t_nids) > 0
 
     queue = []
-    results = {}
+    results = set()
     
     for (pl, pr), (tl, tr) in zip(p_nids, t_nids):
         heapq.heappush(queue, ((pr, tr, tl), (((pl, pr), (tl, tr)),)))
@@ -41,6 +41,7 @@ def search(p_nids, t_nids, len_pattern, threshold=4):
 
         (pl, pr), (tl, tr) = table_row
         if pl < queue[0][0][0]:
+            #print("pl less than ", queue[0][0][0], " skipping...")
             continue
 
         while should_discard_from_queue(table_row):
@@ -52,24 +53,23 @@ def search(p_nids, t_nids, len_pattern, threshold=4):
 
         while should_extend_from_queue(table_row):
             _, candidate_chain = heapq.heappop(queue)
-            #print("binding onto ", candidate_chain)
-            if len(candidate_chain) > max_length_so_far:
+            if len(candidate_chain) >= max_length_so_far:
                 max_chain = candidate_chain
-                max_length_so_far = len(candidate_chain)
+                max_length_so_far = len(max_chain)
+                new_chain = max_chain + (table_row,)
+                if len(new_chain) >= threshold:
+                    results.add(new_chain)
 
-            if len(max_chain) + 1 >= threshold:
-                results[candidate_chain[0]] = max_chain
-
-            (pl, pr), (tl, tr) = table_row
-            #print("pushing ", max_chain + (table_row,))
-            heapq.heappush(queue, ((pr, tr, tl), max_chain + (table_row,)))
+                (pl, pr), (tl, tr) = table_row
+                #print("pushing ", new_chain)
+                heapq.heappush(queue, ((pr, tr, tl), new_chain))
 
     return results
 
 def test_search():
     def compute_vectors(pattern, target):
-        p_vecs = [(si, ei, x2 - x1, y2 - y1) for (si, (x1, y1)), (ei, (x2, y2)) in itertools.combinations(enumerate(pattern), 2)]
-        t_vecs = [(si, ei, x2 - x1, y2 - y1) for (si, (x1, y1)), (ei, (x2, y2)) in itertools.combinations(enumerate(target), 2)]
+        p_vecs = [(si, ei, x2 - x1, y2 - y1) for (si, (x1, y1)), (ei, (x2, y2)) in itertools.combinations(enumerate(pattern), 2) if ei - si < 5]
+        t_vecs = [(si, ei, x2 - x1, y2 - y1) for (si, (x1, y1)), (ei, (x2, y2)) in itertools.combinations(enumerate(target), 2) if ei - si < 5]
 
         tables = []
         for psi, pei, px, py in p_vecs:
@@ -129,9 +129,12 @@ def test_search():
         (8.5,72.0)
     ]
 
-    print("")
+    p_nids, t_nids = compute_vectors(pattern, target)
+    results = search(p_nids, t_nids, len(pattern))
+    for v in results:
+        print(v)
     import time
-    for multiplier in range(1, 20):
+    for multiplier in range(1, 100):
         multiplied_target = target * multiplier
         p_nids, t_nids = compute_vectors(pattern, multiplied_target)
     
@@ -144,26 +147,3 @@ def test_search():
             total += (et - st) / num_trials
 
         print(multiplier, len(multiplied_target), total)
-
-    #for _, v in results.items():
-    #    print(v)
-
-
-"""
-Grouped vecs as
-    SELECT
-        pid,
-        MIN(p_notes ORDER BY t_notes ASC) AS p_notes,
-        MIN(t_notes ORDER BY t_notes ASC) AS t_notes
-    FROM vecs
-    GROUP BY (pid, p_notes[1:2], t_notes[1:2])
-"""
-
-"""
-    vec_dict = {(pid, p_bind, t_bind): (p_vecs, t_vecs) for pid, p_bind, t_bind, p_vecs, t_vecs in zip(pids, p_binds, t_binds, p_vecs, t_vecs)}
-    for i in range(4):
-        for pid, p_vec, t_vec in zip(pids, p_vecs, t_vecs):
-            key = (pid, p_vec[1:2], t_vec[1:2])
-            if vec_dict.get(key)
-                vec_dict[key] = vec_dict.get(key) + (p_vec[3:4], t_vec[3:4])
-"""
