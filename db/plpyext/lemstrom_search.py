@@ -215,8 +215,8 @@ def test_search_with_points():
 
 def test_search():
     def compute_vectors(pattern, target):
-        p_vecs = [(si, ei, x2 - x1, y2 - y1) for (si, (x1, y1)), (ei, (x2, y2)) in itertools.combinations(enumerate(pattern), 2) if ei - si < 5]
-        t_vecs = [(si, ei, x2 - x1, y2 - y1) for (si, (x1, y1)), (ei, (x2, y2)) in itertools.combinations(enumerate(target), 2) if ei - si < 5]
+        p_vecs = [(si, ei, x2 - x1, y2 - y1) for (si, (x1, y1)), (ei, (x2, y2)) in itertools.combinations(enumerate(pattern), 2) if ei - si < 8]
+        t_vecs = [(si, ei, x2 - x1, y2 - y1) for (si, (x1, y1)), (ei, (x2, y2)) in itertools.combinations(enumerate(target), 2) if ei - si < 8]
 
         tables = []
         for psi, pei, px, py in p_vecs:
@@ -281,19 +281,40 @@ def test_search():
     for v in results:
         print(v)
 
-    """
-    import time
-    for multiplier in range(1, 10):
-        multiplied_target = target * multiplier
-        p_nids, t_nids = compute_vectors(pattern, multiplied_target)
-    
-        total = 0
-        num_trials = 10
-        for _ in range(num_trials):
+    def test_palestrina():
+        import os
+        import time
+        import music21
+        from smrpy import indexers
+        masses = os.listdir('tests/testdata/palestrina_masses/mid')
+        avg_time = 0
+        for m in masses:
+            target = list()
+            nps = indexers.NotePointSet(music21.converter.parse('tests/testdata/palestrina_masses/mid/' + m))
+            for n in nps:
+                target.append((float(n.offset), int(n.pitch.ps)))
+            p_nids, t_nids = compute_vectors(pattern, target)
             st = time.time()
             results = search(p_nids, t_nids, len(pattern), 5)
             et = time.time()
-            total += (et - st) / num_trials
+            avg_time += (et - st) / len(m)
+            print(et - st)
+        print(avg_time)
+    test_palestrina()
 
-        print(multiplier, len(multiplied_target), total)
-    """
+
+    def multiply_target():
+        import time
+        for multiplier in range(1, 10):
+            multiplied_target = target * multiplier
+            p_nids, t_nids = compute_vectors(pattern, multiplied_target)
+        
+            total = 0
+            num_trials = 10
+            for _ in range(num_trials):
+                st = time.time()
+                results = search(p_nids, t_nids, len(pattern), 5)
+                et = time.time()
+                total += (et - st) / num_trials
+
+            print(multiplier, len(multiplied_target), total)
