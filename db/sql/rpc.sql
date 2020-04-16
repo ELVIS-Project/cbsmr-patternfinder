@@ -55,6 +55,26 @@ CREATE OR REPLACE FUNCTION smrpy_measure_onset_map(symbolic_data TEXT) RETURNS S
     return measure_onset_map(symbolic_data)
 $$ LANGUAGE plpython3u IMMUTABLE STRICT;
 
+CREATE OR REPLACE FUNCTION smrpy_search(p_nids INTEGER[], t_nids INTEGER[], len_pattern INTEGER, threshold INTEGER) RETURNS TABLE(nids INTEGER[]) AS $$
+    from plpyext import lemstrom_search
+    return lemstrom_search.search(p_nids, t_nids, len_pattern, threshold)
+$$ LANGUAGE plpython3u;
+
+CREATE OR REPLACE VIEW search AS
+	WITH vecs AS (
+		SELECT
+            EnumeratedNoteVector.pid,
+			array_agg(ARRAY[query.l_nid, query.r_nid] ORDER BY EnumeratedNoteVector.r_nid) AS p_nids,
+			array_agg(ARRAY[EnumeratedNoteVector.l_nid, EnumeratedNoteVector.r_nid] ORDER BY EnumeratedNoteVector.r_nid) AS t_nids
+		FROM index_query('{"(0.0, 67)", "(0.5, 70)", "(1.0, 69)", "(1.5, 62)", "(2.0, 69)", "(3.0, 67)"}', 2) AS query
+		JOIN EnumeratedNoteVector
+		ON query.y = EnumeratedNoteVector.y AND ((EnumeratedNoteVector.x > 0 AND query.x > 0) OR (EnumeratedNoteVector.x = 0 AND query.x = 0))
+		WHERE EnumeratedNoteVector.w < 3
+		GROUP BY EnumeratedNoteVector.pid
+	)
+
+	SELECT smrpy_search(vecs.p_nids, vecs.t_nids, 6, 5) FROM vecs WHERE pid=0;
+
 CREATE OR REPLACE FUNCTION smrpy_search(pids INTEGER[], p_binds INTEGER[][], t_binds INTEGER[][], p_vecs INTEGER[][], t_vecs INTEGER[][]) RETURNS TABLE(pid INTEGER, nids INTEGER[]) AS $$
     from plpyext import search
     search(pids, p_binds, t_binds, p_vecs, t_vecs)
